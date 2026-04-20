@@ -1675,7 +1675,7 @@ function schnellKalkulationBerechne() {
     { pos:'E8.02', beschreibung:'Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge: Math.round((zimmer+baeder)*1.8), materialpreis:42, stundensatz:65, stunden:0 }
   );
   if (jalousien) result.elektro.push(
-    { pos:'E1.02', beschreibung:'NYM-J 3×1,5mm² für Jalousien verlegen', einheit:'m', menge: Math.round(zimmer*6), materialpreis:3.80, stundensatz:65, stunden:0 }
+    { pos:'E1.21', beschreibung:'NYM-J 3×1,5mm² für Jalousien verlegen', einheit:'m', menge: Math.round(zimmer*6), materialpreis:3.80, stundensatz:65, stunden:0 }
   );
   if (knx) result.elektro.push(
     { pos:'E9.01', beschreibung:'KNX Tastsensor 2-fach UP einbauen u. programmieren', einheit:'Stk', menge: Math.round(raeume*0.7), materialpreis:185, stundensatz:65, stunden:0 },
@@ -1741,8 +1741,8 @@ function schnellKalkulationBerechne() {
 
   // ── MALER
   result.maler = [
-    { pos:'M2.01', beschreibung:'Wandfarbe Innen weiß 1-fach', einheit:'m²', menge: Math.round(m2*2.8), materialpreis:8.40, stundensatz:50, stunden:0 },
-    { pos:'M2.02', beschreibung:'Wandfarbe Innen weiß 2-fach', einheit:'m²', menge: Math.round(m2*1.8), materialpreis:14, stundensatz:50, stunden:0 },
+    { pos:'M3.01', beschreibung:'Wandfarbe Innen weiß 1-fach streichen', einheit:'m²', menge: Math.round(m2*2.8), materialpreis:8.40, stundensatz:50, stunden:0 },
+    { pos:'M3.02', beschreibung:'Wandfarbe Innen weiß 2-fach streichen', einheit:'m²', menge: Math.round(m2*1.8), materialpreis:14, stundensatz:50, stunden:0 },
     { pos:'M1.02', beschreibung:'Decke streichen weiß 2-fach', einheit:'m²', menge: Math.round(m2*1.0), materialpreis:10, stundensatz:50, stunden:0 },
     { pos:'M5.01', beschreibung:'Glattputz Innen einlagig bis 10mm', einheit:'m²', menge: Math.round(m2*0.5), materialpreis:22, stundensatz:50, stunden:0 },
   ];
@@ -1988,12 +1988,12 @@ function ekBerechne() {
     { pos:'E3.14', beschreibung:'Verdrahtungsmaterial / Sammelschienen pauschal', einheit:'Pauschal', menge:etagen, materialpreis:85, stundensatz:65, stunden:0 },
   ];
   if (total_jal > 0) positionen.push(
-    { pos:'E1.01b', beschreibung:'NYM-J 3×1,5mm² für Jalousien/Rollläden verlegen', einheit:'m', menge:Math.round(total_jal*10), materialpreis:3.80, stundensatz:65, stunden:0 }
+    { pos:'E1.21', beschreibung:'NYM-J 3×1,5mm² für Jalousien/Rollläden verlegen', einheit:'m', menge:Math.round(total_jal*10), materialpreis:3.80, stundensatz:65, stunden:0 }
   );
-  if (herd) positionen.push({ pos:'E1.04h', beschreibung:'Installationsleitung NYM-J 5×4mm² (Herd) verlegen', einheit:'m', menge:12, materialpreis:9.80, stundensatz:65, stunden:0 });
-  if (waschm) positionen.push({ pos:'E1.02w', beschreibung:'NYM-J 3×2,5mm² (Waschmaschine) verlegen', einheit:'m', menge:10, materialpreis:5.20, stundensatz:65, stunden:0 });
-  if (spuele) positionen.push({ pos:'E1.02s', beschreibung:'NYM-J 3×2,5mm² (Spülmaschine) verlegen', einheit:'m', menge:8, materialpreis:5.20, stundensatz:65, stunden:0 });
-  if (trockner) positionen.push({ pos:'E1.02t', beschreibung:'NYM-J 3×2,5mm² (Trockner) verlegen', einheit:'m', menge:8, materialpreis:5.20, stundensatz:65, stunden:0 });
+  if (herd) positionen.push({ pos:'E1.22', beschreibung:'Installationsleitung NYM-J 5×4mm² (Herd) verlegen', einheit:'m', menge:12, materialpreis:9.80, stundensatz:65, stunden:0 });
+  if (waschm) positionen.push({ pos:'E1.23', beschreibung:'NYM-J 3×2,5mm² (Waschmaschine) verlegen', einheit:'m', menge:10, materialpreis:5.20, stundensatz:65, stunden:0 });
+  if (spuele) positionen.push({ pos:'E1.24', beschreibung:'NYM-J 3×2,5mm² (Spülmaschine) verlegen', einheit:'m', menge:8, materialpreis:5.20, stundensatz:65, stunden:0 });
+  if (trockner) positionen.push({ pos:'E1.25', beschreibung:'NYM-J 3×2,5mm² (Trockner) verlegen', einheit:'m', menge:8, materialpreis:5.20, stundensatz:65, stunden:0 });
   if (fbh) positionen.push(
     { pos:'E8.01', beschreibung:'Raumthermostat UP digital einbauen u. anschließen', einheit:'Stk', menge:raeume.length, materialpreis:86, stundensatz:65, stunden:0 },
     { pos:'E8.02', beschreibung:'Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge:Math.round(raeume.length*1.8), materialpreis:42, stundensatz:65, stunden:0 }
