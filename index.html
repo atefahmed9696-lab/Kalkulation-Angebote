@@ -2954,6 +2954,9 @@ let grState = {
   snapEnabled: true
 };
 
+const GR_WALL_HEIGHT_M    = 3.5;   // assumed room height in metres for wall area calculation
+const GR_WALL_AREA_FACTOR = 0.8;   // net wall area factor (deducts doors/windows)
+
 /* ── Open / Close ────────────────────────────────────────────── */
 function openGrundrissEditor() {
   if (document.getElementById('grModal')) return;
@@ -3798,7 +3801,7 @@ function grToKalk() {
 
   // Maler – Wände und Decken
   if (totalRoomArea > 0.5) {
-    const wandfl = parseFloat((totalRoomArea * 3.5 * 0.8).toFixed(2));  // ~3.5m Höhe, 80% Nettofläche
+    const wandfl = parseFloat((totalRoomArea * GR_WALL_HEIGHT_M * GR_WALL_AREA_FACTOR).toFixed(2));
     daten.positionen.maler.push({
       id: ++posIdCounter, pos: 'GR',
       beschreibung: 'Wände streichen / tapezieren (aus Grundriss)',
