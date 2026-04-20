@@ -10,39 +10,53 @@
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       font-size: 14px;
-      background: #f0f2f5;
+      background: linear-gradient(160deg, #e8edf5 0%, #f0f2f5 60%, #e8eff8 100%);
+      min-height: 100vh;
       color: #222;
     }
     a { color: inherit; text-decoration: none; }
 
     /* ── Header ─────────────────────────────────────────────────── */
     header {
-      background: linear-gradient(135deg, #1a3a5c 0%, #2e6da4 100%);
+      background: linear-gradient(135deg, #12294a 0%, #1a3a5c 40%, #2e6da4 100%);
       color: #fff;
-      padding: 14px 24px;
+      padding: 0 24px;
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,.35);
+      box-shadow: 0 3px 12px rgba(0,0,0,.4);
       print-color-adjust: exact;
+      min-height: 62px;
     }
-    header h1 { font-size: 1.3rem; letter-spacing: .5px; }
-    header .logo { font-size: 1.8rem; margin-right: 12px; }
+    header h1 { font-size: 1.25rem; letter-spacing: .5px; }
+    header .logo { font-size: 1.9rem; margin-right: 12px; }
     header .header-left { display: flex; align-items: center; }
+    header .header-subtitle { font-size: 10.5px; opacity: .75; margin-top: 2px; }
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 16px; border-radius: 6px; border: none;
-      cursor: pointer; font-size: 13px; font-weight: 600;
-      transition: opacity .15s, transform .1s;
+      padding: 7px 14px; border-radius: 8px; border: none;
+      cursor: pointer; font-size: 12.5px; font-weight: 600;
+      transition: opacity .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
     }
-    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.22); }
     .btn:active { transform: translateY(0); }
     .btn-primary  { background: #fff; color: #1a3a5c; }
     .btn-success  { background: #27ae60; color: #fff; }
     .btn-warning  { background: #f39c12; color: #fff; }
     .btn-danger   { background: #e74c3c; color: #fff; }
+    .btn-info     { background: #8e44ad; color: #fff; }
+    .btn-teal     { background: #16a085; color: #fff; }
+    .btn-orange   { background: #d35400; color: #fff; }
     .btn-sm { padding: 4px 10px; font-size: 12px; }
-    .header-actions { display: flex; gap: 8px; }
+    .header-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    /* ── Header rows ─────────────────────────────────────────────── */
+    .header-main { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; flex: 1; }
+    .header-tools {
+      display: flex; gap: 6px; align-items: center;
+      padding: 8px 0 10px;
+      border-top: 1px solid rgba(255,255,255,.15);
+    }
 
     /* ── Layout ─────────────────────────────────────────────────── */
     .container { max-width: 1400px; margin: 0 auto; padding: 18px 16px; }
@@ -311,27 +325,126 @@
     }
     .modal-sel-btn:hover { background: #eef2fa; }
     @media print { .modal-overlay { display: none !important; } }
+
+    /* ── Wizard / Tool Modals ───────────────────────────────────── */
+    .modal-box-lg {
+      background: #fff; border-radius: 12px;
+      max-width: 900px; width: 100%;
+      max-height: 92vh; display: flex; flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0,0,0,.4);
+    }
+    .wiz-tabs { display: flex; gap: 0; border-bottom: 2px solid #e0e6f0; background: #f5f7fb; flex-shrink: 0; }
+    .wiz-tab-btn {
+      padding: 10px 18px; border: none; background: none; cursor: pointer;
+      font-size: 12.5px; font-weight: 600; color: #666;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: color .15s, border-color .15s;
+    }
+    .wiz-tab-btn.active { color: #1a3a5c; border-bottom-color: #2e6da4; background: #fff; }
+    .wiz-tab-btn:hover { color: #2e6da4; }
+
+    .wiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .wiz-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+    .wiz-field { display: flex; flex-direction: column; gap: 4px; }
+    .wiz-field label { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; }
+    .wiz-field input, .wiz-field select {
+      padding: 7px 10px; border: 1.5px solid #d0d7e2; border-radius: 7px;
+      font-size: 13px; background: #fafbfc;
+      transition: border-color .15s;
+    }
+    .wiz-field input:focus, .wiz-field select:focus {
+      outline: none; border-color: #2e6da4; background: #fff;
+    }
+    .wiz-section { margin-bottom: 20px; }
+    .wiz-section-title {
+      font-size: 12px; font-weight: 800; color: #1a3a5c;
+      text-transform: uppercase; letter-spacing: .5px;
+      padding: 6px 12px; background: #eef2fa;
+      border-left: 4px solid #2e6da4; border-radius: 0 6px 6px 0;
+      margin-bottom: 12px;
+    }
+    .wiz-info {
+      background: #e8f4fd; border: 1px solid #bee3f8; color: #1a3a5c;
+      padding: 10px 14px; border-radius: 8px; font-size: 12.5px;
+      margin-bottom: 14px; line-height: 1.6;
+    }
+    .wiz-result-box {
+      background: linear-gradient(135deg, #1a3a5c, #2e6da4);
+      color: #fff; border-radius: 10px; padding: 18px 22px;
+      margin-top: 16px;
+    }
+    .wiz-result-box h4 { font-size: 14px; margin-bottom: 12px; opacity: .9; }
+    .wiz-result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .wiz-result-item { background: rgba(255,255,255,.15); border-radius: 8px; padding: 10px 12px; }
+    .wiz-result-item .wri-label { font-size: 10px; opacity: .8; text-transform: uppercase; font-weight: 700; }
+    .wiz-result-item .wri-value { font-size: 1.35rem; font-weight: 900; margin-top: 3px; }
+    .wiz-result-item .wri-unit { font-size: 11px; opacity: .75; }
+    .wiz-warn { background: #fff3cd; border: 1px solid #ffc107; padding: 8px 12px; border-radius: 6px; font-size: 12.5px; color: #7d5a00; margin-bottom: 10px; }
+    .wiz-success { background: #d4edda; border: 1px solid #28a745; padding: 8px 12px; border-radius: 6px; font-size: 12.5px; color: #155724; margin-bottom: 10px; }
+    .hlb-input-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .hlb-result {
+      margin-top: 16px; padding: 18px; border-radius: 10px;
+      background: #f0faf5; border: 2px solid #27ae60;
+    }
+    .hlb-result h4 { color: #1a5c35; margin-bottom: 12px; font-size: 15px; }
+    .hlb-kw { font-size: 2.2rem; font-weight: 900; color: #1a5c35; }
+    .hlb-detail { font-size: 12px; color: #555; margin-top: 6px; line-height: 1.7; }
+    .hlb-recommend { margin-top: 10px; padding: 8px 12px; background: #fff; border-radius: 6px; border: 1px solid #bde; font-size: 12.5px; }
+    .checks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .check-item { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; }
+    .check-item input { cursor: pointer; width: 16px; height: 16px; }
+    /* konfigurator number-stepper */
+    .stepper { display: flex; align-items: center; gap: 4px; }
+    .stepper button { width: 26px; height: 26px; border: 1.5px solid #b0bfd8; background: #f7f9fc; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: 700; color: #1a3a5c; display: flex; align-items: center; justify-content: center; }
+    .stepper button:hover { background: #dce6f5; }
+    .stepper input { width: 52px; text-align: center; border: 1.5px solid #d0d7e2; border-radius: 5px; padding: 4px; font-size: 13px; }
+
+    /* ── Tools-Banner ───────────────────────────────────────────── */
+    .tools-banner {
+      background: linear-gradient(135deg, #12294a 0%, #1a3a5c 50%, #1d5080 100%);
+      border-bottom: 2px solid rgba(255,255,255,.1);
+      padding: 8px 24px;
+      display: flex; gap: 7px; align-items: center; flex-wrap: wrap;
+    }
+    .tools-banner .tl-label { color: rgba(255,255,255,.55); font-size: 11px; font-weight: 700; text-transform: uppercase; margin-right: 4px; }
+    @media print { .tools-banner { display: none !important; } }
+
+    /* ── Sum-card improvements ──────────────────────────────────── */
+    .sum-card { transition: box-shadow .2s; }
+    .sum-card:hover { box-shadow: 0 2px 10px rgba(46,109,164,.18); }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <span class="logo">🏗️</span>
-    <div>
-      <h1>Kalkulation &amp; Angebote</h1>
-      <div style="font-size:11px;opacity:.8">GU Sanierungsbetrieb – Alle Gewerke</div>
+  <div style="display:flex;flex-direction:column;width:100%">
+    <div class="header-main">
+      <div class="header-left">
+        <span class="logo">🏗️</span>
+        <div>
+          <h1>Kalkulation &amp; Angebote</h1>
+          <div class="header-subtitle">GU Sanierungsbetrieb – Alle Gewerke</div>
+        </div>
+      </div>
+      <div class="header-actions no-print">
+        <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
+        <button class="btn btn-warning" onclick="exportJSON()">📤 Exportieren</button>
+        <button class="btn btn-warning" onclick="importClick()">📥 Importieren</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn btn-success" onclick="window.print()">🖨️ Drucken / PDF</button>
+        <button class="btn btn-danger" onclick="allesZuruecksetzen()">🗑️ Zurücksetzen</button>
+      </div>
     </div>
   </div>
-  <div class="header-actions no-print">
-    <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
-    <button class="btn btn-warning" onclick="exportJSON()">📤 Exportieren</button>
-    <button class="btn btn-warning" onclick="importClick()">📥 Importieren</button>
-    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-    <button class="btn btn-success" onclick="window.print()">🖨️ Drucken / PDF</button>
-    <button class="btn btn-danger" onclick="allesZuruecksetzen()">🗑️ Zurücksetzen</button>
-  </div>
 </header>
+
+<!-- Tools-Leiste -->
+<div class="tools-banner no-print">
+  <span class="tl-label">🛠️ Tools:</span>
+  <button class="btn btn-teal" onclick="schnellKalkulationModal()">🏠 Schnellkalkulation</button>
+  <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
+  <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
+</div>
 
 <div class="container">
 
@@ -1428,8 +1541,724 @@ function showToast(msg) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Init
+   SCHNELLKALKULATION – komplettes Angebot nach m²
 ═══════════════════════════════════════════════════════════════ */
+function schnellKalkulationModal() {
+  const existing = document.getElementById('schnellModal');
+  if (existing) existing.remove();
+
+  const gewerkeOptions = GEWERKE.filter(g => !g.spezial).map(g =>
+    `<label class="check-item"><input type="checkbox" class="sk-gewerk" value="${g.id}" checked> ${g.label}</label>`
+  ).join('');
+
+  const m = document.createElement('div');
+  m.id = 'schnellModal';
+  m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal-box-lg">
+      <div class="modal-header">
+        <h3>🏠 Schnellkalkulation – Schlüsselfertiges Objekt</h3>
+        <button class="modal-close" onclick="document.getElementById('schnellModal').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wiz-info">
+          Gib die Eckdaten des Objekts ein. Das Tool berechnet automatisch realistische Mengen
+          für alle gewählten Gewerke und fügt diese als Musterpositionen ein.
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">📐 Objektdaten</div>
+          <div class="wiz-grid">
+            <div class="wiz-field">
+              <label>Wohnfläche (m²)</label>
+              <input type="number" id="sk_flaeche" value="100" min="20" max="2000" step="5">
+            </div>
+            <div class="wiz-field">
+              <label>Objekttyp</label>
+              <select id="sk_typ">
+                <option value="wohnung">Wohnung</option>
+                <option value="haus">Einfamilienhaus</option>
+                <option value="doppelhaus">Doppelhaushälfte</option>
+                <option value="mehrfam">Mehrfamilienhaus</option>
+              </select>
+            </div>
+            <div class="wiz-field">
+              <label>Bauzustand</label>
+              <select id="sk_zustand">
+                <option value="neubau">Neubau</option>
+                <option value="kernsanierung">Kernsanierung</option>
+                <option value="teilsanierung">Teilsanierung</option>
+              </select>
+            </div>
+            <div class="wiz-field">
+              <label>Stockwerke (inkl. EG)</label>
+              <input type="number" id="sk_etagen" value="1" min="1" max="5">
+            </div>
+            <div class="wiz-field">
+              <label>Anz. Zimmer (o. Bad/WC)</label>
+              <input type="number" id="sk_zimmer" value="4" min="1" max="20">
+            </div>
+            <div class="wiz-field">
+              <label>Anz. Badezimmer/WC</label>
+              <input type="number" id="sk_baeder" value="2" min="1" max="8">
+            </div>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">⚙️ Ausstattung</div>
+          <div class="checks-grid">
+            <label class="check-item"><input type="checkbox" id="sk_fbh" checked> Fußbodenheizung</label>
+            <label class="check-item"><input type="checkbox" id="sk_knx"> KNX Smart Home</label>
+            <label class="check-item"><input type="checkbox" id="sk_shelly"> Shelly Smart Home</label>
+            <label class="check-item"><input type="checkbox" id="sk_jalousien" checked> Jalousien/Rollläden</label>
+            <label class="check-item"><input type="checkbox" id="sk_demontage"> Demontage inklusive</label>
+            <label class="check-item"><input type="checkbox" id="sk_fassade"> Fassade inklusive</label>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🔨 Gewerke einbeziehen</div>
+          <div class="checks-grid">${gewerkeOptions}</div>
+        </div>
+        <div id="sk_preview"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="schnellKalkulationPreview()">👁️ Vorschau</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="document.getElementById('schnellModal').remove()">Abbrechen</button>
+          <button class="btn btn-success btn-sm" onclick="schnellKalkulationEinfuegen()">➕ Alle Positionen einfügen</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+  schnellKalkulationPreview();
+}
+
+function schnellKalkulationBerechne() {
+  const m2    = parseFloat(document.getElementById('sk_flaeche').value) || 100;
+  const etagen = parseInt(document.getElementById('sk_etagen').value) || 1;
+  const zimmer = parseInt(document.getElementById('sk_zimmer').value) || 4;
+  const baeder = parseInt(document.getElementById('sk_baeder').value) || 2;
+  const fbh    = document.getElementById('sk_fbh').checked;
+  const knx    = document.getElementById('sk_knx').checked;
+  const shelly = document.getElementById('sk_shelly').checked;
+  const jalousien = document.getElementById('sk_jalousien').checked;
+  const demontage = document.getElementById('sk_demontage').checked;
+  const fassade   = document.getElementById('sk_fassade').checked;
+
+  const raeume = zimmer + baeder + etagen; // total rooms incl. corridors
+  const flaecheJeEtage = m2 / etagen;
+
+  const result = {};
+
+  // ── ELEKTRO
+  result.elektro = [
+    { pos:'E1.01', beschreibung:'Installationsleitung NYM-J 3×1,5mm² UP verlegen', einheit:'m', menge: Math.round(m2*1.4), materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'E1.02', beschreibung:'Installationsleitung NYM-J 3×2,5mm² UP verlegen', einheit:'m', menge: Math.round(m2*0.9), materialpreis:5.20, stundensatz:65, stunden:0 },
+    { pos:'E1.03', beschreibung:'Installationsleitung NYM-J 5×2,5mm² UP verlegen', einheit:'m', menge: Math.round(m2*0.15+baeder*3), materialpreis:7.40, stundensatz:65, stunden:0 },
+    { pos:'E1.04', beschreibung:'Leerrohr-System ∅20mm im Mauerwerk', einheit:'m', menge: Math.round(m2*0.5), materialpreis:3.20, stundensatz:65, stunden:0 },
+    { pos:'E2.01', beschreibung:'Schutzkontaktsteckdose UP 1-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(8, Math.round(zimmer*4+baeder*3)), materialpreis:42, stundensatz:65, stunden:0 },
+    { pos:'E2.02', beschreibung:'Schutzkontaktsteckdose UP 2-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(4, Math.round(zimmer*2)), materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'E2.05', beschreibung:'Wechselschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(4, raeume), materialpreis:40, stundensatz:65, stunden:0 },
+    { pos:'E2.09', beschreibung:'Netzwerkdose CAT7 UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(3, zimmer+1), materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'E2.10', beschreibung:'SAT-Antennendose UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(2, zimmer), materialpreis:48, stundensatz:65, stunden:0 },
+    { pos:'E3.03', beschreibung:'Unterverteiler 4-reihig UP bestückt', einheit:'Stk', menge: etagen, materialpreis:520, stundensatz:65, stunden:0 },
+    { pos:'E3.08', beschreibung:'Leitungsschutzschalter B13A einbauen', einheit:'Stk', menge: Math.round(raeume*1.5), materialpreis:24, stundensatz:65, stunden:0 },
+    { pos:'E3.10', beschreibung:'FI-Schutzschalter 2-polig 25A/30mA einbauen', einheit:'Stk', menge: baeder, materialpreis:78, stundensatz:65, stunden:0 },
+    { pos:'E3.11', beschreibung:'FI-Schutzschalter 4-polig 40A/30mA einbauen', einheit:'Stk', menge: etagen, materialpreis:125, stundensatz:65, stunden:0 },
+    { pos:'E3.12', beschreibung:'Hauptschalter 63A einbauen', einheit:'Stk', menge:1, materialpreis:145, stundensatz:65, stunden:0 },
+    { pos:'E7.02', beschreibung:'LED-Einbaustrahler Spot 7W schwenkbar inkl. Einbaurahmen', einheit:'Stk', menge: Math.round(raeume*2.5), materialpreis:155, stundensatz:65, stunden:0 },
+    { pos:'E7.05', beschreibung:'LED-Streifen indirekte Beleuchtung verlegen u. anschließen', einheit:'m', menge: Math.round(m2*0.1), materialpreis:48, stundensatz:65, stunden:0 },
+    { pos:'E11.01', beschreibung:'Rauchmelder Funk, vernetzt einbauen', einheit:'Stk', menge: Math.max(2, zimmer+etagen), materialpreis:48, stundensatz:65, stunden:0 },
+  ];
+  if (fbh) result.elektro.push(
+    { pos:'E8.01', beschreibung:'Raumthermostat UP digital einbauen u. anschließen', einheit:'Stk', menge: zimmer+baeder, materialpreis:86, stundensatz:65, stunden:0 },
+    { pos:'E8.02', beschreibung:'Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge: Math.round((zimmer+baeder)*1.8), materialpreis:42, stundensatz:65, stunden:0 }
+  );
+  if (jalousien) result.elektro.push(
+    { pos:'E1.02', beschreibung:'NYM-J 3×1,5mm² für Jalousien verlegen', einheit:'m', menge: Math.round(zimmer*6), materialpreis:3.80, stundensatz:65, stunden:0 }
+  );
+  if (knx) result.elektro.push(
+    { pos:'E9.01', beschreibung:'KNX Tastsensor 2-fach UP einbauen u. programmieren', einheit:'Stk', menge: Math.round(raeume*0.7), materialpreis:185, stundensatz:65, stunden:0 },
+    { pos:'E9.04', beschreibung:'KNX Schaltaktor 4-fach 16A Schrank einbauen', einheit:'Stk', menge: etagen+1, materialpreis:285, stundensatz:65, stunden:0 },
+    { pos:'E9.08', beschreibung:'KNX Inbetriebnahme / Systemkonfiguration pauschal', einheit:'Pauschal', menge:1, materialpreis:850, stundensatz:65, stunden:0 }
+  );
+  if (shelly && !knx) result.elektro.push(
+    { pos:'E10.01', beschreibung:'Shelly 1 / 1PM UP-Aktor einbauen inkl. App-Einrichtung', einheit:'Stk', menge: Math.round(raeume*0.8), materialpreis:65, stundensatz:65, stunden:0 },
+    { pos:'E10.07', beschreibung:'Shelly App-Einrichtung, Szenen u. Automatisierungen pauschal', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:65, stunden:0 }
+  );
+  if (demontage) result.elektro.push(
+    { pos:'E12.01', beschreibung:'Leitungen / Kabel demontieren', einheit:'m', menge: Math.round(m2*0.8), materialpreis:4.50, stundensatz:65, stunden:0 },
+    { pos:'E12.03', beschreibung:'Steckdosen / Schalter demontieren', einheit:'Stk', menge: Math.round(zimmer*5+baeder*3), materialpreis:18, stundensatz:65, stunden:0 },
+    { pos:'E12.04', beschreibung:'Verteiler / Unterverteiler demontieren', einheit:'Stk', menge: etagen, materialpreis:95, stundensatz:65, stunden:0 }
+  );
+
+  // ── SANITÄR
+  result.sanitaer = [
+    { pos:'S3.01', beschreibung:'Kupferrohr 15mm verlegen', einheit:'m', menge: Math.round(baeder*12+3), materialpreis:22, stundensatz:70, stunden:0 },
+    { pos:'S3.04', beschreibung:'Mehrschichtverbundrohr 16mm verlegen', einheit:'m', menge: Math.round(m2*0.18), materialpreis:16, stundensatz:70, stunden:0 },
+    { pos:'S3.05', beschreibung:'Mehrschichtverbundrohr 20mm verlegen', einheit:'m', menge: Math.round(m2*0.1), materialpreis:19, stundensatz:70, stunden:0 },
+    { pos:'S2.01', beschreibung:'Abwasserrohr PP DN50 verlegen', einheit:'m', menge: Math.round(baeder*6+etagen*3), materialpreis:18, stundensatz:70, stunden:0 },
+    { pos:'S2.03', beschreibung:'Abwasserrohr PP DN100 verlegen', einheit:'m', menge: Math.round(etagen*4+3), materialpreis:35, stundensatz:70, stunden:0 },
+    { pos:'S4.01', beschreibung:'Installationselement WC, Unterputz', einheit:'Stk', menge: baeder, materialpreis:317, stundensatz:70, stunden:0 },
+    { pos:'S4.02', beschreibung:'WC / Toilette Keramik montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:285, stundensatz:70, stunden:0 },
+    { pos:'S4.03', beschreibung:'Waschtisch Sanitärporzellan 600×500mm', einheit:'Stk', menge: baeder, materialpreis:464, stundensatz:70, stunden:0 },
+    { pos:'S4.04', beschreibung:'Eckventil Waschbecken DN15 montieren (je Anschluss)', einheit:'Stk', menge: baeder*2, materialpreis:38, stundensatz:70, stunden:0 },
+    { pos:'S5.01', beschreibung:'Einhebelmischer Waschtisch Aufputz', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
+    { pos:'S5.03', beschreibung:'Einhebelmischer Küche schwenkbar', einheit:'Stk', menge:1, materialpreis:224, stundensatz:70, stunden:0 },
+  ];
+  if (demontage) result.sanitaer.push(
+    { pos:'S1.05', beschreibung:'Wasserleitung Kupfer demontieren', einheit:'m', menge: Math.round(baeder*12), materialpreis:8, stundensatz:70, stunden:0 },
+    { pos:'S1.06', beschreibung:'Abflussrohr PP demontieren', einheit:'m', menge: Math.round(baeder*8), materialpreis:7, stundensatz:70, stunden:0 }
+  );
+
+  // ── HEIZUNG
+  result.heizung = [
+    { pos:'H3.01', beschreibung:'Metallverbundrohr 15mm (DN15) verlegen', einheit:'m', menge: Math.round(m2*0.35), materialpreis:21, stundensatz:65, stunden:0 },
+    { pos:'H3.02', beschreibung:'Metallverbundrohr 20mm (DN20) verlegen', einheit:'m', menge: Math.round(m2*0.15), materialpreis:26, stundensatz:65, stunden:0 },
+    { pos:'H3.17', beschreibung:'Rohrisolierung DN15 (Schlauch)', einheit:'m', menge: Math.round(m2*0.3), materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'H5.01', beschreibung:'Thermostatventil DN15', einheit:'Stk', menge: zimmer+baeder, materialpreis:68, stundensatz:65, stunden:0 },
+  ];
+  if (fbh) {
+    result.heizung.push(
+      { pos:'H4.03', beschreibung:'Fußbodenheizung Nass-System 25mm', einheit:'m²', menge: Math.round(m2*0.85), materialpreis:44, stundensatz:65, stunden:0 },
+      { pos:'H4.05', beschreibung:'FBH-Verteiler 3-Kreise inkl. Stellantriebe u. Halterung', einheit:'Stk', menge: etagen, materialpreis:485, stundensatz:65, stunden:0 }
+    );
+  } else {
+    result.heizung.push(
+      { pos:'H4.01', beschreibung:'Flachheizkörper 600×600mm Typ 22', einheit:'Stk', menge: zimmer, materialpreis:285, stundensatz:65, stunden:0 }
+    );
+  }
+  if (demontage) result.heizung.push(
+    { pos:'H1.02', beschreibung:'Flachheizkörper demontieren bis 50kg', einheit:'Stk', menge: zimmer, materialpreis:47, stundensatz:65, stunden:0 }
+  );
+
+  // ── TROCKENBAU
+  result.trockenbau = [
+    { pos:'T2.01', beschreibung:'Montagewand GK einlagig 100mm', einheit:'m²', menge: Math.round(m2*0.4), materialpreis:64, stundensatz:55, stunden:0 },
+    { pos:'T3.01', beschreibung:'Decke abgehängt GK einlagig', einheit:'m²', menge: Math.round(m2*0.35), materialpreis:67, stundensatz:55, stunden:0 },
+    { pos:'T5.01', beschreibung:'Spachtelung GK-Platten Q2', einheit:'m²', menge: Math.round(m2*0.65), materialpreis:9.80, stundensatz:55, stunden:0 },
+  ];
+
+  // ── MALER
+  result.maler = [
+    { pos:'M2.01', beschreibung:'Wandfarbe Innen weiß 1-fach', einheit:'m²', menge: Math.round(m2*2.8), materialpreis:8.40, stundensatz:50, stunden:0 },
+    { pos:'M2.02', beschreibung:'Wandfarbe Innen weiß 2-fach', einheit:'m²', menge: Math.round(m2*1.8), materialpreis:14, stundensatz:50, stunden:0 },
+    { pos:'M1.02', beschreibung:'Decke streichen weiß 2-fach', einheit:'m²', menge: Math.round(m2*1.0), materialpreis:10, stundensatz:50, stunden:0 },
+    { pos:'M5.01', beschreibung:'Glattputz Innen einlagig bis 10mm', einheit:'m²', menge: Math.round(m2*0.5), materialpreis:22, stundensatz:50, stunden:0 },
+  ];
+  if (fassade) result.maler.push(
+    { pos:'M7.03', beschreibung:'Fassade streichen 2-fach Silikatfarbe', einheit:'m²', menge: Math.round(Math.sqrt(m2)*4*3*etagen), materialpreis:24, stundensatz:50, stunden:0 },
+    { pos:'M7.04', beschreibung:'Fassadendämmung WDVS EPS 100mm', einheit:'m²', menge: Math.round(Math.sqrt(m2)*4*2.5*etagen), materialpreis:98, stundensatz:50, stunden:0 }
+  );
+
+  // ── BODEN
+  result.boden = [
+    { pos:'B3.01', beschreibung:'Laminat 8mm AC4 verlegen', einheit:'m²', menge: Math.round(m2*0.55), materialpreis:58, stundensatz:45, stunden:0 },
+    { pos:'B5.01', beschreibung:'Sockel-/Fußleiste MDF lackiert montieren', einheit:'m', menge: Math.round(m2*0.55), materialpreis:28, stundensatz:45, stunden:0 },
+  ];
+
+  // ── FLIESEN
+  result.fliesen = [
+    { pos:'F3.03', beschreibung:'Bodenfliesen 60×60cm, Feinsteinzeug', einheit:'m²', menge: Math.round(m2*0.35), materialpreis:122, stundensatz:60, stunden:0 },
+    { pos:'F4.02', beschreibung:'Wandfliesen 30×60cm, Feinsteinzeug', einheit:'m²', menge: Math.round(baeder*16), materialpreis:98, stundensatz:60, stunden:0 },
+    { pos:'F2.01', beschreibung:'Verbundabdichtung 1-lagig Nassbereich', einheit:'m²', menge: Math.round(baeder*6), materialpreis:28, stundensatz:60, stunden:0 },
+  ];
+
+  // ── ABBRUCH (nur wenn Demontage gewählt)
+  if (demontage) {
+    result.abbruch = [
+      { pos:'A3.01', beschreibung:'Tapete entfernen (1 Lage)', einheit:'m²', menge: Math.round(m2*2.5), materialpreis:6.50, stundensatz:45, stunden:0 },
+      { pos:'A2.02', beschreibung:'Verbundestrich abbrechen bis 50mm', einheit:'m²', menge: Math.round(m2*0.6), materialpreis:28, stundensatz:45, stunden:0 },
+      { pos:'A6.03', beschreibung:'Sanitärobjekte Bad komplett demontieren', einheit:'Pauschal', menge: baeder, materialpreis:485, stundensatz:45, stunden:0 },
+      { pos:'A6.06', beschreibung:'Schuttabfuhr und Entsorgung', einheit:'t', menge: Math.round(m2*0.08), materialpreis:185, stundensatz:45, stunden:0 },
+    ];
+  }
+
+  // ── ROHBAU
+  result.rohbau = [
+    { pos:'R2.01', beschreibung:'Innenputz Gipsputz einlagig Q2-gefilzt', einheit:'m²', menge: Math.round(m2*2.2), materialpreis:26, stundensatz:55, stunden:0 },
+    { pos:'R1.01', beschreibung:'Innenwand KS 11,5cm nichttragend', einheit:'m²', menge: Math.round(m2*0.25), materialpreis:88, stundensatz:55, stunden:0 },
+  ];
+
+  // ── BODENPLATTE
+  result.bodenplatte = [
+    { pos:'BP5.01', beschreibung:'Zementestrich ZE 20 / 60mm auf Dämmung', einheit:'m²', menge: Math.round(flaecheJeEtage*0.95), materialpreis:36, stundensatz:55, stunden:0 },
+    { pos:'BP4.02', beschreibung:'Trittschalldämmung EPS T 30mm', einheit:'m²', menge: Math.round(flaecheJeEtage*0.95), materialpreis:9.80, stundensatz:55, stunden:0 },
+  ];
+
+  return result;
+}
+
+function schnellKalkulationPreview() {
+  const result = schnellKalkulationBerechne();
+  const box = document.getElementById('sk_preview');
+  if (!box) return;
+  const gewSelected = [...document.querySelectorAll('.sk-gewerk:checked')].map(c => c.value);
+  let html = '<div style="margin-top:10px">';
+  let totalMat = 0, totalPos = 0;
+  gewSelected.forEach(id => {
+    const items = result[id] || [];
+    if (!items.length) return;
+    const g = GEWERKE.find(g => g.id === id);
+    const matSum = items.reduce((s, p) => s + (p.menge * p.materialpreis), 0);
+    totalMat += matSum;
+    totalPos += items.length;
+    html += `<div style="display:flex;justify-content:space-between;padding:5px 8px;margin-bottom:3px;background:#f7f9fc;border-radius:5px;font-size:12.5px">
+      <span>${g.label}</span>
+      <span><b>${items.length} Pos.</b> · Material ca. ${matSum.toLocaleString('de-DE',{maximumFractionDigits:0})} €</span>
+    </div>`;
+  });
+  html += `<div style="display:flex;justify-content:space-between;padding:8px 10px;background:#1a3a5c;color:#fff;border-radius:6px;margin-top:8px;font-weight:700">
+    <span>Gesamt Positionen: ${totalPos}</span>
+    <span>Material ca. ${totalMat.toLocaleString('de-DE',{maximumFractionDigits:0})} €</span>
+  </div></div>`;
+  box.innerHTML = html;
+}
+
+function schnellKalkulationEinfuegen() {
+  const result = schnellKalkulationBerechne();
+  const gewSelected = [...document.querySelectorAll('.sk-gewerk:checked')].map(c => c.value);
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  let count = 0;
+  const m = document.getElementById('schnellModal');
+  if (m) m.remove();
+  gewSelected.forEach(id => {
+    const items = result[id] || [];
+    items.forEach(p => {
+      daten.positionen[id].push({ id: ++posIdCounter, ...p, stundensatz: stdSatz || p.stundensatz });
+      count++;
+    });
+    renderPositionen(id);
+  });
+  autoSave();
+  showToast(`✅ ${count} Positionen in ${gewSelected.length} Gewerke eingefügt`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ELEKTRO-KONFIGURATOR – Raumbasierter Wizard
+═══════════════════════════════════════════════════════════════ */
+function elektroKonfiguratorModal() {
+  const existing = document.getElementById('elektroKonfModal');
+  if (existing) existing.remove();
+
+  const m = document.createElement('div');
+  m.id = 'elektroKonfModal';
+  m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal-box-lg">
+      <div class="modal-header">
+        <h3>⚡ Elektro-Konfigurator – Standardinstallation</h3>
+        <button class="modal-close" onclick="document.getElementById('elektroKonfModal').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wiz-info">
+          Konfiguriere die Elektroinstallation raumweise. Der Konfigurator erstellt daraus automatisch alle benötigten Positionen.
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🏠 Gebäude</div>
+          <div class="wiz-grid">
+            <div class="wiz-field"><label>Wohnfläche (m²)</label><input type="number" id="ek_m2" value="100" min="20" max="2000"></div>
+            <div class="wiz-field"><label>Etagen (inkl. EG)</label><input type="number" id="ek_etagen" value="1" min="1" max="5"></div>
+            <div class="wiz-field"><label>Stockwerkhöhe (m)</label><input type="number" id="ek_hoehe" value="2.6" min="2.0" max="4.0" step="0.1"></div>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🛋️ Räume konfigurieren</div>
+          <div id="ek_raeume">
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+              <thead style="background:#1a3a5c;color:#fff">
+                <tr>
+                  <th style="padding:7px 8px;text-align:left">Raum</th>
+                  <th style="padding:7px 8px;text-align:center">Steckd. 1-fach</th>
+                  <th style="padding:7px 8px;text-align:center">Steckd. 2-fach</th>
+                  <th style="padding:7px 8px;text-align:center">Schalter</th>
+                  <th style="padding:7px 8px;text-align:center">Licht-Stromkrs.</th>
+                  <th style="padding:7px 8px;text-align:center">Netzwerk</th>
+                  <th style="padding:7px 8px;text-align:center">SAT/TV</th>
+                  <th style="padding:7px 8px;text-align:center">Jalousie</th>
+                </tr>
+              </thead>
+              <tbody id="ek_raum_tbody"></tbody>
+            </table>
+            <button class="btn btn-primary btn-sm no-print" style="margin-top:8px" onclick="ekAddRaum()">+ Raum hinzufügen</button>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">⚙️ Sonderpositionen</div>
+          <div class="checks-grid">
+            <label class="check-item"><input type="checkbox" id="ek_herd" checked> Herdanschluss 5×4mm²</label>
+            <label class="check-item"><input type="checkbox" id="ek_waschm" checked> Waschmaschine 3×2,5mm²</label>
+            <label class="check-item"><input type="checkbox" id="ek_spuele" checked> Spülmaschine 3×2,5mm²</label>
+            <label class="check-item"><input type="checkbox" id="ek_trockner"> Trockner 3×2,5mm²</label>
+            <label class="check-item"><input type="checkbox" id="ek_fbh" checked> FBH Thermostate</label>
+            <label class="check-item"><input type="checkbox" id="ek_leer" checked> Leerrohrsystem</label>
+            <label class="check-item"><input type="checkbox" id="ek_rauch" checked> Rauchmelder (vernetzt)</label>
+            <label class="check-item"><input type="checkbox" id="ek_klingel" checked> Klingelanlage</label>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🧠 Smart Home</div>
+          <div class="checks-grid">
+            <label class="check-item"><input type="radio" name="ek_sh" value="none" checked> Kein Smart Home</label>
+            <label class="check-item"><input type="radio" name="ek_sh" value="knx"> KNX (kabelgebunden)</label>
+            <label class="check-item"><input type="radio" name="ek_sh" value="shelly"> Shelly (kabellos)</label>
+          </div>
+        </div>
+        <div id="ek_preview"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="ekPreview()">👁️ Vorschau</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="document.getElementById('elektroKonfModal').remove()">Abbrechen</button>
+          <button class="btn btn-success btn-sm" onclick="ekEinfuegen()">➕ Elektro-Positionen einfügen</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+
+  // Default rooms
+  const defaultRaeume = [
+    { name:'Wohnzimmer', sk1:4, sk2:2, schalter:1, licht:1, nw:1, sat:1, jal:2 },
+    { name:'Schlafzimmer', sk1:3, sk2:1, schalter:1, licht:1, nw:1, sat:1, jal:1 },
+    { name:'Küche', sk1:5, sk2:2, schalter:1, licht:1, nw:0, sat:0, jal:1 },
+    { name:'Bad 1', sk1:2, sk2:0, schalter:1, licht:1, nw:0, sat:0, jal:0 },
+    { name:'Flur/Diele', sk1:2, sk2:0, schalter:2, licht:1, nw:0, sat:0, jal:0 },
+  ];
+  window._ekRaeume = defaultRaeume.map(r => ({...r}));
+  ekRenderRaeume();
+}
+
+function ekRenderRaeume() {
+  const tbody = document.getElementById('ek_raum_tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  (window._ekRaeume || []).forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.style.background = i % 2 === 0 ? '#fff' : '#f7f9fc';
+    tr.innerHTML = `
+      <td style="padding:4px 8px"><input type="text" value="${esc(r.name)}" style="width:120px;border:1px solid #d0d7e2;border-radius:4px;padding:3px 6px;font-size:12px" onchange="window._ekRaeume[${i}].name=this.value"></td>
+      ${['sk1','sk2','schalter','licht','nw','sat','jal'].map(f => `<td style="text-align:center;padding:4px"><input type="number" value="${r[f]}" min="0" max="20" style="width:44px;text-align:center;border:1px solid #d0d7e2;border-radius:4px;padding:3px 4px;font-size:12px" onchange="window._ekRaeume[${i}].${f}=parseInt(this.value)||0"></td>`).join('')}
+      <td style="text-align:center"><button onclick="window._ekRaeume.splice(${i},1);ekRenderRaeume()" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:15px">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function ekAddRaum() {
+  window._ekRaeume.push({ name:'Neuer Raum', sk1:2, sk2:1, schalter:1, licht:1, nw:0, sat:0, jal:0 });
+  ekRenderRaeume();
+}
+
+function ekBerechne() {
+  const m2 = parseFloat(document.getElementById('ek_m2').value) || 100;
+  const etagen = parseInt(document.getElementById('ek_etagen').value) || 1;
+  const raeume = window._ekRaeume || [];
+  const herd = document.getElementById('ek_herd').checked;
+  const waschm = document.getElementById('ek_waschm').checked;
+  const spuele = document.getElementById('ek_spuele').checked;
+  const trockner = document.getElementById('ek_trockner').checked;
+  const fbh = document.getElementById('ek_fbh').checked;
+  const leer = document.getElementById('ek_leer').checked;
+  const rauch = document.getElementById('ek_rauch').checked;
+  const klingel = document.getElementById('ek_klingel').checked;
+  const sh = document.querySelector('input[name="ek_sh"]:checked')?.value || 'none';
+
+  const total_sk1 = raeume.reduce((s,r)=>s+r.sk1,0);
+  const total_sk2 = raeume.reduce((s,r)=>s+r.sk2,0);
+  const total_sch = raeume.reduce((s,r)=>s+r.schalter,0);
+  const total_licht = raeume.reduce((s,r)=>s+r.licht,0);
+  const total_nw = raeume.reduce((s,r)=>s+r.nw,0);
+  const total_sat = raeume.reduce((s,r)=>s+r.sat,0);
+  const total_jal = raeume.reduce((s,r)=>s+r.jal,0);
+  const total_leitungsl = m2 * 1.3 + raeume.length * 8;
+
+  const positionen = [
+    { pos:'E1.01', beschreibung:'Installationsleitung NYM-J 3×1,5mm² UP verlegen', einheit:'m', menge:Math.round(total_licht*12+total_sch*8), materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'E1.02', beschreibung:'Installationsleitung NYM-J 3×2,5mm² UP verlegen', einheit:'m', menge:Math.round(total_sk1*10+total_sk2*12), materialpreis:5.20, stundensatz:65, stunden:0 },
+    { pos:'E2.01', beschreibung:'Schutzkontaktsteckdose UP 1-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:total_sk1, materialpreis:42, stundensatz:65, stunden:0 },
+    { pos:'E2.02', beschreibung:'Schutzkontaktsteckdose UP 2-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:total_sk2, materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'E2.05', beschreibung:'Wechselschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:total_sch, materialpreis:40, stundensatz:65, stunden:0 },
+    { pos:'E2.09', beschreibung:'Netzwerkdose CAT7 UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:total_nw, materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'E2.10', beschreibung:'SAT-Antennendose UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:total_sat, materialpreis:48, stundensatz:65, stunden:0 },
+    { pos:'E7.02', beschreibung:'LED-Einbaustrahler Spot 7W schwenkbar inkl. Einbaurahmen', einheit:'Stk', menge:Math.round(total_licht*3), materialpreis:155, stundensatz:65, stunden:0 },
+    { pos:'E3.03', beschreibung:'Unterverteiler 4-reihig UP bestückt', einheit:'Stk', menge:etagen, materialpreis:520, stundensatz:65, stunden:0 },
+    { pos:'E3.09', beschreibung:'Leitungsschutzschalter B16A einbauen', einheit:'Stk', menge:Math.round(total_licht+total_sk1*0.5+total_sk2*0.5+4), materialpreis:24, stundensatz:65, stunden:0 },
+    { pos:'E3.11', beschreibung:'FI-Schutzschalter 4-polig 40A/30mA einbauen', einheit:'Stk', menge:etagen, materialpreis:125, stundensatz:65, stunden:0 },
+    { pos:'E3.12', beschreibung:'Hauptschalter 63A einbauen', einheit:'Stk', menge:1, materialpreis:145, stundensatz:65, stunden:0 },
+    { pos:'E3.14', beschreibung:'Verdrahtungsmaterial / Sammelschienen pauschal', einheit:'Pauschal', menge:etagen, materialpreis:85, stundensatz:65, stunden:0 },
+  ];
+  if (total_jal > 0) positionen.push(
+    { pos:'E1.01b', beschreibung:'NYM-J 3×1,5mm² für Jalousien/Rollläden verlegen', einheit:'m', menge:Math.round(total_jal*10), materialpreis:3.80, stundensatz:65, stunden:0 }
+  );
+  if (herd) positionen.push({ pos:'E1.04h', beschreibung:'Installationsleitung NYM-J 5×4mm² (Herd) verlegen', einheit:'m', menge:12, materialpreis:9.80, stundensatz:65, stunden:0 });
+  if (waschm) positionen.push({ pos:'E1.02w', beschreibung:'NYM-J 3×2,5mm² (Waschmaschine) verlegen', einheit:'m', menge:10, materialpreis:5.20, stundensatz:65, stunden:0 });
+  if (spuele) positionen.push({ pos:'E1.02s', beschreibung:'NYM-J 3×2,5mm² (Spülmaschine) verlegen', einheit:'m', menge:8, materialpreis:5.20, stundensatz:65, stunden:0 });
+  if (trockner) positionen.push({ pos:'E1.02t', beschreibung:'NYM-J 3×2,5mm² (Trockner) verlegen', einheit:'m', menge:8, materialpreis:5.20, stundensatz:65, stunden:0 });
+  if (fbh) positionen.push(
+    { pos:'E8.01', beschreibung:'Raumthermostat UP digital einbauen u. anschließen', einheit:'Stk', menge:raeume.length, materialpreis:86, stundensatz:65, stunden:0 },
+    { pos:'E8.02', beschreibung:'Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge:Math.round(raeume.length*1.8), materialpreis:42, stundensatz:65, stunden:0 }
+  );
+  if (leer) positionen.push({ pos:'E1.18', beschreibung:'Leerrohr-System ∅20mm im Mauerwerk', einheit:'m', menge:Math.round(m2*0.45), materialpreis:3.20, stundensatz:65, stunden:0 });
+  if (rauch) positionen.push({ pos:'E11.01', beschreibung:'Rauchmelder Funk, vernetzt einbauen', einheit:'Stk', menge:Math.max(2,raeume.length+etagen-1), materialpreis:48, stundensatz:65, stunden:0 });
+  if (klingel) positionen.push({ pos:'E11.02', beschreibung:'Klingelanlage 2-Familienhaus inkl. Taster', einheit:'Stk', menge:1, materialpreis:320, stundensatz:65, stunden:0 });
+  if (sh === 'knx') positionen.push(
+    { pos:'E9.01', beschreibung:'KNX Tastsensor 2-fach UP einbauen u. programmieren', einheit:'Stk', menge:Math.round(raeume.length*0.8), materialpreis:185, stundensatz:65, stunden:0 },
+    { pos:'E9.04', beschreibung:'KNX Schaltaktor 4-fach 16A Schrank einbauen', einheit:'Stk', menge:etagen+1, materialpreis:285, stundensatz:65, stunden:0 },
+    { pos:'E9.08', beschreibung:'KNX Inbetriebnahme / Systemkonfiguration pauschal', einheit:'Pauschal', menge:1, materialpreis:850, stundensatz:65, stunden:0 }
+  );
+  if (sh === 'shelly') positionen.push(
+    { pos:'E10.01', beschreibung:'Shelly 1 / 1PM UP-Aktor einbauen inkl. App-Einrichtung', einheit:'Stk', menge:Math.round(raeume.length*0.8), materialpreis:65, stundensatz:65, stunden:0 },
+    { pos:'E10.07', beschreibung:'Shelly App-Einrichtung, Szenen u. Automatisierungen pauschal', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:65, stunden:0 }
+  );
+  return positionen;
+}
+
+function ekPreview() {
+  const positionen = ekBerechne();
+  const box = document.getElementById('ek_preview');
+  if (!box) return;
+  const total = positionen.reduce((s,p) => s + p.menge*p.materialpreis, 0);
+  box.innerHTML = `<div class="wiz-result-box">
+    <h4>📊 Vorschau – ${positionen.length} Positionen</h4>
+    <div class="wiz-result-grid">
+      <div class="wiz-result-item"><div class="wri-label">Positionen</div><div class="wri-value">${positionen.length}</div><div class="wri-unit">Einzel</div></div>
+      <div class="wiz-result-item"><div class="wri-label">Materialkosten ca.</div><div class="wri-value">${Math.round(total/100)*100}</div><div class="wri-unit">€ (netto)</div></div>
+    </div>
+  </div>`;
+}
+
+function ekEinfuegen() {
+  const positionen = ekBerechne();
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  const m = document.getElementById('elektroKonfModal');
+  if (m) m.remove();
+  positionen.forEach(p => {
+    daten.positionen.elektro.push({ id: ++posIdCounter, ...p, stundensatz: stdSatz || p.stundensatz });
+  });
+  renderPositionen('elektro');
+  autoSave();
+  showToast(`✅ ${positionen.length} Elektro-Positionen eingefügt`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HEIZLASTBERECHNUNG – vereinfacht nach DIN EN 12831
+═══════════════════════════════════════════════════════════════ */
+function heizlastModal() {
+  const existing = document.getElementById('heizlastModal');
+  if (existing) existing.remove();
+
+  const m = document.createElement('div');
+  m.id = 'heizlastModal';
+  m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal-box-lg">
+      <div class="modal-header">
+        <h3>🌡️ Heizlastberechnung (vereinfacht nach EN 12831)</h3>
+        <button class="modal-close" onclick="document.getElementById('heizlastModal').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wiz-info">
+          Vereinfachte Heizlastermittlung für die Auslegung von Heizungsanlagen.
+          Ergebnis dient als erste Orientierung – eine normgerechte Berechnung durch einen Energieberater empfohlen.
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🏠 Gebäude</div>
+          <div class="wiz-grid">
+            <div class="wiz-field"><label>Beheizte Wohnfläche (m²)</label><input type="number" id="hl_m2" value="120" min="20" max="2000" step="5" oninput="hlBerechne()"></div>
+            <div class="wiz-field"><label>Lichte Raumhöhe (m)</label><input type="number" id="hl_hoehe" value="2.6" min="2.0" max="5.0" step="0.1" oninput="hlBerechne()"></div>
+            <div class="wiz-field"><label>Anzahl Außenwände</label><input type="number" id="hl_aussenwaende" value="2" min="1" max="4" oninput="hlBerechne()"></div>
+            <div class="wiz-field">
+              <label>Gebäudetyp</label>
+              <select id="hl_gebtype" oninput="hlBerechne()">
+                <option value="efw">Einfamilienhaus (freistehend)</option>
+                <option value="rh">Reihenhaus / Doppelhaus</option>
+                <option value="mfh">Mehrfamilienhaus Wohnung</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🌍 Klimazone / Außentemperatur</div>
+          <div class="wiz-grid">
+            <div class="wiz-field">
+              <label>Region</label>
+              <select id="hl_region" oninput="hlBerechne()">
+                <option value="-12">Norddeutschland (−12°C)</option>
+                <option value="-14" selected>Mitteldeutschland (−14°C)</option>
+                <option value="-16">Süddeutschland/Mittelgebirge (−16°C)</option>
+                <option value="-18">Alpen / Hochlage (−18°C)</option>
+                <option value="-10">Küstenregion (−10°C)</option>
+              </select>
+            </div>
+            <div class="wiz-field"><label>Innentemperatur (°C)</label><input type="number" id="hl_tin" value="20" min="15" max="25" oninput="hlBerechne()"></div>
+          </div>
+        </div>
+        <div class="wiz-section">
+          <div class="wiz-section-title">🧱 Gebäudehülle – U-Werte (W/m²K)</div>
+          <div class="wiz-grid">
+            <div class="wiz-field">
+              <label>Außenwand U-Wert</label>
+              <select id="hl_uw" oninput="hlBerechne()">
+                <option value="0.13">Neubau KfW55 (0,13)</option>
+                <option value="0.18" selected>Neubau GEG (0,18)</option>
+                <option value="0.28">WDVS-saniert (0,28)</option>
+                <option value="0.45">Teilsaniert (0,45)</option>
+                <option value="0.80">Unsaniert Vollziegel (0,80)</option>
+                <option value="1.40">Unsaniert Altbau (1,40)</option>
+              </select>
+            </div>
+            <div class="wiz-field">
+              <label>Dach/Decke U-Wert</label>
+              <select id="hl_ur" oninput="hlBerechne()">
+                <option value="0.10">Neubau KfW55 (0,10)</option>
+                <option value="0.15" selected>Neubau GEG (0,15)</option>
+                <option value="0.22">Gedämmt (0,22)</option>
+                <option value="0.35">Teilgedämmt (0,35)</option>
+                <option value="0.90">Ungedämmt (0,90)</option>
+              </select>
+            </div>
+            <div class="wiz-field">
+              <label>Boden/Kellerdecke U-Wert</label>
+              <select id="hl_ub" oninput="hlBerechne()">
+                <option value="0.15">Neubau KfW55 (0,15)</option>
+                <option value="0.22" selected>Neubau GEG (0,22)</option>
+                <option value="0.35">Gedämmt (0,35)</option>
+                <option value="0.60">Ungedämmt (0,60)</option>
+              </select>
+            </div>
+            <div class="wiz-field">
+              <label>Fenster U-Wert</label>
+              <select id="hl_uf" oninput="hlBerechne()">
+                <option value="0.75">Passivhaus 3-Glas (0,75)</option>
+                <option value="0.95">Neubau KfW55 (0,95)</option>
+                <option value="1.10" selected>Neubau GEG (1,10)</option>
+                <option value="1.40">Saniert 3-Glas (1,40)</option>
+                <option value="1.80">2-Glas modern (1,80)</option>
+                <option value="2.80">2-Glas alt (2,80)</option>
+                <option value="5.20">Einfachverglasung (5,20)</option>
+              </select>
+            </div>
+            <div class="wiz-field"><label>Fensterflächenanteil (%)</label><input type="number" id="hl_fensterant" value="15" min="5" max="60" oninput="hlBerechne()"></div>
+            <div class="wiz-field">
+              <label>Lüftung</label>
+              <select id="hl_lueft" oninput="hlBerechne()">
+                <option value="0.5" selected>Freie Lüftung (n=0,5)</option>
+                <option value="0.3">KWL Anlage (n=0,3)</option>
+                <option value="0.8">Schlecht gedichtet (n=0,8)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="hl_result"></div>
+      </div>
+      <div class="modal-footer">
+        <span style="font-size:11px;color:#888">Berechnung: Transmissions- + Lüftungswärmeverluste nach EN 12831</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="document.getElementById('heizlastModal').remove()">Schließen</button>
+          <button class="btn btn-success btn-sm" onclick="hlPositionenEinfuegen()">➕ Heizlast-Position in Angebot übernehmen</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+  hlBerechne();
+}
+
+function hlBerechne() {
+  const m2     = parseFloat(document.getElementById('hl_m2')?.value) || 120;
+  const hoehe  = parseFloat(document.getElementById('hl_hoehe')?.value) || 2.6;
+  const aussen = parseInt(document.getElementById('hl_aussenwaende')?.value) || 2;
+  const ta     = parseFloat(document.getElementById('hl_region')?.value) || -14;
+  const ti     = parseFloat(document.getElementById('hl_tin')?.value) || 20;
+  const uw     = parseFloat(document.getElementById('hl_uw')?.value) || 0.18;
+  const ur     = parseFloat(document.getElementById('hl_ur')?.value) || 0.15;
+  const ub     = parseFloat(document.getElementById('hl_ub')?.value) || 0.22;
+  const uf     = parseFloat(document.getElementById('hl_uf')?.value) || 1.10;
+  const fant   = (parseFloat(document.getElementById('hl_fensterant')?.value) || 15) / 100;
+  const n      = parseFloat(document.getElementById('hl_lueft')?.value) || 0.5;
+  const gebtyp = document.getElementById('hl_gebtype')?.value || 'efw';
+
+  const dt = ti - ta;
+  // estimate geometry
+  const grundflaeche = m2;
+  const perimeter = Math.sqrt(m2) * 4;
+  const wandhoehe = hoehe;
+  // Außenwandfläche = Perimeter × Höhe × Anteil Außenwände (1=4 Seiten, 0.25 per Seite)
+  const awAnteil = { efw: 1.0, rh: 0.5, mfh: 0.35 }[gebtyp] || 1.0;
+  const Aw_brutto = perimeter * wandhoehe * awAnteil;
+  const Af = Aw_brutto * fant;
+  const Aw = Aw_brutto - Af;
+  const Ar = grundflaeche;  // Dachfläche ≈ Grundfläche
+  const Ab = grundflaeche;  // Bodenfläche
+
+  // Transmission
+  const Qt = (Aw*uw + Af*uf + Ar*ur + Ab*ub) * dt / 1000; // kW
+
+  // Lüftung: QL = 0.34 × V × n × ΔT / 1000
+  const V = m2 * hoehe; // Raumvolumen
+  const Ql = 0.34 * V * n * dt / 1000; // kW
+
+  const Qges = Qt + Ql;
+  const Qsicher = Qges * 1.10; // 10% Sicherheitszuschlag
+
+  const hlEl = document.getElementById('hl_result');
+  if (!hlEl) return;
+
+  // Empfehlung
+  let empfehlung = '';
+  let heizungstyp = '';
+  if (Qsicher < 6)       { heizungstyp = 'Luft-Wasser-Wärmepumpe 5–8 kW'; }
+  else if (Qsicher < 10) { heizungstyp = 'Luft-Wasser-Wärmepumpe 8–12 kW'; }
+  else if (Qsicher < 15) { heizungstyp = 'Wärmepumpe 12–15 kW oder Gas-Brennwert 15 kW'; }
+  else if (Qsicher < 22) { heizungstyp = 'Gas-Brennwert 20–24 kW'; }
+  else                    { heizungstyp = 'Gas-Brennwert 24 kW+ oder Pelletkessel'; }
+
+  // FBH Auslegung
+  const fbhFlaeche = m2 * 0.85;
+  const fbhLeistung = (Qges * 1000 / fbhFlaeche).toFixed(0); // W/m²
+
+  empfehlung = `
+    <div class="hlb-recommend">
+      <b>🔥 Empfohlene Heizungsanlage:</b> ${heizungstyp}<br>
+      <b>♨️ FBH-Auslegung:</b> ${fbhFlaeche.toFixed(0)} m² @ ca. ${fbhLeistung} W/m² Heizfläche<br>
+      <b>💡 Normheizlast:</b> ${(Qsicher/m2*1000).toFixed(0)} W/m² spezifische Heizlast
+    </div>`;
+
+  hlEl.innerHTML = `<div class="hlb-result">
+    <h4>📊 Heizlastergebnis</h4>
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <span class="hlb-kw">${Qsicher.toFixed(1)} kW</span>
+      <span style="font-size:13px;color:#555">Normheizlast (inkl. 10% Zuschlag)</span>
+    </div>
+    <div class="hlb-detail">
+      <b>Transmissionswärmeverluste Qt:</b> ${Qt.toFixed(2)} kW<br>
+      <b>Lüftungswärmeverluste Ql:</b> ${Ql.toFixed(2)} kW<br>
+      <b>Gesamtverluste (ohne Zuschlag):</b> ${Qges.toFixed(2)} kW<br>
+      <b>Außenwandfläche (netto):</b> ${Aw.toFixed(0)} m² · U=${uw} · <b>Fensterfläche:</b> ${Af.toFixed(0)} m² · U=${uf}<br>
+      <b>Temperaturdifferenz ΔT:</b> ${dt}K · <b>Raumvolumen:</b> ${(m2*hoehe).toFixed(0)} m³
+    </div>
+    ${empfehlung}
+  </div>`;
+  window._hlErgebnis = { kw: Qsicher, heizungstyp, m2 };
+}
+
+function hlPositionenEinfuegen() {
+  if (!window._hlErgebnis) return;
+  const { kw, heizungstyp, m2 } = window._hlErgebnis;
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  daten.positionen.heizung.push({
+    id: ++posIdCounter,
+    pos: 'H0.HL',
+    beschreibung: `Heizlast ${m2}m² = ${kw.toFixed(1)} kW – Empfehlung: ${heizungstyp}`,
+    einheit: 'Pauschal', menge: 1, materialpreis: 0, stundensatz: stdSatz, stunden: 0
+  });
+  renderPositionen('heizung');
+  autoSave();
+  const m = document.getElementById('heizlastModal');
+  if (m) m.remove();
+  showToast('✅ Heizlast-Position ins Angebot übernommen');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   // Heutiges Datum als Standard
   document.getElementById('datum').value = new Date().toISOString().split('T')[0];
