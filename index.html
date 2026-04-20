@@ -401,7 +401,7 @@ const GEWERKE = [
   { id: 'bodenplatte',     label: '⬛ Bodenplatte',     icon: '⬛' },
 ];
 
-const EINHEITEN = ['m²','m³','lfm','Stk','Pauschal','h','kg','t','L','Set','VE'];
+const EINHEITEN = ['m','m²','m³','lfm','Stk','Pauschal','h','kg','t','L','Set','VE'];
 
 /* ═══════════════════════════════════════════════════════════════
    Daten-Model
@@ -605,34 +605,106 @@ const MUSTER = {
     { gruppe:'Kabel & Leitungen', pos:'E1.03', beschreibung:'Installationsleitung NYM-J 5×2,5mm² UP verlegen', einheit:'m', menge:20, materialpreis:7.40, stundensatz:65, stunden:0 },
     { gruppe:'Kabel & Leitungen', pos:'E1.04', beschreibung:'Installationsleitung NYM-J 5×4mm² UP verlegen', einheit:'m', menge:10, materialpreis:9.80, stundensatz:65, stunden:0 },
     { gruppe:'Kabel & Leitungen', pos:'E1.05', beschreibung:'Installationsleitung NYM-J 5×6mm² UP verlegen', einheit:'m', menge:10, materialpreis:13.20, stundensatz:65, stunden:0 },
-    { gruppe:'Kabel & Leitungen', pos:'E1.06', beschreibung:'Leerrohr-System ∅20mm im Mauerwerk', einheit:'m', menge:50, materialpreis:3.20, stundensatz:65, stunden:0 },
-    { gruppe:'Kabel & Leitungen', pos:'E1.07', beschreibung:'Leerrohr-System ∅32mm im Mauerwerk', einheit:'m', menge:20, materialpreis:4.80, stundensatz:65, stunden:0 },
-    { gruppe:'Kabel & Leitungen', pos:'E1.08', beschreibung:'Kabelkanal Kunststoff 40×25mm AP', einheit:'m', menge:15, materialpreis:18, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.06', beschreibung:'Installationsleitung NYM-J 5×10mm² UP verlegen', einheit:'m', menge:10, materialpreis:22.50, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.07', beschreibung:'Installationsleitung NYM-J 5×16mm² UP verlegen', einheit:'m', menge:10, materialpreis:34.00, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.08', beschreibung:'Installationsleitung NYM-J 5×25mm² UP verlegen', einheit:'m', menge:10, materialpreis:52.00, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.09', beschreibung:'EIB/KNX-Leitung 2×2×0,8mm verlegen', einheit:'m', menge:50, materialpreis:4.20, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.10', beschreibung:'EIB/KNX-Leitung 4×2×0,8mm verlegen', einheit:'m', menge:30, materialpreis:7.80, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.11', beschreibung:'Brandmeldekabel 2×2×0,8mm verlegen', einheit:'m', menge:30, materialpreis:5.90, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.12', beschreibung:'E30-Kabel 3×1,5mm² funktionserhaltend verlegen', einheit:'m', menge:20, materialpreis:9.20, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.13', beschreibung:'E30-Kabel 3×2,5mm² funktionserhaltend verlegen', einheit:'m', menge:20, materialpreis:11.40, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.14', beschreibung:'E90-Kabel 5×1,5mm² funktionserhaltend verlegen', einheit:'m', menge:15, materialpreis:13.80, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.15', beschreibung:'E90-Kabel 5×2,5mm² funktionserhaltend verlegen', einheit:'m', menge:15, materialpreis:17.60, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.16', beschreibung:'CAT7-Datenkabel verlegen', einheit:'m', menge:50, materialpreis:5.80, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.17', beschreibung:'Koaxkabel SAT/TV verlegen', einheit:'m', menge:30, materialpreis:3.40, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.18', beschreibung:'Leerrohr-System ∅16mm im Mauerwerk', einheit:'m', menge:30, materialpreis:2.60, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.19', beschreibung:'Leerrohr-System ∅20mm im Mauerwerk', einheit:'m', menge:50, materialpreis:3.20, stundensatz:65, stunden:0 },
+    { gruppe:'Kabel & Leitungen', pos:'E1.20', beschreibung:'Leerrohr-System ∅32mm im Mauerwerk', einheit:'m', menge:20, materialpreis:4.80, stundensatz:65, stunden:0 },
     // Schaltgeräte & Steckdosen
-    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.01', beschreibung:'Schutzkontaktsteckdose UP, 1-fach', einheit:'Stk', menge:15, materialpreis:38, stundensatz:65, stunden:0 },
-    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.02', beschreibung:'Schutzkontaktsteckdose UP, 2-fach', einheit:'Stk', menge:8, materialpreis:55, stundensatz:65, stunden:0 },
-    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.03', beschreibung:'Wechselschalter UP', einheit:'Stk', menge:10, materialpreis:36, stundensatz:65, stunden:0 },
-    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.04', beschreibung:'Serienschalter UP', einheit:'Stk', menge:4, materialpreis:44, stundensatz:65, stunden:0 },
-    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.05', beschreibung:'Taster UP', einheit:'Stk', menge:5, materialpreis:35, stundensatz:65, stunden:0 },
-    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.06', beschreibung:'CEE-Steckdose 16A/5-polig AP', einheit:'Stk', menge:2, materialpreis:68, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.01', beschreibung:'Schutzkontaktsteckdose UP 1-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:15, materialpreis:42, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.02', beschreibung:'Schutzkontaktsteckdose UP 2-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:8, materialpreis:62, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.03', beschreibung:'Schutzkontaktsteckdose UP 3-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:5, materialpreis:78, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.04', beschreibung:'Schutzkontaktsteckdose UP 4-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:3, materialpreis:95, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.05', beschreibung:'Wechselschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:10, materialpreis:40, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.06', beschreibung:'Serienschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:4, materialpreis:48, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.07', beschreibung:'Kreuzschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:3, materialpreis:52, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.08', beschreibung:'Taster UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:5, materialpreis:40, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.09', beschreibung:'Netzwerkdose CAT7 UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:6, materialpreis:62, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.10', beschreibung:'SAT-Antennendose UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:4, materialpreis:48, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.11', beschreibung:'Telefondose UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge:4, materialpreis:42, stundensatz:65, stunden:0 },
+    { gruppe:'Schaltgeräte & Steckdosen', pos:'E2.12', beschreibung:'CEE-Steckdose 16A/5-polig AP', einheit:'Stk', menge:2, materialpreis:68, stundensatz:65, stunden:0 },
     // Verteiler & Schutzgeräte
-    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.01', beschreibung:'Unterverteiler 12 TE Aufputz bestückt', einheit:'Stk', menge:1, materialpreis:185, stundensatz:65, stunden:0 },
-    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.02', beschreibung:'Unterverteiler 24 TE Aufputz bestückt', einheit:'Stk', menge:1, materialpreis:315, stundensatz:65, stunden:0 },
-    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.03', beschreibung:'Leitungsschutzschalter B10A einbauen', einheit:'Stk', menge:4, materialpreis:24, stundensatz:65, stunden:0 },
-    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.04', beschreibung:'Leitungsschutzschalter B16A einbauen', einheit:'Stk', menge:8, materialpreis:24, stundensatz:65, stunden:0 },
-    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.05', beschreibung:'FI-Schutzschalter 40A/30mA einbauen', einheit:'Stk', menge:2, materialpreis:98, stundensatz:65, stunden:0 },
-    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.06', beschreibung:'Überspannungsschutz Typ 1+2 einbauen', einheit:'Stk', menge:1, materialpreis:245, stundensatz:65, stunden:0 },
-    // Leuchten
-    { gruppe:'Leuchten', pos:'E4.01', beschreibung:'Wannenleuchte LED Feuchtraum 36W', einheit:'Stk', menge:2, materialpreis:168, stundensatz:65, stunden:0 },
-    { gruppe:'Leuchten', pos:'E4.02', beschreibung:'LED-Einbaustrahler 7W', einheit:'Stk', menge:8, materialpreis:185, stundensatz:65, stunden:0 },
-    { gruppe:'Leuchten', pos:'E4.03', beschreibung:'LED-Pendelleuchte Abhängehöhe bis 0,5m', einheit:'Stk', menge:3, materialpreis:210, stundensatz:65, stunden:0 },
-    { gruppe:'Leuchten', pos:'E4.04', beschreibung:'LED-Außenwandleuchte mit Bewegungsmelder', einheit:'Stk', menge:2, materialpreis:145, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.01', beschreibung:'Unterverteiler 2-reihig UP bestückt', einheit:'Stk', menge:1, materialpreis:285, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.02', beschreibung:'Unterverteiler 3-reihig UP bestückt', einheit:'Stk', menge:1, materialpreis:395, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.03', beschreibung:'Unterverteiler 4-reihig UP bestückt', einheit:'Stk', menge:1, materialpreis:520, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.04', beschreibung:'Unterverteiler 5-reihig UP bestückt', einheit:'Stk', menge:1, materialpreis:650, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.05', beschreibung:'Unterverteiler 12 TE Aufputz bestückt', einheit:'Stk', menge:1, materialpreis:185, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.06', beschreibung:'Unterverteiler 24 TE Aufputz bestückt', einheit:'Stk', menge:1, materialpreis:315, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.07', beschreibung:'Leitungsschutzschalter B10A einbauen', einheit:'Stk', menge:4, materialpreis:24, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.08', beschreibung:'Leitungsschutzschalter B13A einbauen', einheit:'Stk', menge:4, materialpreis:24, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.09', beschreibung:'Leitungsschutzschalter B16A einbauen', einheit:'Stk', menge:8, materialpreis:24, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.10', beschreibung:'FI-Schutzschalter 2-polig 25A/30mA einbauen', einheit:'Stk', menge:2, materialpreis:78, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.11', beschreibung:'FI-Schutzschalter 4-polig 40A/30mA einbauen', einheit:'Stk', menge:2, materialpreis:125, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.12', beschreibung:'Hauptschalter 63A einbauen', einheit:'Stk', menge:1, materialpreis:145, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.13', beschreibung:'Überspannungsschutz Typ 1+2 einbauen', einheit:'Stk', menge:1, materialpreis:245, stundensatz:65, stunden:0 },
+    { gruppe:'Verteiler & Schutzgeräte', pos:'E3.14', beschreibung:'Verdrahtungsmaterial / Sammelschienen pauschal', einheit:'Pauschal', menge:1, materialpreis:85, stundensatz:65, stunden:0 },
+    // Rohrverlegung
+    { gruppe:'Rohrverlegung', pos:'E4.01', beschreibung:'Kabelrohr ∅16mm verlegen inkl. Befestigungsschellen', einheit:'m', menge:20, materialpreis:2.20, stundensatz:65, stunden:0 },
+    { gruppe:'Rohrverlegung', pos:'E4.02', beschreibung:'Kabelrohr ∅20mm verlegen inkl. Befestigungsschellen', einheit:'m', menge:30, materialpreis:2.80, stundensatz:65, stunden:0 },
+    { gruppe:'Rohrverlegung', pos:'E4.03', beschreibung:'Kabelrohr ∅25mm verlegen inkl. Befestigungsschellen', einheit:'m', menge:20, materialpreis:3.40, stundensatz:65, stunden:0 },
+    { gruppe:'Rohrverlegung', pos:'E4.04', beschreibung:'Kabelrohr ∅32mm verlegen inkl. Befestigungsschellen', einheit:'m', menge:15, materialpreis:4.20, stundensatz:65, stunden:0 },
+    { gruppe:'Rohrverlegung', pos:'E4.05', beschreibung:'Kabelrohr ∅40mm verlegen inkl. Befestigungsschellen', einheit:'m', menge:10, materialpreis:5.60, stundensatz:65, stunden:0 },
+    // Kabelkanal
+    { gruppe:'Kabelkanal', pos:'E5.01', beschreibung:'Kabelkanal 25×16mm AP verlegen', einheit:'m', menge:10, materialpreis:8.50, stundensatz:65, stunden:0 },
+    { gruppe:'Kabelkanal', pos:'E5.02', beschreibung:'Kabelkanal 40×25mm AP verlegen', einheit:'m', menge:15, materialpreis:13.80, stundensatz:65, stunden:0 },
+    { gruppe:'Kabelkanal', pos:'E5.03', beschreibung:'Kabelkanal 60×40mm AP verlegen', einheit:'m', menge:10, materialpreis:19.50, stundensatz:65, stunden:0 },
+    { gruppe:'Kabelkanal', pos:'E5.04', beschreibung:'Kabelkanal 80×60mm AP verlegen', einheit:'m', menge:8, materialpreis:27.00, stundensatz:65, stunden:0 },
+    { gruppe:'Kabelkanal', pos:'E5.05', beschreibung:'Kabelkanal 100×60mm AP verlegen', einheit:'m', menge:5, materialpreis:35.00, stundensatz:65, stunden:0 },
+    // Schlitzarbeiten
+    { gruppe:'Schlitzarbeiten', pos:'E6.01', beschreibung:'Wand aufschlitzen 30×30mm (1 Rohr)', einheit:'m', menge:10, materialpreis:12.00, stundensatz:65, stunden:0 },
+    { gruppe:'Schlitzarbeiten', pos:'E6.02', beschreibung:'Wand aufschlitzen 50×50mm (2 Rohre)', einheit:'m', menge:10, materialpreis:18.00, stundensatz:65, stunden:0 },
+    { gruppe:'Schlitzarbeiten', pos:'E6.03', beschreibung:'Wand aufschlitzen 80×60mm (3–4 Rohre)', einheit:'m', menge:8, materialpreis:26.00, stundensatz:65, stunden:0 },
+    { gruppe:'Schlitzarbeiten', pos:'E6.04', beschreibung:'Schlitz schließen Gips/Mörtel bis 50mm Breite', einheit:'m', menge:20, materialpreis:8.50, stundensatz:65, stunden:0 },
+    // Leuchten & Beleuchtung
+    { gruppe:'Leuchten & Beleuchtung', pos:'E7.01', beschreibung:'Wannenleuchte LED Feuchtraum 36W', einheit:'Stk', menge:2, materialpreis:168, stundensatz:65, stunden:0 },
+    { gruppe:'Leuchten & Beleuchtung', pos:'E7.02', beschreibung:'LED-Einbaustrahler Spot 7W schwenkbar inkl. Einbaurahmen', einheit:'Stk', menge:8, materialpreis:155, stundensatz:65, stunden:0 },
+    { gruppe:'Leuchten & Beleuchtung', pos:'E7.03', beschreibung:'LED-Panel 60×60cm 36W (Rasterleuchte) einbauen', einheit:'Stk', menge:4, materialpreis:185, stundensatz:65, stunden:0 },
+    { gruppe:'Leuchten & Beleuchtung', pos:'E7.04', beschreibung:'LED-Pendelleuchte Abhängehöhe bis 0,5m', einheit:'Stk', menge:3, materialpreis:210, stundensatz:65, stunden:0 },
+    { gruppe:'Leuchten & Beleuchtung', pos:'E7.05', beschreibung:'LED-Streifen indirekte Beleuchtung verlegen u. anschließen', einheit:'m', menge:10, materialpreis:48, stundensatz:65, stunden:0 },
+    { gruppe:'Leuchten & Beleuchtung', pos:'E7.06', beschreibung:'LED-Außenwandleuchte mit Bewegungsmelder', einheit:'Stk', menge:2, materialpreis:145, stundensatz:65, stunden:0 },
+    // Raumthermostat & Stellantriebe
+    { gruppe:'Raumthermostat & Stellantriebe', pos:'E8.01', beschreibung:'Raumthermostat UP digital einbauen u. anschließen', einheit:'Stk', menge:3, materialpreis:86, stundensatz:65, stunden:0 },
+    { gruppe:'Raumthermostat & Stellantriebe', pos:'E8.02', beschreibung:'Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge:6, materialpreis:42, stundensatz:65, stunden:0 },
+    { gruppe:'Raumthermostat & Stellantriebe', pos:'E8.03', beschreibung:'Zonenregler für Stellantriebe 6-Kanal einbauen', einheit:'Stk', menge:1, materialpreis:165, stundensatz:65, stunden:0 },
+    // Smart Home kabelgebunden (KNX)
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.01', beschreibung:'KNX Tastsensor 2-fach UP einbauen u. programmieren', einheit:'Stk', menge:5, materialpreis:185, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.02', beschreibung:'KNX Tastsensor 4-fach UP einbauen u. programmieren', einheit:'Stk', menge:4, materialpreis:245, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.03', beschreibung:'KNX Binäreingabe 4-Kanal Schrank einbauen', einheit:'Stk', menge:2, materialpreis:195, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.04', beschreibung:'KNX Schaltaktor 4-fach 16A Schrank einbauen', einheit:'Stk', menge:3, materialpreis:285, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.05', beschreibung:'KNX Jalousieaktor 2-Kanal Schrank einbauen', einheit:'Stk', menge:2, materialpreis:245, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.06', beschreibung:'KNX Dimmeraktor 1-Kanal Schrank einbauen', einheit:'Stk', menge:2, materialpreis:265, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.07', beschreibung:'KNX Netzteil 320mA einbauen', einheit:'Stk', menge:1, materialpreis:185, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.08', beschreibung:'KNX Inbetriebnahme / Systemkonfiguration pauschal', einheit:'Pauschal', menge:1, materialpreis:850, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home KNX (kabelgebunden)', pos:'E9.09', beschreibung:'KNX Programmierung je Raumzone', einheit:'Stk', menge:5, materialpreis:185, stundensatz:65, stunden:0 },
+    // Smart Home kabellos (Shelly)
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.01', beschreibung:'Shelly 1 / 1PM UP-Aktor einbauen inkl. App-Einrichtung', einheit:'Stk', menge:5, materialpreis:65, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.02', beschreibung:'Shelly 2.5 / Plus 2PM UP-Aktor (Jalousie) einbauen inkl. Einrichtung', einheit:'Stk', menge:3, materialpreis:88, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.03', beschreibung:'Shelly Dimmer 2 UP einbauen inkl. App-Einrichtung', einheit:'Stk', menge:3, materialpreis:95, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.04', beschreibung:'Shelly Plus 2PM UP-Aktor einbauen inkl. Einrichtung', einheit:'Stk', menge:5, materialpreis:78, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.05', beschreibung:'Shelly Pro 4PM Verteileraktor einbauen inkl. Einrichtung', einheit:'Stk', menge:1, materialpreis:245, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.06', beschreibung:'Shelly i4 Eingangsmodul einbauen inkl. Einrichtung', einheit:'Stk', menge:2, materialpreis:72, stundensatz:65, stunden:0 },
+    { gruppe:'Smart Home Shelly (kabellos)', pos:'E10.07', beschreibung:'Shelly App-Einrichtung, Szenen u. Automatisierungen pauschal', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:65, stunden:0 },
     // Sonstiges
-    { gruppe:'Sonstiges', pos:'E5.01', beschreibung:'Rauchmelder Funk, vernetzt einbauen', einheit:'Stk', menge:5, materialpreis:48, stundensatz:65, stunden:0 },
-    { gruppe:'Sonstiges', pos:'E5.02', beschreibung:'Klingelanlage 2-Familienhaus inkl. Taster', einheit:'Stk', menge:1, materialpreis:320, stundensatz:65, stunden:0 },
-    { gruppe:'Sonstiges', pos:'E5.03', beschreibung:'TV-/SAT-Dose UP einbauen', einheit:'Stk', menge:4, materialpreis:42, stundensatz:65, stunden:0 },
-    { gruppe:'Sonstiges', pos:'E5.04', beschreibung:'Datendose CAT6 UP einbauen', einheit:'Stk', menge:6, materialpreis:52, stundensatz:65, stunden:0 },
-    { gruppe:'Sonstiges', pos:'E5.05', beschreibung:'Raumthermostat Unterputz digital', einheit:'Stk', menge:3, materialpreis:86, stundensatz:65, stunden:0 },
+    { gruppe:'Sonstiges', pos:'E11.01', beschreibung:'Rauchmelder Funk, vernetzt einbauen', einheit:'Stk', menge:5, materialpreis:48, stundensatz:65, stunden:0 },
+    { gruppe:'Sonstiges', pos:'E11.02', beschreibung:'Klingelanlage 2-Familienhaus inkl. Taster', einheit:'Stk', menge:1, materialpreis:320, stundensatz:65, stunden:0 },
+    // Demontage
+    { gruppe:'Demontage', pos:'E12.01', beschreibung:'Leitungen / Kabel demontieren', einheit:'m', menge:50, materialpreis:4.50, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'E12.02', beschreibung:'Kabelkanal demontieren', einheit:'m', menge:10, materialpreis:6.00, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'E12.03', beschreibung:'Steckdosen / Schalter demontieren', einheit:'Stk', menge:10, materialpreis:18, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'E12.04', beschreibung:'Verteiler / Unterverteiler demontieren', einheit:'Stk', menge:1, materialpreis:95, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'E12.05', beschreibung:'Leuchte / Armatur demontieren', einheit:'Stk', menge:5, materialpreis:22, stundensatz:65, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'E13.01', beschreibung:'Stundensatz Elektroinstallateur', einheit:'h', menge:1, materialpreis:0, stundensatz:65, stunden:1 },
   ],
 
   /* ── SANITÄR ──────────────────────────────────────────────────── */
@@ -642,6 +714,9 @@ const MUSTER = {
     { gruppe:'Demontage', pos:'S1.02', beschreibung:'Waschtisch mit Unterschrank demontieren', einheit:'Stk', menge:1, materialpreis:42, stundensatz:70, stunden:0 },
     { gruppe:'Demontage', pos:'S1.03', beschreibung:'Badewanne / Duschwanne demontieren', einheit:'Stk', menge:1, materialpreis:58, stundensatz:70, stunden:0 },
     { gruppe:'Demontage', pos:'S1.04', beschreibung:'Heizkörper Bad demontieren', einheit:'Stk', menge:1, materialpreis:44, stundensatz:70, stunden:0 },
+    { gruppe:'Demontage', pos:'S1.05', beschreibung:'Wasserleitung Kupfer demontieren', einheit:'m', menge:10, materialpreis:8, stundensatz:70, stunden:0 },
+    { gruppe:'Demontage', pos:'S1.06', beschreibung:'Abflussrohr PP demontieren', einheit:'m', menge:8, materialpreis:7, stundensatz:70, stunden:0 },
+    { gruppe:'Demontage', pos:'S1.07', beschreibung:'Duschkabine komplett demontieren', einheit:'Stk', menge:1, materialpreis:85, stundensatz:70, stunden:0 },
     // Abwasser & Entwässerung
     { gruppe:'Abwasser & Entwässerung', pos:'S2.01', beschreibung:'Abwasserrohr PP DN50 verlegen', einheit:'m', menge:5, materialpreis:18, stundensatz:70, stunden:0 },
     { gruppe:'Abwasser & Entwässerung', pos:'S2.02', beschreibung:'Abwasserrohr PP DN75 verlegen', einheit:'m', menge:4, materialpreis:24, stundensatz:70, stunden:0 },
@@ -650,19 +725,38 @@ const MUSTER = {
     // Trinkwasser
     { gruppe:'Trinkwasser', pos:'S3.01', beschreibung:'Kupferrohr 15mm verlegen', einheit:'m', menge:15, materialpreis:22, stundensatz:70, stunden:0 },
     { gruppe:'Trinkwasser', pos:'S3.02', beschreibung:'Kupferrohr 22mm verlegen', einheit:'m', menge:8, materialpreis:34, stundensatz:70, stunden:0 },
-    { gruppe:'Trinkwasser', pos:'S3.03', beschreibung:'Mehrschichtverbundrohr 16mm verlegen', einheit:'m', menge:20, materialpreis:16, stundensatz:70, stunden:0 },
-    { gruppe:'Trinkwasser', pos:'S3.04', beschreibung:'Mehrschichtverbundrohr 20mm verlegen', einheit:'m', menge:10, materialpreis:19, stundensatz:70, stunden:0 },
-    { gruppe:'Trinkwasser', pos:'S3.05', beschreibung:'Absperrventil Eckventil DN15', einheit:'Stk', menge:6, materialpreis:34, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.03', beschreibung:'Kupferrohr 32mm verlegen', einheit:'m', menge:5, materialpreis:52, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.04', beschreibung:'Mehrschichtverbundrohr 16mm verlegen', einheit:'m', menge:20, materialpreis:16, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.05', beschreibung:'Mehrschichtverbundrohr 20mm verlegen', einheit:'m', menge:10, materialpreis:19, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.06', beschreibung:'Mehrschichtverbundrohr 26mm verlegen', einheit:'m', menge:8, materialpreis:25, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.07', beschreibung:'Mehrschichtverbundrohr 32mm verlegen', einheit:'m', menge:6, materialpreis:31, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.08', beschreibung:'Mehrschichtverbundrohr 40mm verlegen', einheit:'m', menge:4, materialpreis:40, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.09', beschreibung:'Edelstahlrohr 15mm (Press) verlegen', einheit:'m', menge:8, materialpreis:42, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.10', beschreibung:'Edelstahlrohr 22mm (Press) verlegen', einheit:'m', menge:5, materialpreis:56, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.11', beschreibung:'Edelstahlrohr 28mm (Press) verlegen', einheit:'m', menge:4, materialpreis:72, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.12', beschreibung:'Absperrventil Eckventil DN15', einheit:'Stk', menge:6, materialpreis:34, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.13', beschreibung:'Fitting 90°-Bogen Kupfer 15mm', einheit:'Stk', menge:10, materialpreis:5.80, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.14', beschreibung:'Fitting 90°-Bogen Mehrschichtverbund 16mm', einheit:'Stk', menge:10, materialpreis:4.20, stundensatz:70, stunden:0 },
+    { gruppe:'Trinkwasser', pos:'S3.15', beschreibung:'T-Stück Kupfer 15mm', einheit:'Stk', menge:6, materialpreis:7.40, stundensatz:70, stunden:0 },
     // Sanitärobjekte
     { gruppe:'Sanitärobjekte', pos:'S4.01', beschreibung:'Installationselement WC, Unterputz', einheit:'Stk', menge:1, materialpreis:317, stundensatz:70, stunden:0 },
-    { gruppe:'Sanitärobjekte', pos:'S4.02', beschreibung:'Waschtisch Sanitärporzellan 600×500mm', einheit:'Stk', menge:1, materialpreis:464, stundensatz:70, stunden:0 },
-    { gruppe:'Sanitärobjekte', pos:'S4.03', beschreibung:'Badewanne Stahl emailliert 170cm', einheit:'Stk', menge:1, materialpreis:569, stundensatz:70, stunden:0 },
-    { gruppe:'Sanitärobjekte', pos:'S4.04', beschreibung:'Duschrinne bodengleich 900mm', einheit:'Stk', menge:1, materialpreis:480, stundensatz:70, stunden:0 },
-    { gruppe:'Sanitärobjekte', pos:'S4.05', beschreibung:'Handbrause-Set mit Duschstange', einheit:'Stk', menge:1, materialpreis:185, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.02', beschreibung:'WC / Toilette Keramik montieren u. anschließen', einheit:'Stk', menge:1, materialpreis:285, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.03', beschreibung:'Waschtisch Sanitärporzellan 600×500mm', einheit:'Stk', menge:1, materialpreis:464, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.04', beschreibung:'Eckventil Waschbecken DN15 montieren (je Anschluss)', einheit:'Stk', menge:2, materialpreis:38, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.05', beschreibung:'Badewanne Stahl emailliert 170cm', einheit:'Stk', menge:1, materialpreis:569, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.06', beschreibung:'Duschrinne bodengleich 900mm', einheit:'Stk', menge:1, materialpreis:480, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.07', beschreibung:'Dusche Unterputz-Thermostat Endmontage', einheit:'Stk', menge:1, materialpreis:485, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.08', beschreibung:'Duschkabine komplett montieren', einheit:'Stk', menge:1, materialpreis:685, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.09', beschreibung:'Duschtrennwand / Duschkabinenscheibe montieren', einheit:'Stk', menge:1, materialpreis:385, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.10', beschreibung:'Wasserzähler Unterputz – Endmontage', einheit:'Stk', menge:1, materialpreis:245, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.11', beschreibung:'Wasserzähler Aufputz – Endmontage', einheit:'Stk', menge:1, materialpreis:195, stundensatz:70, stunden:0 },
+    { gruppe:'Sanitärobjekte', pos:'S4.12', beschreibung:'Handbrause-Set mit Duschstange', einheit:'Stk', menge:1, materialpreis:185, stundensatz:70, stunden:0 },
     // Armaturen
     { gruppe:'Armaturen', pos:'S5.01', beschreibung:'Einhebelmischer Waschtisch Aufputz', einheit:'Stk', menge:1, materialpreis:198, stundensatz:70, stunden:0 },
     { gruppe:'Armaturen', pos:'S5.02', beschreibung:'Thermostatbatterie Dusche/Badewanne', einheit:'Stk', menge:1, materialpreis:388, stundensatz:70, stunden:0 },
     { gruppe:'Armaturen', pos:'S5.03', beschreibung:'Einhebelmischer Küche schwenkbar', einheit:'Stk', menge:1, materialpreis:224, stundensatz:70, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'S6.01', beschreibung:'Stundensatz Sanitärinstallateur', einheit:'h', menge:1, materialpreis:0, stundensatz:70, stunden:1 },
   ],
 
   /* ── HEIZUNG ──────────────────────────────────────────────────── */
@@ -671,27 +765,52 @@ const MUSTER = {
     { gruppe:'Demontage', pos:'H1.01', beschreibung:'Gas-Heiztherme demontieren', einheit:'Stk', menge:1, materialpreis:157, stundensatz:65, stunden:0 },
     { gruppe:'Demontage', pos:'H1.02', beschreibung:'Flachheizkörper demontieren bis 50kg', einheit:'Stk', menge:4, materialpreis:47, stundensatz:65, stunden:0 },
     { gruppe:'Demontage', pos:'H1.03', beschreibung:'Fußbodenheizung zurückbauen', einheit:'m²', menge:20, materialpreis:18, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'H1.04', beschreibung:'Kupferrohrleitung demontieren', einheit:'m', menge:20, materialpreis:7, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'H1.05', beschreibung:'Mehrschichtverbundrohrleitung demontieren', einheit:'m', menge:15, materialpreis:6, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'H1.06', beschreibung:'Edelstahlrohrleitung demontieren', einheit:'m', menge:10, materialpreis:8, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'H1.07', beschreibung:'Fußbodenheizungsverteiler demontieren', einheit:'Stk', menge:1, materialpreis:88, stundensatz:65, stunden:0 },
     // Wärmeerzeugung
     { gruppe:'Wärmeerzeugung', pos:'H2.01', beschreibung:'Gas-Brennwerttherme Wand bis 15kW', einheit:'Stk', menge:1, materialpreis:6920, stundensatz:65, stunden:0 },
     { gruppe:'Wärmeerzeugung', pos:'H2.02', beschreibung:'Gas-Brennwerttherme Wand bis 24kW', einheit:'Stk', menge:1, materialpreis:8400, stundensatz:65, stunden:0 },
     { gruppe:'Wärmeerzeugung', pos:'H2.03', beschreibung:'Luft-Wasser-Wärmepumpe Split 8kW', einheit:'Stk', menge:1, materialpreis:14200, stundensatz:65, stunden:0 },
     { gruppe:'Wärmeerzeugung', pos:'H2.04', beschreibung:'Warmwasserspeicher 150L stehend', einheit:'Stk', menge:1, materialpreis:980, stundensatz:65, stunden:0 },
     // Heizleitungen
-    { gruppe:'Heizleitungen', pos:'H3.01', beschreibung:'Leitung Metallverbundrohr DN15', einheit:'m', menge:30, materialpreis:21, stundensatz:65, stunden:0 },
-    { gruppe:'Heizleitungen', pos:'H3.02', beschreibung:'Leitung Metallverbundrohr DN20', einheit:'m', menge:15, materialpreis:26, stundensatz:65, stunden:0 },
-    { gruppe:'Heizleitungen', pos:'H3.03', beschreibung:'Leitung Kupferrohr 15mm', einheit:'m', menge:20, materialpreis:29, stundensatz:65, stunden:0 },
-    { gruppe:'Heizleitungen', pos:'H3.04', beschreibung:'Leitung Kupferrohr 22mm', einheit:'m', menge:10, materialpreis:38, stundensatz:65, stunden:0 },
-    { gruppe:'Heizleitungen', pos:'H3.05', beschreibung:'Rohrdämmschlauch bis DN22', einheit:'m', menge:30, materialpreis:4.80, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.01', beschreibung:'Metallverbundrohr 15mm (DN15) verlegen', einheit:'m', menge:30, materialpreis:21, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.02', beschreibung:'Metallverbundrohr 20mm (DN20) verlegen', einheit:'m', menge:15, materialpreis:26, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.03', beschreibung:'Metallverbundrohr 22mm verlegen', einheit:'m', menge:10, materialpreis:32, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.04', beschreibung:'Metallverbundrohr 26mm verlegen', einheit:'m', menge:8, materialpreis:38, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.05', beschreibung:'Metallverbundrohr 32mm verlegen', einheit:'m', menge:5, materialpreis:48, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.06', beschreibung:'Metallverbundrohr 40mm verlegen', einheit:'m', menge:4, materialpreis:62, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.07', beschreibung:'Kupferrohr 15mm verlegen', einheit:'m', menge:20, materialpreis:29, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.08', beschreibung:'Kupferrohr 22mm verlegen', einheit:'m', menge:10, materialpreis:38, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.09', beschreibung:'Kupferrohr 28mm verlegen', einheit:'m', menge:8, materialpreis:48, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.10', beschreibung:'Kupferrohr 35mm verlegen', einheit:'m', menge:5, materialpreis:64, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.11', beschreibung:'Mehrschichtverbundrohr 16mm verlegen', einheit:'m', menge:20, materialpreis:18, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.12', beschreibung:'Mehrschichtverbundrohr 20mm verlegen', einheit:'m', menge:15, materialpreis:22, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.13', beschreibung:'Mehrschichtverbundrohr 26mm verlegen', einheit:'m', menge:10, materialpreis:28, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.14', beschreibung:'Mehrschichtverbundrohr 32mm verlegen', einheit:'m', menge:8, materialpreis:36, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.15', beschreibung:'Edelstahlrohr 15mm (Press) verlegen', einheit:'m', menge:10, materialpreis:45, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.16', beschreibung:'Edelstahlrohr 22mm (Press) verlegen', einheit:'m', menge:8, materialpreis:58, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.17', beschreibung:'Rohrisolierung DN15 (Schlauch)', einheit:'m', menge:30, materialpreis:3.80, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.18', beschreibung:'Rohrisolierung DN22 (Schlauch)', einheit:'m', menge:20, materialpreis:4.80, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.19', beschreibung:'Rohrisolierung DN28 (Schlauch)', einheit:'m', menge:10, materialpreis:6.20, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.20', beschreibung:'Rohrisolierung DN35 (Schlauch)', einheit:'m', menge:8, materialpreis:7.80, stundensatz:65, stunden:0 },
+    { gruppe:'Heizleitungen', pos:'H3.21', beschreibung:'Rohrisolierung DN40 (Schlauch)', einheit:'m', menge:6, materialpreis:9.40, stundensatz:65, stunden:0 },
     // Heizflächen
     { gruppe:'Heizflächen', pos:'H4.01', beschreibung:'Flachheizkörper 600×600mm Typ 22', einheit:'Stk', menge:3, materialpreis:285, stundensatz:65, stunden:0 },
     { gruppe:'Heizflächen', pos:'H4.02', beschreibung:'Flachheizkörper 600×1200mm Typ 22', einheit:'Stk', menge:3, materialpreis:390, stundensatz:65, stunden:0 },
     { gruppe:'Heizflächen', pos:'H4.03', beschreibung:'Fußbodenheizung Nass-System 25mm', einheit:'m²', menge:40, materialpreis:44, stundensatz:65, stunden:0 },
     { gruppe:'Heizflächen', pos:'H4.04', beschreibung:'Badheizung Elektroheizkörper', einheit:'Stk', menge:1, materialpreis:320, stundensatz:65, stunden:0 },
+    { gruppe:'Heizflächen', pos:'H4.05', beschreibung:'FBH-Verteiler 3-Kreise inkl. Stellantriebe u. Halterung', einheit:'Stk', menge:1, materialpreis:485, stundensatz:65, stunden:0 },
+    { gruppe:'Heizflächen', pos:'H4.06', beschreibung:'FBH-Verteiler 5-Kreise inkl. Stellantriebe u. Halterung', einheit:'Stk', menge:1, materialpreis:685, stundensatz:65, stunden:0 },
+    { gruppe:'Heizflächen', pos:'H4.07', beschreibung:'FBH-Verteiler 8-Kreise inkl. Stellantriebe u. Halterung', einheit:'Stk', menge:1, materialpreis:985, stundensatz:65, stunden:0 },
     // Armaturen & Regelung
     { gruppe:'Armaturen & Regelung', pos:'H5.01', beschreibung:'Thermostatventil DN15', einheit:'Stk', menge:6, materialpreis:68, stundensatz:65, stunden:0 },
     { gruppe:'Armaturen & Regelung', pos:'H5.02', beschreibung:'Rücklaufverschraubung DN15', einheit:'Stk', menge:6, materialpreis:46, stundensatz:65, stunden:0 },
     { gruppe:'Armaturen & Regelung', pos:'H5.03', beschreibung:'Umwälzpumpe Heizung einbauen', einheit:'Stk', menge:1, materialpreis:485, stundensatz:65, stunden:0 },
     { gruppe:'Armaturen & Regelung', pos:'H5.04', beschreibung:'Raumthermostat digital', einheit:'Stk', menge:1, materialpreis:128, stundensatz:65, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'H6.01', beschreibung:'Stundensatz Heizungsinstallateur', einheit:'h', menge:1, materialpreis:0, stundensatz:65, stunden:1 },
   ],
 
   /* ── TROCKENBAU ───────────────────────────────────────────────── */
@@ -708,6 +827,7 @@ const MUSTER = {
     { gruppe:'Abgehängte Decken', pos:'T3.01', beschreibung:'Decke abgehängt GK einlagig', einheit:'m²', menge:30, materialpreis:67, stundensatz:55, stunden:0 },
     { gruppe:'Abgehängte Decken', pos:'T3.02', beschreibung:'Decke abgehängt GK doppelt', einheit:'m²', menge:20, materialpreis:84, stundensatz:55, stunden:0 },
     { gruppe:'Abgehängte Decken', pos:'T3.03', beschreibung:'Decke abgehängt Akustikplatten', einheit:'m²', menge:15, materialpreis:112, stundensatz:55, stunden:0 },
+    { gruppe:'Abgehängte Decken', pos:'T3.04', beschreibung:'Designer-Decke Schienensystem mit Spot-Aussparungen u. LED-Indirektbeleuchtung', einheit:'m²', menge:20, materialpreis:185, stundensatz:55, stunden:0 },
     // Vorsatzschalen
     { gruppe:'Vorsatzschalen', pos:'T4.01', beschreibung:'Vorsatzschale 50mm auf bestehende Wand', einheit:'m²', menge:20, materialpreis:62, stundensatz:55, stunden:0 },
     { gruppe:'Vorsatzschalen', pos:'T4.02', beschreibung:'Vorsatzschale mit Wärmedämmung 80mm', einheit:'m²', menge:30, materialpreis:88, stundensatz:55, stunden:0 },
@@ -716,6 +836,8 @@ const MUSTER = {
     { gruppe:'Spachtelung & Oberfläche', pos:'T5.02', beschreibung:'Spachtelung GK-Platten Q3', einheit:'m²', menge:60, materialpreis:13.20, stundensatz:55, stunden:0 },
     { gruppe:'Spachtelung & Oberfläche', pos:'T5.03', beschreibung:'Kantenprofile Montagewand, Aluminium', einheit:'m', menge:20, materialpreis:12.80, stundensatz:55, stunden:0 },
     { gruppe:'Spachtelung & Oberfläche', pos:'T5.04', beschreibung:'Schimmelschutzplatte feuchte Zone', einheit:'m²', menge:15, materialpreis:96, stundensatz:55, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'T6.01', beschreibung:'Stundensatz Trockenbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:55, stunden:1 },
   ],
 
   /* ── MALER ────────────────────────────────────────────────────── */
@@ -738,9 +860,25 @@ const MUSTER = {
     { gruppe:'Lackierarbeiten', pos:'M4.01', beschreibung:'Holztüren lackieren, 1-flügelig', einheit:'Stk', menge:5, materialpreis:128, stundensatz:50, stunden:0 },
     { gruppe:'Lackierarbeiten', pos:'M4.02', beschreibung:'Fensterbänke Holz lackieren', einheit:'m', menge:15, materialpreis:38, stundensatz:50, stunden:0 },
     { gruppe:'Lackierarbeiten', pos:'M4.03', beschreibung:'Heizkörper lackieren', einheit:'Stk', menge:5, materialpreis:58, stundensatz:50, stunden:0 },
-    // Fassade Außen
-    { gruppe:'Fassade Außen', pos:'M5.01', beschreibung:'Fassadenfarbe mineralisch 2-fach', einheit:'m²', menge:80, materialpreis:21, stundensatz:50, stunden:0 },
-    { gruppe:'Fassade Außen', pos:'M5.02', beschreibung:'Fassadenputz Renovierung mineralisch', einheit:'m²', menge:60, materialpreis:38, stundensatz:50, stunden:0 },
+    // Glattputz Innen
+    { gruppe:'Glattputz Innen', pos:'M5.01', beschreibung:'Glattputz Innen einlagig bis 10mm', einheit:'m²', menge:60, materialpreis:22, stundensatz:50, stunden:0 },
+    { gruppe:'Glattputz Innen', pos:'M5.02', beschreibung:'Glattputz Innen zweilagig bis 15mm', einheit:'m²', menge:40, materialpreis:32, stundensatz:50, stunden:0 },
+    // Rauputz
+    { gruppe:'Rauputz', pos:'M6.01', beschreibung:'Rauputz Innen 1,0mm Körnung', einheit:'m²', menge:40, materialpreis:18.50, stundensatz:50, stunden:0 },
+    { gruppe:'Rauputz', pos:'M6.02', beschreibung:'Rauputz Innen 1,3mm Körnung', einheit:'m²', menge:40, materialpreis:19.50, stundensatz:50, stunden:0 },
+    { gruppe:'Rauputz', pos:'M6.03', beschreibung:'Rauputz Innen 1,5mm Körnung', einheit:'m²', menge:40, materialpreis:20.50, stundensatz:50, stunden:0 },
+    { gruppe:'Rauputz', pos:'M6.04', beschreibung:'Rauputz Außen 1,5mm Körnung', einheit:'m²', menge:50, materialpreis:26, stundensatz:50, stunden:0 },
+    { gruppe:'Rauputz', pos:'M6.05', beschreibung:'Rauputz Außen 2,0mm Körnung', einheit:'m²', menge:50, materialpreis:28, stundensatz:50, stunden:0 },
+    { gruppe:'Rauputz', pos:'M6.06', beschreibung:'Rauputz Außen 3,0mm Körnung', einheit:'m²', menge:50, materialpreis:30, stundensatz:50, stunden:0 },
+    // Fassade
+    { gruppe:'Fassade', pos:'M7.01', beschreibung:'Fassadenfarbe mineralisch 2-fach', einheit:'m²', menge:80, materialpreis:21, stundensatz:50, stunden:0 },
+    { gruppe:'Fassade', pos:'M7.02', beschreibung:'Fassade spachteln / egalisieren', einheit:'m²', menge:60, materialpreis:18, stundensatz:50, stunden:0 },
+    { gruppe:'Fassade', pos:'M7.03', beschreibung:'Fassade streichen 2-fach Silikatfarbe', einheit:'m²', menge:80, materialpreis:24, stundensatz:50, stunden:0 },
+    { gruppe:'Fassade', pos:'M7.04', beschreibung:'Fassadendämmung WDVS EPS 100mm', einheit:'m²', menge:50, materialpreis:98, stundensatz:50, stunden:0 },
+    { gruppe:'Fassade', pos:'M7.05', beschreibung:'Fassadendämmung WDVS Mineralwolle 120mm', einheit:'m²', menge:40, materialpreis:118, stundensatz:50, stunden:0 },
+    { gruppe:'Fassade', pos:'M7.06', beschreibung:'Fassadenputz Renovierung mineralisch', einheit:'m²', menge:60, materialpreis:38, stundensatz:50, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'M8.01', beschreibung:'Stundensatz Maler/Lackierer', einheit:'h', menge:1, materialpreis:0, stundensatz:50, stunden:1 },
   ],
 
   /* ── BODEN ────────────────────────────────────────────────────── */
@@ -767,6 +905,13 @@ const MUSTER = {
     { gruppe:'Zubehör', pos:'B5.01', beschreibung:'Sockel-/Fußleiste MDF lackiert montieren', einheit:'m', menge:50, materialpreis:28, stundensatz:45, stunden:0 },
     { gruppe:'Zubehör', pos:'B5.02', beschreibung:'Treppenkantenprofil Kunststoff', einheit:'m', menge:12, materialpreis:28, stundensatz:45, stunden:0 },
     { gruppe:'Zubehör', pos:'B5.03', beschreibung:'Türübergangsprofil Aluminium', einheit:'Stk', menge:8, materialpreis:18, stundensatz:45, stunden:0 },
+    // Spezialböden
+    { gruppe:'Spezialböden', pos:'B6.01', beschreibung:'PU-Beschichtung (Polyurethan) einlagig', einheit:'m²', menge:30, materialpreis:48, stundensatz:45, stunden:0 },
+    { gruppe:'Spezialböden', pos:'B6.02', beschreibung:'PU-Beschichtung zweilagig', einheit:'m²', menge:30, materialpreis:72, stundensatz:45, stunden:0 },
+    { gruppe:'Spezialböden', pos:'B6.03', beschreibung:'Epoxidharz-Beschichtung einlagig', einheit:'m²', menge:25, materialpreis:65, stundensatz:45, stunden:0 },
+    { gruppe:'Spezialböden', pos:'B6.04', beschreibung:'Epoxidharz-Beschichtung zweilagig selbstnivellierend', einheit:'m²', menge:25, materialpreis:95, stundensatz:45, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'B7.01', beschreibung:'Stundensatz Bodenleger', einheit:'h', menge:1, materialpreis:0, stundensatz:45, stunden:1 },
   ],
 
   /* ── FLIESEN ──────────────────────────────────────────────────── */
@@ -791,6 +936,8 @@ const MUSTER = {
     { gruppe:'Sockel & Kanten', pos:'F5.01', beschreibung:'Kehlsockel Fliesenbelag', einheit:'m', menge:12, materialpreis:39, stundensatz:60, stunden:0 },
     { gruppe:'Sockel & Kanten', pos:'F5.02', beschreibung:'Kantenprofil Aluminium eloxiert', einheit:'m', menge:10, materialpreis:22, stundensatz:60, stunden:0 },
     { gruppe:'Sockel & Kanten', pos:'F5.03', beschreibung:'Fliesenfugen erneuern', einheit:'m²', menge:20, materialpreis:12, stundensatz:60, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'F6.01', beschreibung:'Stundensatz Fliesenleger', einheit:'h', menge:1, materialpreis:0, stundensatz:60, stunden:1 },
   ],
 
   /* ── TÜREN ────────────────────────────────────────────────────── */
@@ -812,6 +959,8 @@ const MUSTER = {
     // Leisten & Abschlüsse
     { gruppe:'Leisten & Abschlüsse', pos:'TU5.01', beschreibung:'Sockel-/Fußleiste Holz montieren', einheit:'m', menge:40, materialpreis:30, stundensatz:60, stunden:0 },
     { gruppe:'Leisten & Abschlüsse', pos:'TU5.02', beschreibung:'Bekleidung Laibung Holz', einheit:'m', menge:20, materialpreis:44, stundensatz:60, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'TU6.01', beschreibung:'Stundensatz Tischler/Türenmonteur', einheit:'h', menge:1, materialpreis:0, stundensatz:60, stunden:1 },
   ],
 
   /* ── FENSTER ──────────────────────────────────────────────────── */
@@ -834,6 +983,8 @@ const MUSTER = {
     { gruppe:'Sonnenschutz & Zubehör', pos:'FE5.02', beschreibung:'Außenjalousie Aluminium motorisch', einheit:'Stk', menge:2, materialpreis:890, stundensatz:65, stunden:0 },
     { gruppe:'Sonnenschutz & Zubehör', pos:'FE5.03', beschreibung:'Fensterbank innen MDF', einheit:'m', menge:10, materialpreis:48, stundensatz:65, stunden:0 },
     { gruppe:'Sonnenschutz & Zubehör', pos:'FE5.04', beschreibung:'Fensterbank außen Aluminium', einheit:'m', menge:10, materialpreis:58, stundensatz:65, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'FE6.01', beschreibung:'Stundensatz Fenstermonteur', einheit:'h', menge:1, materialpreis:0, stundensatz:65, stunden:1 },
   ],
 
   /* ── ABBRUCH ──────────────────────────────────────────────────── */
@@ -848,13 +999,26 @@ const MUSTER = {
     { gruppe:'Decken & Böden', pos:'A2.02', beschreibung:'Verbundestrich abbrechen bis 50mm', einheit:'m²', menge:50, materialpreis:28, stundensatz:45, stunden:0 },
     { gruppe:'Decken & Böden', pos:'A2.03', beschreibung:'Bodenfliesen / Estrich entfernen', einheit:'m²', menge:30, materialpreis:62, stundensatz:45, stunden:0 },
     { gruppe:'Decken & Böden', pos:'A2.04', beschreibung:'Holzbalkendecke abbrechen', einheit:'m²', menge:20, materialpreis:92, stundensatz:45, stunden:0 },
+    // Tapeten & Oberflächen
+    { gruppe:'Tapeten & Oberflächen', pos:'A3.01', beschreibung:'Tapete entfernen (1 Lage)', einheit:'m²', menge:80, materialpreis:6.50, stundensatz:45, stunden:0 },
+    { gruppe:'Tapeten & Oberflächen', pos:'A3.02', beschreibung:'Tapete entfernen (mehrere Lagen)', einheit:'m²', menge:50, materialpreis:9.80, stundensatz:45, stunden:0 },
     // Putz & Fassade
-    { gruppe:'Putz & Fassade', pos:'A3.01', beschreibung:'Außenputz abschlagen, Teilflächen', einheit:'m²', menge:60, materialpreis:34, stundensatz:45, stunden:0 },
-    { gruppe:'Putz & Fassade', pos:'A3.02', beschreibung:'Innenputz abschlagen vollflächig', einheit:'m²', menge:80, materialpreis:12.70, stundensatz:45, stunden:0 },
+    { gruppe:'Putz & Fassade', pos:'A4.01', beschreibung:'Außenputz abschlagen, Teilflächen', einheit:'m²', menge:60, materialpreis:34, stundensatz:45, stunden:0 },
+    { gruppe:'Putz & Fassade', pos:'A4.02', beschreibung:'Innenputz abschlagen vollflächig', einheit:'m²', menge:80, materialpreis:12.70, stundensatz:45, stunden:0 },
+    // Fenster & Türen
+    { gruppe:'Fenster & Türen', pos:'A5.01', beschreibung:'Fenster inkl. Zarge demontieren', einheit:'Stk', menge:4, materialpreis:68, stundensatz:45, stunden:0 },
+    { gruppe:'Fenster & Türen', pos:'A5.02', beschreibung:'Außentür inkl. Zarge demontieren', einheit:'Stk', menge:1, materialpreis:95, stundensatz:45, stunden:0 },
+    { gruppe:'Fenster & Türen', pos:'A5.03', beschreibung:'Innentür inkl. Zarge demontieren', einheit:'Stk', menge:3, materialpreis:52, stundensatz:45, stunden:0 },
+    { gruppe:'Fenster & Türen', pos:'A5.04', beschreibung:'Kellertür / Nebentür demontieren', einheit:'Stk', menge:1, materialpreis:62, stundensatz:45, stunden:0 },
     // Einbauten & Installationen
-    { gruppe:'Einbauten & Installationen', pos:'A4.01', beschreibung:'Küchenzeile demontieren', einheit:'lfm', menge:4, materialpreis:68, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A4.02', beschreibung:'Heizkörper demontieren', einheit:'Stk', menge:5, materialpreis:44, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A4.03', beschreibung:'Schuttabfuhr und Entsorgung', einheit:'t', menge:5, materialpreis:185, stundensatz:45, stunden:0 },
+    { gruppe:'Einbauten & Installationen', pos:'A6.01', beschreibung:'Küchenzeile demontieren', einheit:'lfm', menge:4, materialpreis:68, stundensatz:45, stunden:0 },
+    { gruppe:'Einbauten & Installationen', pos:'A6.02', beschreibung:'Heizkörper demontieren', einheit:'Stk', menge:5, materialpreis:44, stundensatz:45, stunden:0 },
+    { gruppe:'Einbauten & Installationen', pos:'A6.03', beschreibung:'Sanitärobjekte Bad komplett demontieren', einheit:'Pauschal', menge:1, materialpreis:485, stundensatz:45, stunden:0 },
+    { gruppe:'Einbauten & Installationen', pos:'A6.04', beschreibung:'Elektrische Installationen demontieren (Wohnung)', einheit:'Pauschal', menge:1, materialpreis:385, stundensatz:45, stunden:0 },
+    { gruppe:'Einbauten & Installationen', pos:'A6.05', beschreibung:'Heizungsanlage komplett demontieren', einheit:'Pauschal', menge:1, materialpreis:685, stundensatz:45, stunden:0 },
+    { gruppe:'Einbauten & Installationen', pos:'A6.06', beschreibung:'Schuttabfuhr und Entsorgung', einheit:'t', menge:5, materialpreis:185, stundensatz:45, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'A7.01', beschreibung:'Stundensatz Abbrucharbeiter', einheit:'h', menge:1, materialpreis:0, stundensatz:45, stunden:1 },
   ],
 
   /* ── ROHBAU ───────────────────────────────────────────────────── */
@@ -877,6 +1041,8 @@ const MUSTER = {
     { gruppe:'Beton & Stahlbeton', pos:'R4.01', beschreibung:'Betonstütze Ortbeton 30×30cm bewehrt', einheit:'m', menge:4, materialpreis:185, stundensatz:55, stunden:0 },
     { gruppe:'Beton & Stahlbeton', pos:'R4.02', beschreibung:'Stahlbetondecke Ortbeton 16cm', einheit:'m²', menge:30, materialpreis:185, stundensatz:55, stunden:0 },
     { gruppe:'Beton & Stahlbeton', pos:'R4.03', beschreibung:'Stahlbetonsturz einbauen', einheit:'Stk', menge:3, materialpreis:245, stundensatz:55, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'R5.01', beschreibung:'Stundensatz Maurer/Rohbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:55, stunden:1 },
   ],
 
   /* ── BODENPLATTE ──────────────────────────────────────────────── */
@@ -900,6 +1066,8 @@ const MUSTER = {
     // Estrich
     { gruppe:'Estrich', pos:'BP5.01', beschreibung:'Zementestrich ZE 20 / 60mm auf Dämmung', einheit:'m²', menge:50, materialpreis:36, stundensatz:55, stunden:0 },
     { gruppe:'Estrich', pos:'BP5.02', beschreibung:'Fließestrich CAF 35mm', einheit:'m²', menge:40, materialpreis:32, stundensatz:55, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'BP6.01', beschreibung:'Stundensatz Bodenplatten-/Betonbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:55, stunden:1 },
   ],
 };
 
