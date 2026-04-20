@@ -475,6 +475,73 @@
       flex-shrink: 0; background: #f7f9fc; gap: 8px; flex-wrap: wrap;
     }
     @media print { .vert-modal-box { display: none !important; } }
+
+    /* ── Grundriss-Editor ────────────────────────────────────────── */
+    .gr-modal-box {
+      background: #fff; border-radius: 12px;
+      width: 98vw; max-width: 1320px;
+      height: 92vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 10px 52px rgba(0,0,0,.48);
+      overflow: hidden;
+    }
+    .gr-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+    .gr-lib {
+      width: 190px; min-width: 190px; border-right: 2px solid #e0e6f0;
+      overflow-y: auto; background: #fafbfc; flex-shrink: 0;
+    }
+    .gr-lib-section {
+      font-size: 9px; font-weight: 900; color: #a0a8b8;
+      text-transform: uppercase; letter-spacing: .7px;
+      padding: 8px 10px 2px;
+    }
+    .gr-lib-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 7px; cursor: pointer;
+      transition: background .1s; border-radius: 5px;
+      margin: 1px 4px; border-left: 3px solid transparent;
+    }
+    .gr-lib-item:hover { background: #eef2fa; }
+    .gr-lib-item.active { background: #dce6f5; border-left-color: #2e6da4; }
+    .gr-lib-icon-box {
+      width: 28px; height: 28px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 5px; font-size: 14px;
+    }
+    .gr-lib-label { font-size: 11px; line-height: 1.3; flex: 1; }
+    .gr-canvas-wrap {
+      flex: 1; overflow: auto; background: #dde4ee;
+      position: relative; min-width: 0;
+    }
+    .gr-canvas-inner {
+      display: inline-block; position: relative;
+      cursor: crosshair; user-select: none;
+    }
+    .gr-right {
+      width: 200px; min-width: 200px; border-left: 2px solid #e0e6f0;
+      overflow-y: auto; background: #fafbfc; flex-shrink: 0;
+    }
+    .gr-right-inner { padding: 8px; }
+    .gr-footer {
+      padding: 8px 14px; border-top: 2px solid #e0e6f0;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0; background: #f7f9fc; gap: 8px; flex-wrap: wrap;
+    }
+    .gr-toolbar {
+      display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
+      padding: 6px 10px; border-bottom: 1px solid #e0e6f0; background: #f5f7fb;
+      flex-shrink: 0;
+    }
+    .gr-tool-btn {
+      padding: 4px 9px; font-size: 11px; font-weight: 700;
+      border: 1.5px solid #c8d4e8; border-radius: 6px; cursor: pointer;
+      background: #fff; color: #333; transition: all .15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .gr-tool-btn:hover { background: #eef2fa; border-color: #2e6da4; }
+    .gr-tool-btn.active { background: #2e6da4; color: #fff; border-color: #2e6da4; }
+    .gr-scale-info { font-size: 10.5px; color: #8a97a8; margin-left: 6px; }
+    @media print { .gr-modal-box { display: none !important; } }
   </style>
 </head>
 <body>
@@ -508,6 +575,7 @@
   <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
   <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
   <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
+  <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundriss-Editor</button>
 </div>
 
 <div class="container">
@@ -2832,6 +2900,940 @@ function vertToKalk() {
     showToast('⚠️ Keine Bauteile zum Übernehmen – bitte zuerst Bauteile platzieren');
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   GRUNDRISS-EDITOR  (Installationsplan)
+   Raster: GR_GRID px = 1m
+═══════════════════════════════════════════════════════════════ */
+const GR_GRID = 50;   // pixels per metre
+const GR_W    = 30;   // canvas cols (= 30m)
+const GR_H    = 24;   // canvas rows (= 24m)
+
+/* ── Symbol-Bibliothek ───────────────────────────────────────── */
+const GR_LIB = [
+  // Bauteile
+  { cat:'Bauteile', type:'wall',    label:'Wand',            emoji:'▬', color:'#2c3e50', snap:'line'   },
+  { cat:'Bauteile', type:'wall_int',label:'Innenwand',       emoji:'▬', color:'#5d6d7e', snap:'line'   },
+  { cat:'Bauteile', type:'door',    label:'Tür (90°)',       emoji:'🚪', color:'#8e44ad', snap:'cell'  },
+  { cat:'Bauteile', type:'door180', label:'Tür (180°)',      emoji:'🚪', color:'#6c3483', snap:'cell'  },
+  { cat:'Bauteile', type:'window',  label:'Fenster',         emoji:'🪟', color:'#2e86c1', snap:'line'  },
+  // Räume / Böden
+  { cat:'Räume & Böden', type:'room',   label:'Raum (Rechteck)', emoji:'⬜', color:'#16a085', snap:'rect'  },
+  { cat:'Räume & Böden', type:'parkett',label:'Parkett',          emoji:'🪵', color:'#a0522d', snap:'rect'  },
+  { cat:'Räume & Böden', type:'fliese', label:'Fliesen',          emoji:'🔷', color:'#1a75a8', snap:'rect'  },
+  { cat:'Räume & Böden', type:'teppich',label:'Teppich',          emoji:'🟫', color:'#9b5e2e', snap:'rect'  },
+  // Sanitär
+  { cat:'Sanitär', type:'wc',      label:'WC',               emoji:'🚽', color:'#2e86c1', snap:'cell'  },
+  { cat:'Sanitär', type:'dusche',  label:'Dusche',           emoji:'🚿', color:'#17a589', snap:'cell'  },
+  { cat:'Sanitär', type:'wanne',   label:'Badewanne',        emoji:'🛁', color:'#1a5276', snap:'cell'  },
+  { cat:'Sanitär', type:'waschb',  label:'Waschtisch',       emoji:'🪥', color:'#148f77', snap:'cell'  },
+  { cat:'Sanitär', type:'eckvent', label:'Eckventil',        emoji:'🔩', color:'#797d7f', snap:'cell'  },
+  { cat:'Sanitär', type:'heizk',   label:'Heizkörper',       emoji:'♨️', color:'#c0392b', snap:'cell'  },
+  // Elektro
+  { cat:'Elektro', type:'steckd',  label:'Steckdose',        emoji:'🔌', color:'#2e6da4', snap:'cell'  },
+  { cat:'Elektro', type:'schalter',label:'Schalter',         emoji:'⬛', color:'#1a3a5c', snap:'cell'  },
+  { cat:'Elektro', type:'licht',   label:'Deckenleuchte',    emoji:'💡', color:'#f39c12', snap:'cell'  },
+  { cat:'Elektro', type:'rauchm',  label:'Rauchmelder',      emoji:'🔴', color:'#e74c3c', snap:'cell'  },
+  { cat:'Elektro', type:'therm',   label:'Thermostat',       emoji:'🌡️', color:'#27ae60', snap:'cell'  },
+  // Labels
+  { cat:'Sonstiges', type:'label', label:'Raumname',         emoji:'🏷️', color:'#555',   snap:'cell'  },
+  { cat:'Sonstiges', type:'eraser',label:'Löschen',          emoji:'🧹', color:'#e74c3c', snap:'any'   },
+];
+
+/* ── State ───────────────────────────────────────────────────── */
+let grState = {
+  tool: null,
+  items: [],
+  walls: [],          // {x1,y1,x2,y2, type:'wall'|'wall_int'|'window'}
+  rooms: [],          // {x,y,w,h, type, label}
+  nextId: 1,
+  drawStart: null,    // for wall/rect drawing
+  zoom: 1.0,
+  showGrid: true,
+  selectedId: null,
+  snapEnabled: true
+};
+
+/* ── Open / Close ────────────────────────────────────────────── */
+function openGrundrissEditor() {
+  if (document.getElementById('grModal')) return;
+
+  const cats = [...new Set(GR_LIB.map(b => b.cat))];
+  const libHtml = cats.map(cat => {
+    const items = GR_LIB.filter(b => b.cat === cat);
+    return `<div class="gr-lib-section">${cat}</div>` +
+      items.map(b => `
+        <div class="gr-lib-item" id="grli-${b.type}" onclick="grSelectTool('${b.type}')" title="${b.label}">
+          <span class="gr-lib-icon-box" style="font-size:15px">${b.emoji}</span>
+          <span class="gr-lib-label">${b.label}</span>
+        </div>`).join('');
+  }).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'grModal';
+  overlay.innerHTML = `
+    <div class="gr-modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header" style="border-radius:12px 12px 0 0;flex-shrink:0">
+        <h3>🏠 Grundriss-Editor / Installationsplan</h3>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-success btn-sm" onclick="grExportSVG()">💾 SVG</button>
+          <button class="btn btn-warning btn-sm" onclick="grClearAll()">🗑️ Alles löschen</button>
+          <button class="modal-close" onclick="closeGrundrissEditor()">✕</button>
+        </div>
+      </div>
+      <!-- Toolbar -->
+      <div class="gr-toolbar no-print">
+        <button class="gr-tool-btn" id="grtb-grid" onclick="grToggleGrid()">⊞ Raster</button>
+        <button class="gr-tool-btn" id="grtb-snap" onclick="grToggleSnap()">🧲 Einrasten</button>
+        <button class="gr-tool-btn" onclick="grZoom(0.25)">🔍+</button>
+        <button class="gr-tool-btn" onclick="grZoom(-0.25)">🔍−</button>
+        <button class="gr-tool-btn" onclick="grZoom(0,'reset')">1:1</button>
+        <span class="gr-scale-info">Maßstab: 1 Kästchen = 1&nbsp;m &nbsp;|&nbsp; <span id="gr-zoom-label">100%</span></span>
+        <div style="flex:1"></div>
+        <span style="font-size:11px;color:#8a97a8" id="gr-status-hint">Werkzeug wählen →</span>
+      </div>
+      <div class="gr-body">
+        <!-- Library -->
+        <div class="gr-lib">${libHtml}
+          <div style="height:8px"></div>
+        </div>
+        <!-- Canvas -->
+        <div class="gr-canvas-wrap" id="gr-canvas-wrap">
+          <div class="gr-canvas-inner" id="gr-canvas-inner">
+            <svg id="gr-svg"
+              width="${GR_W * GR_GRID}" height="${GR_H * GR_GRID}"
+              xmlns="http://www.w3.org/2000/svg"
+              style="display:block"
+              onmousedown="grMouseDown(event)"
+              onmousemove="grMouseMove(event)"
+              onmouseup="grMouseUp(event)"
+              onclick="grClick(event)">
+            </svg>
+          </div>
+        </div>
+        <!-- Right panel -->
+        <div class="gr-right">
+          <div class="gr-lib-section">Eigenschaften</div>
+          <div class="gr-right-inner" id="gr-props-body">
+            <span style="color:#aaa;font-size:12px">Kein Element gewählt.</span>
+          </div>
+          <div style="height:1px;background:#e0e6f0;margin:8px 0"></div>
+          <div class="gr-lib-section">Statistik</div>
+          <div class="gr-right-inner" id="gr-stats" style="font-size:11px;line-height:1.9;color:#444"></div>
+        </div>
+      </div>
+      <div class="gr-footer">
+        <div style="font-size:11px;color:#8a97a8" id="gr-coord-display">x: —, y: —</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-teal btn-sm" onclick="grToKalk()" title="Flächen u. Symbole in die Kalkulation übernehmen">📋 In Kalkulation übernehmen</button>
+          <button class="btn btn-primary btn-sm" onclick="closeGrundrissEditor()">Schließen</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  grRender();
+  grUpdateToolbar();
+}
+
+function closeGrundrissEditor() {
+  const m = document.getElementById('grModal');
+  if (m) m.remove();
+}
+
+/* ── Tool selection ──────────────────────────────────────────── */
+function grSelectTool(type) {
+  grState.tool = type;
+  grState.drawStart = null;
+  grState.selectedId = null;
+  document.querySelectorAll('.gr-lib-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('grli-' + type);
+  if (el) el.classList.add('active');
+
+  const tool = GR_LIB.find(t => t.type === type);
+  const hint = document.getElementById('gr-status-hint');
+  if (hint && tool) {
+    if (tool.snap === 'line') hint.textContent = '✏️ Klicken=Startpunkt → nochmal klicken=Ende (Wand/Fenster)';
+    else if (tool.snap === 'rect') hint.textContent = '⬜ Klicken=Start → ziehen → loslassen (Rechteck)';
+    else if (type === 'eraser') hint.textContent = '🧹 Element anklicken zum Löschen';
+    else hint.textContent = '🖱️ Klicken zum Platzieren';
+  }
+  grUpdateProps();
+  grRender();
+}
+
+/* ── Zoom ────────────────────────────────────────────────────── */
+function grZoom(delta, mode) {
+  if (mode === 'reset') grState.zoom = 1.0;
+  else grState.zoom = Math.max(0.3, Math.min(3.0, grState.zoom + delta));
+  const svg = document.getElementById('gr-svg');
+  if (svg) {
+    svg.setAttribute('width', GR_W * GR_GRID * grState.zoom);
+    svg.setAttribute('height', GR_H * GR_GRID * grState.zoom);
+    svg.style.transform = 'scale(1)';
+  }
+  const lbl = document.getElementById('gr-zoom-label');
+  if (lbl) lbl.textContent = Math.round(grState.zoom * 100) + '%';
+  grRender();
+}
+
+/* ── Toggles ─────────────────────────────────────────────────── */
+function grToggleGrid() {
+  grState.showGrid = !grState.showGrid;
+  grUpdateToolbar();
+  grRender();
+}
+function grToggleSnap() {
+  grState.snapEnabled = !grState.snapEnabled;
+  grUpdateToolbar();
+}
+function grUpdateToolbar() {
+  const gBtn = document.getElementById('grtb-grid');
+  if (gBtn) gBtn.classList.toggle('active', grState.showGrid);
+  const sBtn = document.getElementById('grtb-snap');
+  if (sBtn) sBtn.classList.toggle('active', grState.snapEnabled);
+}
+
+/* ── Coordinate helpers ──────────────────────────────────────── */
+function grSvgCoords(e) {
+  const svg = document.getElementById('gr-svg');
+  if (!svg) return { x: 0, y: 0 };
+  const r = svg.getBoundingClientRect();
+  const z = grState.zoom;
+  return {
+    x: (e.clientX - r.left) / z,
+    y: (e.clientY - r.top)  / z
+  };
+}
+function grSnap(v) {
+  return grState.snapEnabled ? Math.round(v / GR_GRID) * GR_GRID : v;
+}
+function grSnapCell(v) {
+  return Math.floor(v / GR_GRID) * GR_GRID;
+}
+
+/* ── Mouse events ────────────────────────────────────────────── */
+let _grDragging = false;
+
+function grMouseDown(e) {
+  if (e.button !== 0) return;
+  const tool = GR_LIB.find(t => t.type === grState.tool);
+  if (!tool) return;
+  const c = grSvgCoords(e);
+  if (tool.snap === 'rect') {
+    _grDragging = true;
+    grState.drawStart = { x: grSnap(c.x), y: grSnap(c.y) };
+  } else if (tool.snap === 'line') {
+    if (!grState.drawStart) {
+      grState.drawStart = { x: grSnap(c.x), y: grSnap(c.y) };
+    }
+  }
+}
+
+function grMouseMove(e) {
+  const c = grSvgCoords(e);
+  const coord = document.getElementById('gr-coord-display');
+  if (coord) {
+    const mx = (grSnap(c.x) / GR_GRID).toFixed(1);
+    const my = (grSnap(c.y) / GR_GRID).toFixed(1);
+    coord.textContent = `x: ${mx}m, y: ${my}m`;
+  }
+  if (_grDragging && grState.drawStart) {
+    grState._previewEnd = { x: grSnap(c.x), y: grSnap(c.y) };
+    grRender();
+  }
+}
+
+function grMouseUp(e) {
+  if (!_grDragging) return;
+  _grDragging = false;
+  const tool = GR_LIB.find(t => t.type === grState.tool);
+  if (!tool || tool.snap !== 'rect' || !grState.drawStart) return;
+  const c = grSvgCoords(e);
+  const ex = grSnap(c.x), ey = grSnap(c.y);
+  const sx = grState.drawStart.x, sy = grState.drawStart.y;
+  if (Math.abs(ex - sx) < GR_GRID * 0.4 && Math.abs(ey - sy) < GR_GRID * 0.4) {
+    grState.drawStart = null;
+    grState._previewEnd = null;
+    grRender();
+    return;
+  }
+  grState.rooms.push({
+    id: grState.nextId++,
+    type: grState.tool,
+    x: Math.min(sx, ex), y: Math.min(sy, ey),
+    w: Math.abs(ex - sx), h: Math.abs(ey - sy),
+    label: grDefaultLabel(grState.tool)
+  });
+  grState.drawStart = null;
+  grState._previewEnd = null;
+  grRender();
+  grUpdateStats();
+}
+
+function grClick(e) {
+  if (_grDragging) return;
+  const tool = GR_LIB.find(t => t.type === grState.tool);
+  if (!tool) return;
+  const c = grSvgCoords(e);
+
+  if (tool.snap === 'line') {
+    if (grState.drawStart) {
+      // Complete wall/window
+      const ex = grSnap(c.x), ey = grSnap(c.y);
+      grState.walls.push({
+        id: grState.nextId++,
+        type: grState.tool,
+        x1: grState.drawStart.x, y1: grState.drawStart.y,
+        x2: ex, y2: ey
+      });
+      grState.drawStart = null;
+      grRender();
+      grUpdateStats();
+    }
+    return;
+  }
+
+  if (tool.snap === 'cell') {
+    const cx = grSnapCell(c.x), cy = grSnapCell(c.y);
+
+    if (grState.tool === 'eraser') {
+      grEraseAt(cx, cy, c.x, c.y);
+      return;
+    }
+
+    // Check not placing on top of existing symbol at same cell
+    const exists = grState.items.find(i =>
+      Math.abs(i.x - cx) < 2 && Math.abs(i.y - cy) < 2 &&
+      i.type === grState.tool
+    );
+    if (exists) return;
+
+    const item = {
+      id: grState.nextId++,
+      type: grState.tool,
+      x: cx, y: cy,
+      label: ''
+    };
+    grState.items.push(item);
+    grState.selectedId = item.id;
+    grUpdateProps();
+    grRender();
+    grUpdateStats();
+  }
+}
+
+/* ── Erase ───────────────────────────────────────────────────── */
+function grEraseAt(cx, cy, mx, my) {
+  // Try to find nearest symbol within 0.6 grid
+  const thr = GR_GRID * 0.6;
+  let best = null, bestD = Infinity;
+  for (const it of grState.items) {
+    const d = Math.hypot(it.x + GR_GRID/2 - mx, it.y + GR_GRID/2 - my);
+    if (d < thr && d < bestD) { best = it; bestD = d; }
+  }
+  if (best) {
+    grState.items = grState.items.filter(i => i.id !== best.id);
+    grRender(); grUpdateStats(); return;
+  }
+  // Try wall/window
+  for (let i = grState.walls.length - 1; i >= 0; i--) {
+    const w = grState.walls[i];
+    if (grPointOnSegment(mx, my, w.x1, w.y1, w.x2, w.y2, GR_GRID * 0.4)) {
+      grState.walls.splice(i, 1);
+      grRender(); grUpdateStats(); return;
+    }
+  }
+  // Try room
+  for (let i = grState.rooms.length - 1; i >= 0; i--) {
+    const r = grState.rooms[i];
+    if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+      grState.rooms.splice(i, 1);
+      grRender(); grUpdateStats(); return;
+    }
+  }
+}
+
+function grPointOnSegment(px, py, x1, y1, x2, y2, thr) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.hypot(px - x1, py - y1) < thr;
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const nx = x1 + t * dx, ny = y1 + t * dy;
+  return Math.hypot(px - nx, py - ny) < thr;
+}
+
+/* ── Default labels ──────────────────────────────────────────── */
+function grDefaultLabel(type) {
+  const map = {
+    room: 'Raum', parkett: 'Parkett', fliese: 'Fliesen', teppich: 'Teppich'
+  };
+  return map[type] || '';
+}
+
+/* ── SVG Renderer ────────────────────────────────────────────── */
+function grRender() {
+  const svg = document.getElementById('gr-svg');
+  if (!svg) return;
+  const z = grState.zoom;
+  const W = GR_W * GR_GRID, H = GR_H * GR_GRID;
+  svg.setAttribute('width', W * z);
+  svg.setAttribute('height', H * z);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  let s = '<defs>';
+  // Hatch patterns for floor types
+  s += `<pattern id="parkett-pat" x="0" y="0" width="${GR_GRID}" height="${GR_GRID/5}" patternUnits="userSpaceOnUse">
+    <rect width="${GR_GRID}" height="${GR_GRID/5}" fill="#f5deb3"/>
+    <line x1="0" y1="${GR_GRID/10}" x2="${GR_GRID}" y2="${GR_GRID/10}" stroke="#c4a068" stroke-width="0.8"/>
+  </pattern>`;
+  s += `<pattern id="fliese-pat" x="0" y="0" width="${GR_GRID/2}" height="${GR_GRID/2}" patternUnits="userSpaceOnUse">
+    <rect width="${GR_GRID/2}" height="${GR_GRID/2}" fill="#e8f0fb" stroke="#a0b4d0" stroke-width="1"/>
+  </pattern>`;
+  s += `<pattern id="teppich-pat" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+    <rect width="8" height="8" fill="#d9b896"/>
+    <circle cx="4" cy="4" r="1.5" fill="#b58765" opacity=".5"/>
+  </pattern>`;
+  s += `<pattern id="room-pat" x="0" y="0" width="${GR_GRID}" height="${GR_GRID}" patternUnits="userSpaceOnUse">
+    <rect width="${GR_GRID}" height="${GR_GRID}" fill="#fff"/>
+  </pattern>`;
+  s += '</defs>';
+
+  // Background
+  s += `<rect width="${W}" height="${H}" fill="#f8f9fb"/>`;
+
+  // Grid
+  if (grState.showGrid) {
+    for (let x = 0; x <= W; x += GR_GRID) {
+      s += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${x % (GR_GRID*5) === 0 ? '#ccd4e0' : '#e2e8f0'}" stroke-width="${x % (GR_GRID*5) === 0 ? 1 : 0.5}"/>`;
+    }
+    for (let y = 0; y <= H; y += GR_GRID) {
+      s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${y % (GR_GRID*5) === 0 ? '#ccd4e0' : '#e2e8f0'}" stroke-width="${y % (GR_GRID*5) === 0 ? 1 : 0.5}"/>`;
+    }
+    // Grid labels (every 5m)
+    for (let x = 0; x <= W; x += GR_GRID * 5) {
+      s += `<text x="${x+2}" y="10" font-size="7" fill="#bbc5d4" font-family="monospace">${x/GR_GRID}m</text>`;
+    }
+    for (let y = GR_GRID*5; y <= H; y += GR_GRID * 5) {
+      s += `<text x="2" y="${y-2}" font-size="7" fill="#bbc5d4" font-family="monospace">${y/GR_GRID}m</text>`;
+    }
+  }
+
+  // Rooms (floor fills)
+  for (const r of grState.rooms) {
+    const isSel = r.id === grState.selectedId;
+    const patMap = { room:'room-pat', parkett:'parkett-pat', fliese:'fliese-pat', teppich:'teppich-pat' };
+    const pat = patMap[r.type] || 'room-pat';
+    const strokeC = isSel ? '#f39c12' : (r.type === 'room' ? '#7fa8c8' : '#8a9ab0');
+    s += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"
+      fill="url(#${pat})" stroke="${strokeC}" stroke-width="${isSel ? 2.5 : 1.5}"
+      stroke-dasharray="${isSel ? '6,3' : 'none'}" rx="2"
+      onclick="grSelectItem(event,'room',${r.id})" style="cursor:pointer"/>`;
+    // Label
+    if (r.label) {
+      s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2}" text-anchor="middle"
+        dominant-baseline="middle" font-size="11" font-weight="700"
+        fill="#4a5568" font-family="sans-serif">${esc(r.label)}</text>`;
+    }
+    // Size annotation
+    const wm = (r.w / GR_GRID).toFixed(1);
+    const hm = (r.h / GR_GRID).toFixed(1);
+    s += `<text x="${r.x + r.w/2}" y="${r.y + r.h - 4}" text-anchor="middle"
+      font-size="8" fill="#7a8898" font-family="monospace">${wm}×${hm}m</text>`;
+  }
+
+  // Walls & Windows (lines)
+  for (const w of grState.walls) {
+    const isSel = w.id === grState.selectedId;
+    let strokeC, sw, dash;
+    if (w.type === 'wall')     { strokeC = '#2c3e50'; sw = 8; dash = 'none'; }
+    else if (w.type === 'wall_int') { strokeC = '#5d6d7e'; sw = 5; dash = 'none'; }
+    else if (w.type === 'window')   { strokeC = '#2e86c1'; sw = 6; dash = '8,4'; }
+    else { strokeC = '#555'; sw = 4; dash = 'none'; }
+    if (isSel) strokeC = '#f39c12';
+
+    // Clickable wider transparent hit area
+    s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
+      stroke="transparent" stroke-width="14" stroke-linecap="round"
+      onclick="grSelectItem(event,'wall',${w.id})" style="cursor:pointer"/>`;
+    s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
+      stroke="${strokeC}" stroke-width="${sw}" stroke-linecap="round"
+      stroke-dasharray="${dash}" pointer-events="none"/>`;
+
+    // Length annotation
+    const len = Math.hypot(w.x2 - w.x1, w.y2 - w.y1);
+    const mx2 = (w.x1 + w.x2) / 2, my2 = (w.y1 + w.y2) / 2;
+    s += `<text x="${mx2}" y="${my2 - 6}" text-anchor="middle"
+      font-size="8" fill="#8a9ab0" font-family="monospace">${(len/GR_GRID).toFixed(2)}m</text>`;
+  }
+
+  // Symbols (cell-based)
+  for (const item of grState.items) {
+    s += grRenderSymbol(item);
+  }
+
+  // Wall/rect preview while drawing
+  if (grState.drawStart) {
+    const ds = grState.drawStart;
+    const pe = grState._previewEnd;
+    const tool = GR_LIB.find(t => t.type === grState.tool);
+    if (pe && tool) {
+      if (tool.snap === 'rect') {
+        s += `<rect x="${Math.min(ds.x,pe.x)}" y="${Math.min(ds.y,pe.y)}"
+          width="${Math.abs(pe.x-ds.x)}" height="${Math.abs(pe.y-ds.y)}"
+          fill="rgba(46,109,164,.08)" stroke="#2e6da4" stroke-width="1.5"
+          stroke-dasharray="5,3" rx="2" pointer-events="none"/>`;
+      } else if (tool.snap === 'line') {
+        s += `<line x1="${ds.x}" y1="${ds.y}" x2="${pe.x}" y2="${pe.y}"
+          stroke="#2e6da4" stroke-width="4" stroke-dasharray="8,4"
+          stroke-linecap="round" opacity=".6" pointer-events="none"/>`;
+      }
+    }
+    // Start dot
+    s += `<circle cx="${ds.x}" cy="${ds.y}" r="4" fill="#2e6da4" opacity=".8" pointer-events="none"/>`;
+  }
+
+  // Compass
+  s += grCompass(W - 36, 36, 26);
+
+  svg.innerHTML = s;
+}
+
+function grRenderSymbol(item) {
+  const tool = GR_LIB.find(t => t.type === item.type);
+  if (!tool) return '';
+  const isSel = item.id === grState.selectedId;
+  const cx = item.x + GR_GRID / 2;
+  const cy = item.y + GR_GRID / 2;
+  const r = GR_GRID * 0.42;
+
+  let s = `<g onclick="grSelectItem(event,'item',${item.id})" style="cursor:pointer">`;
+
+  // Background circle
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}"
+    fill="${tool.color}22" stroke="${isSel ? '#f39c12' : tool.color}"
+    stroke-width="${isSel ? 2.5 : 1.5}"/>`;
+
+  // Custom SVG shapes for sanitär/elektro
+  switch (item.type) {
+    case 'wc':
+      s += grSymWC(cx, cy, r); break;
+    case 'dusche':
+      s += grSymDusche(cx, cy, r); break;
+    case 'wanne':
+      s += grSymWanne(item.x, item.y, GR_GRID); break;
+    case 'waschb':
+      s += grSymWaschb(cx, cy, r); break;
+    case 'steckd':
+      s += grSymSteckdose(cx, cy, r); break;
+    case 'schalter':
+      s += grSymSchalter(cx, cy, r); break;
+    case 'licht':
+      s += grSymLicht(cx, cy, r); break;
+    case 'door':
+    case 'door180':
+      s += grSymDoor(item.x, item.y, GR_GRID, item.type === 'door180'); break;
+    default:
+      // Emoji fallback
+      s += `<text x="${cx}" y="${cy + 1}" text-anchor="middle" dominant-baseline="middle"
+        font-size="${GR_GRID * 0.38}" font-family="sans-serif">${tool.emoji}</text>`;
+  }
+
+  // Label under symbol
+  if (item.label) {
+    s += `<text x="${cx}" y="${item.y + GR_GRID + 10}" text-anchor="middle"
+      font-size="9" fill="${tool.color}" font-weight="700" font-family="sans-serif">${esc(item.label)}</text>`;
+  } else {
+    s += `<text x="${cx}" y="${item.y + GR_GRID + 10}" text-anchor="middle"
+      font-size="8" fill="#aaa" font-family="sans-serif">${tool.label}</text>`;
+  }
+
+  s += '</g>';
+  return s;
+}
+
+/* ── Symbol shapes ───────────────────────────────────────────── */
+function grSymWC(cx, cy, r) {
+  const w = r * 1.4, h = r * 1.8;
+  return `<ellipse cx="${cx}" cy="${cy + r*0.1}" rx="${w*0.5}" ry="${h*0.48}" fill="#d6e4f7" stroke="#2e86c1" stroke-width="1.5"/>
+  <ellipse cx="${cx}" cy="${cy - r*0.6}" rx="${w*0.4}" ry="${r*0.22}" fill="#c8dcf0" stroke="#2e86c1" stroke-width="1"/>
+  <rect x="${cx - w*0.35}" y="${cy - r*0.7}" width="${w*0.7}" height="${r*0.15}" fill="#aec9e8" rx="2"/>`;
+}
+function grSymDusche(cx, cy, r) {
+  const w = r * 1.6;
+  return `<rect x="${cx-w/2}" y="${cy-w/2}" width="${w}" height="${w}" fill="#d0eaf5" stroke="#17a589" stroke-width="1.5" rx="3"/>
+  <line x1="${cx-w*0.3}" y1="${cy-w*0.3}" x2="${cx-w*0.3}" y2="${cy+w*0.3}" stroke="#17a589" stroke-width="1"/>
+  <line x1="${cx}" y1="${cy-w*0.3}" x2="${cx}" y2="${cy+w*0.3}" stroke="#17a589" stroke-width="1"/>
+  <line x1="${cx+w*0.3}" y1="${cy-w*0.3}" x2="${cx+w*0.3}" y2="${cy+w*0.3}" stroke="#17a589" stroke-width="1"/>
+  <line x1="${cx-w*0.35}" y1="${cy}" x2="${cx+w*0.35}" y2="${cy}" stroke="#17a589" stroke-width="1"/>`;
+}
+function grSymWanne(x, y, g) {
+  const px = x + 3, py = y + 3, pw = g - 6, ph = g - 6;
+  return `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="#d0eaf5" stroke="#1a5276" stroke-width="1.5" rx="8"/>
+  <ellipse cx="${px+pw/2}" cy="${py+ph/2}" rx="${pw*0.28}" ry="${ph*0.3}" fill="#aed6f1" stroke="#1a5276" stroke-width="1"/>`;
+}
+function grSymWaschb(cx, cy, r) {
+  return `<path d="M${cx-r*0.7},${cy} Q${cx-r*0.7},${cy+r*0.8} ${cx},${cy+r*0.8} Q${cx+r*0.7},${cy+r*0.8} ${cx+r*0.7},${cy} Z"
+    fill="#d0f0e8" stroke="#148f77" stroke-width="1.5"/>
+  <circle cx="${cx}" cy="${cy-r*0.1}" r="${r*0.12}" fill="#148f77"/>`;
+}
+function grSymSteckdose(cx, cy, r) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r*0.8}" fill="#dce6f5" stroke="#2e6da4" stroke-width="1.5"/>
+  <line x1="${cx-r*0.2}" y1="${cy-r*0.4}" x2="${cx-r*0.2}" y2="${cy+r*0.4}" stroke="#2e6da4" stroke-width="2"/>
+  <line x1="${cx+r*0.2}" y1="${cy-r*0.4}" x2="${cx+r*0.2}" y2="${cy+r*0.4}" stroke="#2e6da4" stroke-width="2"/>
+  <line x1="${cx-r*0.5}" y1="${cy}" x2="${cx+r*0.5}" y2="${cy}" stroke="#2e6da4" stroke-width="1.5"/>`;
+}
+function grSymSchalter(cx, cy, r) {
+  return `<rect x="${cx-r*0.7}" y="${cy-r*0.7}" width="${r*1.4}" height="${r*1.4}" fill="#dce6f5" stroke="#1a3a5c" stroke-width="1.5" rx="3"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.25}" fill="#1a3a5c"/>`;
+}
+function grSymLicht(cx, cy, r) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r*0.5}" fill="#fff9e0" stroke="#f39c12" stroke-width="1.5"/>
+  <circle cx="${cx}" cy="${cy}" r="${r*0.2}" fill="#f39c12"/>
+  ${[0,45,90,135,180,225,270,315].map(a => {
+    const rad = a * Math.PI / 180;
+    const x1 = cx + Math.cos(rad)*r*0.55, y1 = cy + Math.sin(rad)*r*0.55;
+    const x2 = cx + Math.cos(rad)*r*0.82, y2 = cy + Math.sin(rad)*r*0.82;
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#f39c12" stroke-width="1.2"/>`;
+  }).join('')}`;
+}
+function grSymDoor(x, y, g, full) {
+  // Quarter circle arc door symbol
+  const sw = full ? g : g;
+  const r2 = g * 0.85;
+  const sweep = full ? 1 : 0;
+  return `<rect x="${x+1}" y="${y+g*0.4}" width="${g*0.12}" height="${g*0.55}" fill="#8e44ad" rx="1"/>
+  <path d="M${x+g*0.12},${y+g*0.95} A${r2},${r2} 0 0,${sweep} ${x+g*0.12+r2*Math.cos(-Math.PI/2*(full?2:1))},${y+g*0.95+r2*Math.sin(-Math.PI/2*(full?2:1))}"
+    fill="rgba(142,68,173,.12)" stroke="#8e44ad" stroke-width="1" stroke-dasharray="4,2"/>`;
+}
+
+/* ── Compass ─────────────────────────────────────────────────── */
+function grCompass(cx, cy, r) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(255,255,255,.7)" stroke="#c4cede" stroke-width="1"/>
+  <polygon points="${cx},${cy-r*0.65} ${cx-r*0.3},${cy+r*0.4} ${cx},${cy+r*0.1}" fill="#e74c3c"/>
+  <polygon points="${cx},${cy-r*0.65} ${cx+r*0.3},${cy+r*0.4} ${cx},${cy+r*0.1}" fill="#aaa"/>
+  <text x="${cx}" y="${cy-r*0.7}" text-anchor="middle" font-size="7" font-weight="900" fill="#e74c3c" font-family="sans-serif">N</text>`;
+}
+
+/* ── Select item ─────────────────────────────────────────────── */
+function grSelectItem(e, kind, id) {
+  e.stopPropagation();
+  if (grState.tool === 'eraser') return;
+  if (!grState.tool) {
+    grState.selectedId = grState.selectedId === id ? null : id;
+    grUpdateProps();
+    grRender();
+  }
+}
+
+/* ── Properties panel ────────────────────────────────────────── */
+function grUpdateProps() {
+  const body = document.getElementById('gr-props-body');
+  if (!body) return;
+  if (!grState.selectedId) {
+    body.innerHTML = '<span style="color:#aaa;font-size:12px">Kein Element gewählt.<br><small>Werkzeug abwählen (ESC) um Elemente zu selektieren.</small></span>';
+    return;
+  }
+  const item = [...grState.items, ...grState.walls, ...grState.rooms]
+    .find(i => i.id === grState.selectedId);
+  if (!item) { body.innerHTML = '<span style="color:#aaa;font-size:12px">Nicht gefunden.</span>'; return; }
+
+  const isRoom = grState.rooms.includes(item);
+  const isWall = grState.walls.includes(item);
+
+  let html = `<div style="font-size:11.5px;font-weight:700;color:#1a3a5c;margin-bottom:8px">
+    ${isRoom ? '⬜ Raum/Boden' : isWall ? '▬ Wand/Fenster' : '📍 Symbol'} #${item.id}
+  </div>`;
+
+  if (isRoom || !isWall) {
+    html += `<div class="wiz-field" style="margin-bottom:8px">
+      <label>Bezeichnung</label>
+      <input type="text" value="${esc(item.label||'')}" placeholder="z.B. Wohnzimmer"
+        oninput="grUpdateItemProp(${item.id},'label',this.value)"
+        style="font-size:12px;padding:5px 8px;border:1.5px solid #d0d7e2;border-radius:6px;width:100%">
+    </div>`;
+  }
+
+  if (isRoom) {
+    const wm = (item.w / GR_GRID).toFixed(2);
+    const hm = (item.h / GR_GRID).toFixed(2);
+    const am = (item.w * item.h / (GR_GRID * GR_GRID)).toFixed(2);
+    html += `<div style="font-size:11px;color:#666;line-height:1.9">
+      Breite: <b>${wm} m</b><br>
+      Tiefe: <b>${hm} m</b><br>
+      Fläche: <b>${am} m²</b>
+    </div>`;
+  } else if (isWall) {
+    const len = Math.hypot(item.x2 - item.x1, item.y2 - item.y1);
+    html += `<div style="font-size:11px;color:#666;line-height:1.9">
+      Länge: <b>${(len/GR_GRID).toFixed(2)} m</b><br>
+      Typ: <b>${item.type === 'wall' ? 'Außenwand' : item.type === 'wall_int' ? 'Innenwand' : 'Fenster'}</b>
+    </div>`;
+  }
+
+  html += `<button class="btn btn-danger btn-sm" style="width:100%;margin-top:10px"
+    onclick="grDeleteSelected()">🗑️ Löschen</button>`;
+  body.innerHTML = html;
+}
+
+function grUpdateItemProp(id, field, value) {
+  const item = [...grState.items, ...grState.rooms, ...grState.walls]
+    .find(i => i.id === id);
+  if (item) { item[field] = value; grRender(); }
+}
+
+function grDeleteSelected() {
+  if (!grState.selectedId) return;
+  const id = grState.selectedId;
+  grState.items = grState.items.filter(i => i.id !== id);
+  grState.walls = grState.walls.filter(i => i.id !== id);
+  grState.rooms = grState.rooms.filter(i => i.id !== id);
+  grState.selectedId = null;
+  grUpdateProps();
+  grRender();
+  grUpdateStats();
+}
+
+/* ── Statistics ──────────────────────────────────────────────── */
+function grUpdateStats() {
+  const el = document.getElementById('gr-stats');
+  if (!el) return;
+  const totalArea = grState.rooms
+    .filter(r => r.type === 'room')
+    .reduce((s, r) => s + r.w * r.h / (GR_GRID * GR_GRID), 0);
+  const wallLen = grState.walls
+    .filter(w => w.type === 'wall' || w.type === 'wall_int')
+    .reduce((s, w) => s + Math.hypot(w.x2-w.x1, w.y2-w.y1) / GR_GRID, 0);
+  const winLen = grState.walls
+    .filter(w => w.type === 'window')
+    .reduce((s, w) => s + Math.hypot(w.x2-w.x1, w.y2-w.y1) / GR_GRID, 0);
+  const cnt = t => grState.items.filter(i => i.type === t).length;
+  el.innerHTML = `
+    Räume: <b>${grState.rooms.filter(r=>r.type==='room').length}</b><br>
+    Fläche gesamt: <b>${totalArea.toFixed(1)} m²</b><br>
+    Wände: <b>${wallLen.toFixed(1)} m</b><br>
+    Fenster: <b>${winLen.toFixed(1)} m</b><br>
+    Türen: <b>${cnt('door') + cnt('door180')}</b><br>
+    Steckdosen: <b>${cnt('steckd')}</b><br>
+    Schalter: <b>${cnt('schalter')}</b><br>
+    Leuchten: <b>${cnt('licht')}</b><br>
+    WC: <b>${cnt('wc')}</b><br>
+    Dusche: <b>${cnt('dusche')}</b><br>
+    Badewanne: <b>${cnt('wanne')}</b><br>
+    Waschtisch: <b>${cnt('waschb')}</b><br>
+    Heizkörper: <b>${cnt('heizk')}</b>
+  `;
+}
+
+/* ── Clear all ───────────────────────────────────────────────── */
+function grClearAll() {
+  if (!confirm('Gesamten Grundriss löschen?')) return;
+  grState.items = [];
+  grState.walls = [];
+  grState.rooms = [];
+  grState.selectedId = null;
+  grState.drawStart = null;
+  grState._previewEnd = null;
+  grUpdateProps();
+  grRender();
+  grUpdateStats();
+}
+
+/* ── SVG Export ──────────────────────────────────────────────── */
+function grExportSVG() {
+  const svg = document.getElementById('gr-svg');
+  if (!svg) return;
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', GR_W * GR_GRID);
+  clone.setAttribute('height', GR_H * GR_GRID);
+  clone.querySelectorAll('[onclick]').forEach(el => el.removeAttribute('onclick'));
+  clone.querySelectorAll('[style*="cursor"]').forEach(el => {
+    el.setAttribute('style', el.getAttribute('style').replace(/cursor:[^;]+;?/g, ''));
+  });
+  const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+  title.textContent = 'Grundriss / Installationsplan';
+  clone.insertBefore(title, clone.firstChild);
+  const blob = new Blob([
+    '<?xml version="1.0" encoding="UTF-8"?>\n' + clone.outerHTML
+  ], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Grundriss-Installationsplan.svg';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ── Transfer to Kalkulation ─────────────────────────────────── */
+function grToKalk() {
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  let added = 0;
+
+  // Flächen → Gewerke
+  const floorItems = grState.rooms.filter(r => r.type !== 'room');
+  const roomItems  = grState.rooms.filter(r => r.type === 'room');
+  const totalRoomArea = roomItems.reduce((s, r) => s + r.w * r.h / (GR_GRID * GR_GRID), 0);
+
+  for (const r of floorItems) {
+    const am = (r.w * r.h / (GR_GRID * GR_GRID)).toFixed(2);
+    const name = r.label || grDefaultLabel(r.type);
+    const gewerk = r.type === 'fliese' ? 'fliesen' : 'boden';
+    const mat = r.type === 'fliese' ? 45 : (r.type === 'teppich' ? 22 : 38);
+    const desc = r.type === 'fliese' ? 'Fliesenbelag verlegen' : (r.type === 'teppich' ? 'Teppichboden verlegen' : 'Parkett verlegen');
+    daten.positionen[gewerk].push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: `${desc} – ${name}`,
+      einheit: 'm²', menge: parseFloat(am), materialpreis: mat, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Wände → Trockenbau/Rohbau
+  const wallLen = grState.walls.filter(w => w.type === 'wall' || w.type === 'wall_int')
+    .reduce((s, w) => s + Math.hypot(w.x2-w.x1, w.y2-w.y1) / GR_GRID, 0);
+  if (wallLen > 0.5) {
+    daten.positionen.trockenbau.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Trennwände / Wände (aus Grundriss)',
+      einheit: 'lfm', menge: parseFloat(wallLen.toFixed(2)), materialpreis: 85, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Fenster → Fenster-Gewerk
+  const winLen = grState.walls.filter(w => w.type === 'window')
+    .reduce((s, w) => s + Math.hypot(w.x2-w.x1, w.y2-w.y1) / GR_GRID, 0);
+  if (winLen > 0.3) {
+    daten.positionen.fenster.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Fenster (aus Grundriss)',
+      einheit: 'lfm', menge: parseFloat(winLen.toFixed(2)), materialpreis: 420, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Türen → Türen-Gewerk
+  const nDoor = grState.items.filter(i => i.type === 'door' || i.type === 'door180').length;
+  if (nDoor > 0) {
+    daten.positionen.tueren.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Innentüren (aus Grundriss)',
+      einheit: 'Stk', menge: nDoor, materialpreis: 485, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Steckdosen → Elektro
+  const nSt = grState.items.filter(i => i.type === 'steckd').length;
+  if (nSt > 0) {
+    daten.positionen.elektro.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Schutzkontaktsteckdose UP (aus Grundriss)',
+      einheit: 'Stk', menge: nSt, materialpreis: 42, stundensatz: 65, stunden: 0
+    });
+    added++;
+  }
+  const nSch = grState.items.filter(i => i.type === 'schalter').length;
+  if (nSch > 0) {
+    daten.positionen.elektro.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Wechselschalter UP (aus Grundriss)',
+      einheit: 'Stk', menge: nSch, materialpreis: 40, stundensatz: 65, stunden: 0
+    });
+    added++;
+  }
+  const nLi = grState.items.filter(i => i.type === 'licht').length;
+  if (nLi > 0) {
+    daten.positionen.elektro.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'LED-Deckenleuchte einbauen (aus Grundriss)',
+      einheit: 'Stk', menge: nLi, materialpreis: 155, stundensatz: 65, stunden: 0
+    });
+    added++;
+  }
+  const nRm = grState.items.filter(i => i.type === 'rauchm').length;
+  if (nRm > 0) {
+    daten.positionen.elektro.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Rauchmelder (aus Grundriss)',
+      einheit: 'Stk', menge: nRm, materialpreis: 48, stundensatz: 65, stunden: 0
+    });
+    added++;
+  }
+
+  // WC, Dusche, Wanne, Waschtisch → Sanitär
+  const sanitaerMap = [
+    { t:'wc',     m:285, desc:'WC / Toilette montieren u. anschließen' },
+    { t:'dusche', m:485, desc:'Dusche Unterputz-Thermostat Endmontage' },
+    { t:'wanne',  m:569, desc:'Badewanne montieren u. anschließen' },
+    { t:'waschb', m:464, desc:'Waschtisch montieren u. anschließen' },
+    { t:'eckvent',m:38,  desc:'Eckventil DN15 montieren (je Anschluss)' },
+  ];
+  for (const sm of sanitaerMap) {
+    const n = grState.items.filter(i => i.type === sm.t).length;
+    if (n > 0) {
+      daten.positionen.sanitaer.push({
+        id: ++posIdCounter, pos: 'GR',
+        beschreibung: `${sm.desc} (aus Grundriss)`,
+        einheit: 'Stk', menge: n, materialpreis: sm.m, stundensatz: 70, stunden: 0
+      });
+      added++;
+    }
+  }
+
+  // Heizkörper → Heizung
+  const nHk = grState.items.filter(i => i.type === 'heizk').length;
+  if (nHk > 0) {
+    daten.positionen.heizung.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Flachheizkörper montieren u. anschließen (aus Grundriss)',
+      einheit: 'Stk', menge: nHk, materialpreis: 390, stundensatz: 65, stunden: 0
+    });
+    added++;
+  }
+
+  // Maler – Wände und Decken
+  if (totalRoomArea > 0.5) {
+    const wandfl = parseFloat((totalRoomArea * 3.5 * 0.8).toFixed(2));  // ~3.5m Höhe, 80% Nettofläche
+    daten.positionen.maler.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Wände streichen / tapezieren (aus Grundriss)',
+      einheit: 'm²', menge: wandfl, materialpreis: 18, stundensatz: 50, stunden: 0
+    });
+    daten.positionen.maler.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Decke weißeln (aus Grundriss)',
+      einheit: 'm²', menge: parseFloat(totalRoomArea.toFixed(2)), materialpreis: 14, stundensatz: 50, stunden: 0
+    });
+    added += 2;
+  }
+
+  if (added > 0) {
+    GEWERKE.filter(g => !g.spezial).forEach(g => renderPositionen(g.id));
+    autoSave();
+    closeGrundrissEditor();
+    showToast(`✅ ${added} Positionen aus Grundriss in alle Gewerke übernommen`);
+  } else {
+    showToast('⚠️ Kein Inhalt zum Übernehmen – bitte zuerst Grundriss zeichnen');
+  }
+}
+
+/* ── Keyboard shortcut (ESC = deselect tool) ─────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('grModal')) {
+    grState.tool = null;
+    grState.drawStart = null;
+    grState._previewEnd = null;
+    document.querySelectorAll('.gr-lib-item').forEach(el => el.classList.remove('active'));
+    const hint = document.getElementById('gr-status-hint');
+    if (hint) hint.textContent = 'Werkzeug wählen →';
+    grRender();
+  }
+});
 </script>
 </body>
 </html>
