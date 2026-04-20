@@ -2532,7 +2532,19 @@ function vertCanvasClick(e) {
   // Check overlap
   const occ = vertGetOccupied(row);
   for (let c = col; c < col + comp.te; c++) {
-    if (occ.has(c)) return;
+    if (occ.has(c)) {
+      const hint = document.getElementById('vert-hint');
+      if (hint) {
+        hint.textContent = '⚠️ Position belegt – bitte freie Stelle wählen';
+        hint.style.color = '#c0392b';
+        clearTimeout(hint._t);
+        hint._t = setTimeout(() => {
+          hint.style.color = '';
+          hint.textContent = '✏️ Auf eine freie Schienenstelle klicken zum Platzieren — oder Werkzeug oben abwählen';
+        }, 2000);
+      }
+      return;
+    }
   }
 
   const item = {
@@ -2795,11 +2807,12 @@ function vertToKalk() {
   for (const [type, count] of Object.entries(counts)) {
     const p = priceMap[type];
     if (!p) continue;
-    const ampLabel = ampMap[type] ? ` ${ampMap[type]}A` : '';
+    const ampere = ampMap[type];
+    const ampLabel = ampere > 0 ? ` ${ampere}A` : '';
     daten.positionen.elektro.push({
       id: ++posIdCounter,
       pos: 'VP',
-      beschreibung: p.desc.replace('einbauen', `${ampLabel} einbauen`).trim(),
+      beschreibung: `${p.desc}${ampLabel}`,
       einheit: 'Stk',
       menge: count,
       materialpreis: p.m,
