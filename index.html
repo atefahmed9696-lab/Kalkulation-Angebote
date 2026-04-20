@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulation &amp; Angebote – GU Sanierungsbetrieb</title>
+  <style>
+    /* ── Reset & Base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 14px;
+      background: #f0f2f5;
+      color: #222;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    header {
+      background: linear-gradient(135deg, #1a3a5c 0%, #2e6da4 100%);
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.35);
+      print-color-adjust: exact;
+    }
+    header h1 { font-size: 1.3rem; letter-spacing: .5px; }
+    header .logo { font-size: 1.8rem; margin-right: 12px; }
+    header .header-left { display: flex; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 6px; border: none;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary  { background: #fff; color: #1a3a5c; }
+    .btn-success  { background: #27ae60; color: #fff; }
+    .btn-warning  { background: #f39c12; color: #fff; }
+    .btn-danger   { background: #e74c3c; color: #fff; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .header-actions { display: flex; gap: 8px; }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .container { max-width: 1400px; margin: 0 auto; padding: 18px 16px; }
+
+    /* ── Projekt-Kopf ───────────────────────────────────────────── */
+    .projekt-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .projekt-card h2 {
+      grid-column: 1/-1;
+      font-size: 1rem;
+      color: #1a3a5c;
+      border-bottom: 2px solid #2e6da4;
+      padding-bottom: 6px;
+      margin-bottom: 4px;
+    }
+    .field label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: #666; text-transform: uppercase; margin-bottom: 3px;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%; padding: 6px 10px;
+      border: 1px solid #d0d7e2; border-radius: 6px;
+      font-size: 13px; background: #fafbfc;
+      transition: border-color .15s;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: #2e6da4; background: #fff;
+    }
+
+    /* ── Gewerke-Tabs ───────────────────────────────────────────── */
+    .tabs-wrapper {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+      overflow: hidden;
+    }
+    .tab-nav {
+      display: flex; flex-wrap: wrap;
+      background: #f7f9fc;
+      border-bottom: 2px solid #e0e6f0;
+    }
+    .tab-nav button {
+      padding: 10px 14px;
+      border: none; background: none;
+      cursor: pointer; font-size: 12.5px; font-weight: 600;
+      color: #555; border-bottom: 3px solid transparent;
+      margin-bottom: -2px; transition: color .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .tab-nav button:hover { color: #2e6da4; }
+    .tab-nav button.active { color: #1a3a5c; border-bottom-color: #2e6da4; background: #fff; }
+    .tab-nav button .badge {
+      display: inline-block; background: #2e6da4; color: #fff;
+      border-radius: 10px; padding: 1px 7px; font-size: 10px;
+      margin-left: 5px;
+    }
+    .tab-nav button.active .badge { background: #e74c3c; }
+
+    .tab-content { display: none; padding: 18px; }
+    .tab-content.active { display: block; }
+
+    /* ── Zusammenfassung-Tab ────────────────────────────────────── */
+    #tab-zusammenfassung .summen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .sum-card {
+      border-radius: 8px; padding: 14px 16px;
+      background: #f7f9fc; border: 1px solid #e0e6f0;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .sum-card .sum-label {
+      font-size: 12px; font-weight: 700; color: #1a3a5c;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .sum-card .sum-value {
+      font-size: 1.4rem; font-weight: 800; color: #2e6da4;
+    }
+    .sum-card .sum-detail { font-size: 11px; color: #888; }
+    .gesamt-box {
+      background: linear-gradient(135deg, #1a3a5c, #2e6da4);
+      color: #fff; border-radius: 10px; padding: 20px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .gesamt-box .g-label { font-size: 1.1rem; font-weight: 700; }
+    .gesamt-box .g-value { font-size: 2rem; font-weight: 900; }
+    .mwst-box {
+      background: #fff3cd; border: 1px solid #ffc107;
+      border-radius: 8px; padding: 12px 16px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
+    }
+    .mwst-item { text-align: center; }
+    .mwst-item .ml { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; }
+    .mwst-item .mv { font-size: 1.1rem; font-weight: 800; color: #333; }
+
+    /* ── Positions-Tabelle ──────────────────────────────────────── */
+    .gewerk-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .gewerk-header h3 {
+      font-size: 1rem; color: #1a3a5c;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .gewerk-header h3 .icon { font-size: 1.3rem; }
+    .gewerk-actions { display: flex; gap: 8px; }
+
+    .table-wrap { overflow-x: auto; }
+    table.kalk-table {
+      width: 100%; border-collapse: collapse;
+      min-width: 900px;
+    }
+    .kalk-table thead tr {
+      background: #1a3a5c; color: #fff;
+    }
+    .kalk-table th {
+      padding: 9px 8px; font-size: 11.5px;
+      text-align: left; white-space: nowrap;
+      font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .kalk-table th.right, .kalk-table td.right { text-align: right; }
+    .kalk-table th.center, .kalk-table td.center { text-align: center; }
+    .kalk-table tbody tr:nth-child(even) { background: #f7f9fc; }
+    .kalk-table tbody tr:hover { background: #e8f0fb; }
+    .kalk-table tbody tr.subtotal-row {
+      background: #eaf1fb !important; font-weight: 700;
+    }
+    .kalk-table td {
+      padding: 5px 6px; border-bottom: 1px solid #e8ecf2;
+      vertical-align: middle;
+    }
+    .kalk-table td input, .kalk-table td select {
+      width: 100%; padding: 4px 6px;
+      border: 1px solid transparent; border-radius: 4px;
+      background: transparent; font-size: 13px;
+      transition: border-color .15s, background .15s;
+    }
+    .kalk-table td input:focus, .kalk-table td select:focus {
+      outline: none; border-color: #2e6da4; background: #fff;
+    }
+    .kalk-table td input.num { text-align: right; }
+    .kalk-table td .gesamtpreis {
+      font-weight: 700; color: #1a3a5c; white-space: nowrap;
+    }
+    .kalk-table td .del-btn {
+      background: none; border: none; cursor: pointer;
+      color: #e74c3c; font-size: 16px; padding: 0 4px;
+      line-height: 1;
+    }
+    .kalk-table td .del-btn:hover { color: #c0392b; }
+
+    .kalk-table tfoot td {
+      padding: 9px 8px; background: #dde6f3;
+      font-weight: 700; color: #1a3a5c; font-size: 13px;
+    }
+
+    /* ── Notizen ────────────────────────────────────────────────── */
+    .notiz-area {
+      margin-top: 16px;
+    }
+    .notiz-area label { font-size: 12px; font-weight: 700; color: #555; display: block; margin-bottom: 4px; }
+    .notiz-area textarea {
+      width: 100%; min-height: 64px; padding: 8px 10px;
+      border: 1px solid #d0d7e2; border-radius: 6px;
+      font-size: 13px; resize: vertical;
+    }
+    .notiz-area textarea:focus { outline: none; border-color: #2e6da4; }
+
+    /* ── Toast ──────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #27ae60; color: #fff; padding: 10px 22px;
+      border-radius: 20px; font-weight: 600; font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.25); opacity: 0;
+      transition: opacity .3s; pointer-events: none; z-index: 9999;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── Drucken ────────────────────────────────────────────────── */
+    @media print {
+      body { background: #fff; font-size: 11px; }
+      header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .tab-content { display: block !important; padding: 8px 0; }
+      .tabs-wrapper { box-shadow: none; }
+      .tab-nav { display: none; }
+      .kalk-table { page-break-inside: auto; }
+      .kalk-table tr { page-break-inside: avoid; }
+      .gesamt-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header h1 { font-size: 1rem; }
+      .header-actions { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span class="logo">🏗️</span>
+    <div>
+      <h1>Kalkulation &amp; Angebote</h1>
+      <div style="font-size:11px;opacity:.8">GU Sanierungsbetrieb – Alle Gewerke</div>
+    </div>
+  </div>
+  <div class="header-actions no-print">
+    <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
+    <button class="btn btn-warning" onclick="exportJSON()">📤 Exportieren</button>
+    <button class="btn btn-warning" onclick="importClick()">📥 Importieren</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn btn-success" onclick="window.print()">🖨️ Drucken / PDF</button>
+    <button class="btn btn-danger" onclick="allesZuruecksetzen()">🗑️ Zurücksetzen</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Projektdaten -->
+  <div class="projekt-card" id="projektCard">
+    <h2>📋 Projektdaten</h2>
+    <div class="field">
+      <label>Angebotsnummer</label>
+      <input type="text" id="angebotsNr" placeholder="z.B. 2026-001" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>Datum</label>
+      <input type="date" id="datum" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>Projektname</label>
+      <input type="text" id="projektName" placeholder="z.B. Sanierung Musterstraße 1" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>Kunde / Auftraggeber</label>
+      <input type="text" id="kunde" placeholder="Name oder Firma" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>Adresse / Objekt</label>
+      <input type="text" id="adresse" placeholder="Straße, PLZ Ort" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>Bearbeiter</label>
+      <input type="text" id="bearbeiter" placeholder="Name" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>Standard-Stundensatz (€/h)</label>
+      <input type="number" id="defaultStundensatz" placeholder="z.B. 65" min="0" step="0.01" oninput="autoSave()">
+    </div>
+    <div class="field">
+      <label>MwSt. (%)</label>
+      <input type="number" id="mwstSatz" value="19" min="0" max="100" step="0.01" oninput="refreshZusammenfassung(); autoSave()">
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-wrapper">
+    <div class="tab-nav" id="tabNav"></div>
+    <div id="tabContents"></div>
+  </div>
+</div>
+
+<div id="toast">✅ Gespeichert</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Konfiguration der Gewerke
+═══════════════════════════════════════════════════════════════ */
+const GEWERKE = [
+  { id: 'zusammenfassung', label: '📊 Zusammenfassung', icon: '📊', spezial: true },
+  { id: 'elektro',         label: '⚡ Elektro',         icon: '⚡' },
+  { id: 'sanitaer',        label: '🚿 Sanitär',         icon: '🚿' },
+  { id: 'heizung',         label: '🔥 Heizung',         icon: '🔥' },
+  { id: 'trockenbau',      label: '🧱 Trockenbau',      icon: '🧱' },
+  { id: 'maler',           label: '🎨 Maler',           icon: '🎨' },
+  { id: 'boden',           label: '🪵 Boden',           icon: '🪵' },
+  { id: 'fliesen',         label: '🔷 Fliesen',         icon: '🔷' },
+  { id: 'tueren',          label: '🚪 Türen',           icon: '🚪' },
+  { id: 'fenster',         label: '🪟 Fenster',         icon: '🪟' },
+  { id: 'abbruch',         label: '⛏️ Abbruch',         icon: '⛏️' },
+  { id: 'rohbau',          label: '🏗️ Rohbau',          icon: '🏗️' },
+  { id: 'bodenplatte',     label: '⬛ Bodenplatte',     icon: '⬛' },
+];
+
+const EINHEITEN = ['m²','m³','m lfdm','Stk','Pauschal','h','kg','t','L','Set','VE','lfm'];
+
+/* ═══════════════════════════════════════════════════════════════
+   Daten-Model
+═══════════════════════════════════════════════════════════════ */
+let daten = { positionen: {}, notizen: {} };
+
+GEWERKE.filter(g => !g.spezial).forEach(g => {
+  daten.positionen[g.id] = [];
+  daten.notizen[g.id] = '';
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   Tab-Rendering
+═══════════════════════════════════════════════════════════════ */
+function renderTabs() {
+  const nav = document.getElementById('tabNav');
+  const contents = document.getElementById('tabContents');
+  nav.innerHTML = '';
+  contents.innerHTML = '';
+
+  GEWERKE.forEach((g, idx) => {
+    // Tab-Button
+    const btn = document.createElement('button');
+    btn.id = 'btn-' + g.id;
+    btn.innerHTML = g.label + (g.spezial ? '' : `<span class="badge" id="badge-${g.id}">0</span>`);
+    btn.onclick = () => switchTab(g.id);
+    if (idx === 0) btn.classList.add('active');
+    nav.appendChild(btn);
+
+    // Tab-Inhalt
+    const div = document.createElement('div');
+    div.id = 'tab-' + g.id;
+    div.className = 'tab-content' + (idx === 0 ? ' active' : '');
+    if (g.spezial) {
+      div.innerHTML = renderZusammenfassung();
+    } else {
+      div.innerHTML = renderGewerk(g);
+    }
+    contents.appendChild(div);
+  });
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('btn-' + id).classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'zusammenfassung') refreshZusammenfassung();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Gewerk-Tab HTML
+═══════════════════════════════════════════════════════════════ */
+function renderGewerk(g) {
+  return `
+    <div class="gewerk-header">
+      <h3><span class="icon">${g.icon}</span> ${g.label.replace(/^[^\s]+\s/, '')}</h3>
+      <div class="gewerk-actions no-print">
+        <button class="btn btn-success btn-sm" onclick="addPosition('${g.id}')">➕ Position hinzufügen</button>
+        <button class="btn btn-warning btn-sm" onclick="addMusterpositionen('${g.id}')">📋 Musterpositionen</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="kalk-table" id="tbl-${g.id}">
+        <thead>
+          <tr>
+            <th style="width:40px">Pos.</th>
+            <th>Beschreibung / Leistung</th>
+            <th style="width:80px">Einheit</th>
+            <th class="right" style="width:80px">Menge</th>
+            <th class="right" style="width:110px">Material (€/Einheit)</th>
+            <th class="right" style="width:100px">Stundensatz (€/h)</th>
+            <th class="right" style="width:80px">Stunden</th>
+            <th class="right" style="width:120px">Gesamtpreis (€)</th>
+            <th class="center no-print" style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-${g.id}"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7" class="right">Summe ${g.label.replace(/^[^\s]+\s/, '')}:</td>
+            <td class="right" id="sum-${g.id}">0,00 €</td>
+            <td class="no-print"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="notiz-area">
+      <label>📝 Notizen / Hinweise für dieses Gewerk:</label>
+      <textarea id="notiz-${g.id}" placeholder="Besondere Hinweise, Bedingungen, Materialangaben …"
+        oninput="daten.notizen['${g.id}']=this.value; autoSave()">${daten.notizen[g.id] || ''}</textarea>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Positionen
+═══════════════════════════════════════════════════════════════ */
+let posIdCounter = 1000;
+
+function newPos(gewerkId) {
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 0;
+  return {
+    id: ++posIdCounter,
+    pos: '',
+    beschreibung: '',
+    einheit: 'm²',
+    menge: 0,
+    materialpreis: 0,
+    stundensatz: stdSatz,
+    stunden: 0
+  };
+}
+
+function addPosition(gewerkId) {
+  daten.positionen[gewerkId].push(newPos(gewerkId));
+  renderPositionen(gewerkId);
+  autoSave();
+}
+
+function deletePosition(gewerkId, posId) {
+  daten.positionen[gewerkId] = daten.positionen[gewerkId].filter(p => p.id !== posId);
+  renderPositionen(gewerkId);
+  autoSave();
+}
+
+function updatePos(gewerkId, posId, field, value) {
+  const pos = daten.positionen[gewerkId].find(p => p.id === posId);
+  if (!pos) return;
+  if (['menge','materialpreis','stundensatz','stunden'].includes(field)) {
+    pos[field] = parseFloat(value) || 0;
+  } else {
+    pos[field] = value;
+  }
+  // Nur Gesamtpreis-Zelle neu rechnen
+  const cell = document.getElementById('gp-' + posId);
+  if (cell) cell.textContent = formatEur(calcGesamtpreis(pos));
+  updateSumme(gewerkId);
+  autoSave();
+}
+
+function calcGesamtpreis(pos) {
+  return (pos.menge * pos.materialpreis) + (pos.stundensatz * pos.stunden);
+}
+
+function updateSumme(gewerkId) {
+  const sum = daten.positionen[gewerkId].reduce((s, p) => s + calcGesamtpreis(p), 0);
+  const el = document.getElementById('sum-' + gewerkId);
+  if (el) el.textContent = formatEur(sum);
+  const badge = document.getElementById('badge-' + gewerkId);
+  if (badge) badge.textContent = daten.positionen[gewerkId].length;
+}
+
+function renderPositionen(gewerkId) {
+  const tbody = document.getElementById('tbody-' + gewerkId);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  daten.positionen[gewerkId].forEach((pos, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${esc(pos.pos)}" placeholder="${idx+1}"
+        oninput="updatePos('${gewerkId}',${pos.id},'pos',this.value)" style="width:36px;text-align:center"></td>
+      <td><input type="text" value="${esc(pos.beschreibung)}" placeholder="Leistungsbeschreibung …"
+        oninput="updatePos('${gewerkId}',${pos.id},'beschreibung',this.value)" style="min-width:200px"></td>
+      <td>
+        <select onchange="updatePos('${gewerkId}',${pos.id},'einheit',this.value)">
+          ${EINHEITEN.map(e => `<option value="${e}" ${pos.einheit===e?'selected':''}>${e}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="number" class="num" value="${pos.menge||''}" placeholder="0" min="0" step="any"
+        oninput="updatePos('${gewerkId}',${pos.id},'menge',this.value)"></td>
+      <td><input type="number" class="num" value="${pos.materialpreis||''}" placeholder="0,00" min="0" step="0.01"
+        oninput="updatePos('${gewerkId}',${pos.id},'materialpreis',this.value)"></td>
+      <td><input type="number" class="num" value="${pos.stundensatz||''}" placeholder="0,00" min="0" step="0.01"
+        oninput="updatePos('${gewerkId}',${pos.id},'stundensatz',this.value)"></td>
+      <td><input type="number" class="num" value="${pos.stunden||''}" placeholder="0" min="0" step="0.1"
+        oninput="updatePos('${gewerkId}',${pos.id},'stunden',this.value)"></td>
+      <td class="right"><span class="gesamtpreis" id="gp-${pos.id}">${formatEur(calcGesamtpreis(pos))}</span></td>
+      <td class="center no-print">
+        <button class="del-btn" onclick="deletePosition('${gewerkId}',${pos.id})" title="Löschen">✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateSumme(gewerkId);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Musterpositionen je Gewerk
+═══════════════════════════════════════════════════════════════ */
+const MUSTER = {
+  elektro: [
+    { pos:'1.1', beschreibung:'Unterputz-Installation komplett', einheit:'Pauschal', menge:1, materialpreis:1200, stundensatz:65, stunden:20 },
+    { pos:'1.2', beschreibung:'Unterverteiler inkl. Montage', einheit:'Stk', menge:1, materialpreis:350, stundensatz:65, stunden:4 },
+    { pos:'1.3', beschreibung:'Steckdosen/Schalter (je)', einheit:'Stk', menge:20, materialpreis:15, stundensatz:65, stunden:0.5 },
+    { pos:'1.4', beschreibung:'Deckenleuchten anschließen', einheit:'Stk', menge:8, materialpreis:0, stundensatz:65, stunden:0.5 },
+  ],
+  sanitaer: [
+    { pos:'2.1', beschreibung:'Sanitärinstallation Bad komplett', einheit:'Pauschal', menge:1, materialpreis:800, stundensatz:70, stunden:24 },
+    { pos:'2.2', beschreibung:'WC-Anlage liefern und montieren', einheit:'Stk', menge:1, materialpreis:450, stundensatz:70, stunden:4 },
+    { pos:'2.3', beschreibung:'Waschtisch inkl. Armatur', einheit:'Stk', menge:1, materialpreis:380, stundensatz:70, stunden:3 },
+    { pos:'2.4', beschreibung:'Dusche/Badewanne inkl. Armatur', einheit:'Stk', menge:1, materialpreis:600, stundensatz:70, stunden:5 },
+  ],
+  heizung: [
+    { pos:'3.1', beschreibung:'Heizkörper demontieren und entsorgen', einheit:'Stk', menge:5, materialpreis:0, stundensatz:65, stunden:1 },
+    { pos:'3.2', beschreibung:'Heizkörper neu liefern und montieren', einheit:'Stk', menge:5, materialpreis:250, stundensatz:65, stunden:2 },
+    { pos:'3.3', beschreibung:'Fußbodenheizung verlegen', einheit:'m²', menge:60, materialpreis:18, stundensatz:65, stunden:0.4 },
+    { pos:'3.4', beschreibung:'Thermostat inkl. Verkabelung', einheit:'Stk', menge:5, materialpreis:80, stundensatz:65, stunden:1 },
+  ],
+  trockenbau: [
+    { pos:'4.1', beschreibung:'Ständerwand CW75 einfach beplankt', einheit:'m²', menge:40, materialpreis:12, stundensatz:55, stunden:0.35 },
+    { pos:'4.2', beschreibung:'Ständerwand CW75 doppelt beplankt', einheit:'m²', menge:20, materialpreis:16, stundensatz:55, stunden:0.5 },
+    { pos:'4.3', beschreibung:'Abgehängte Decke GK', einheit:'m²', menge:30, materialpreis:14, stundensatz:55, stunden:0.4 },
+    { pos:'4.4', beschreibung:'Spachtelarbeiten', einheit:'m²', menge:80, materialpreis:2, stundensatz:55, stunden:0.2 },
+  ],
+  maler: [
+    { pos:'5.1', beschreibung:'Wände grundieren und streichen 2×', einheit:'m²', menge:150, materialpreis:1.5, stundensatz:50, stunden:0.15 },
+    { pos:'5.2', beschreibung:'Decken streichen 2×', einheit:'m²', menge:60, materialpreis:1.5, stundensatz:50, stunden:0.2 },
+    { pos:'5.3', beschreibung:'Fenster/Türen streichen', einheit:'Stk', menge:6, materialpreis:20, stundensatz:50, stunden:2 },
+    { pos:'5.4', beschreibung:'Tapezierarbeiten', einheit:'m²', menge:80, materialpreis:5, stundensatz:50, stunden:0.3 },
+  ],
+  boden: [
+    { pos:'6.1', beschreibung:'Altbelag entfernen und entsorgen', einheit:'m²', menge:80, materialpreis:0, stundensatz:45, stunden:0.2 },
+    { pos:'6.2', beschreibung:'Ausgleichsmasse einbringen', einheit:'m²', menge:80, materialpreis:4, stundensatz:45, stunden:0.15 },
+    { pos:'6.3', beschreibung:'Laminat verlegen inkl. Material', einheit:'m²', menge:70, materialpreis:22, stundensatz:45, stunden:0.3 },
+    { pos:'6.4', beschreibung:'Sockelleisten montieren', einheit:'m lfdm', menge:40, materialpreis:4, stundensatz:45, stunden:0.2 },
+  ],
+  fliesen: [
+    { pos:'7.1', beschreibung:'Fliesen Bad Wand', einheit:'m²', menge:30, materialpreis:28, stundensatz:60, stunden:0.8 },
+    { pos:'7.2', beschreibung:'Fliesen Bad Boden', einheit:'m²', menge:8, materialpreis:35, stundensatz:60, stunden:0.9 },
+    { pos:'7.3', beschreibung:'Fliesen Küche Spritzschutz', einheit:'m²', menge:4, materialpreis:25, stundensatz:60, stunden:0.7 },
+    { pos:'7.4', beschreibung:'Verfugen und Silikon', einheit:'m lfdm', menge:20, materialpreis:3, stundensatz:60, stunden:0.3 },
+  ],
+  tueren: [
+    { pos:'8.1', beschreibung:'Innentür liefern und montieren', einheit:'Stk', menge:5, materialpreis:280, stundensatz:60, stunden:3 },
+    { pos:'8.2', beschreibung:'Türzarge liefern und montieren', einheit:'Stk', menge:5, materialpreis:120, stundensatz:60, stunden:1.5 },
+    { pos:'8.3', beschreibung:'Wohnungseingangstür', einheit:'Stk', menge:1, materialpreis:1200, stundensatz:60, stunden:5 },
+  ],
+  fenster: [
+    { pos:'9.1', beschreibung:'Kunststofffenster 2-fach-Verglasung', einheit:'Stk', menge:4, materialpreis:450, stundensatz:65, stunden:4 },
+    { pos:'9.2', beschreibung:'Fensterbrett innen', einheit:'m lfdm', menge:6, materialpreis:35, stundensatz:65, stunden:0.5 },
+    { pos:'9.3', beschreibung:'Fensterbrett außen Aluminium', einheit:'m lfdm', menge:6, materialpreis:45, stundensatz:65, stunden:0.5 },
+    { pos:'9.4', beschreibung:'Dichten / Anputzleisten', einheit:'Stk', menge:4, materialpreis:15, stundensatz:65, stunden:1 },
+  ],
+  abbruch: [
+    { pos:'10.1', beschreibung:'Trennwand abbrechen', einheit:'m²', menge:15, materialpreis:0, stundensatz:45, stunden:0.8 },
+    { pos:'10.2', beschreibung:'Estrich aufbrechen und entsorgen', einheit:'m²', menge:50, materialpreis:0, stundensatz:45, stunden:0.5 },
+    { pos:'10.3', beschreibung:'Fliesen abschlagen', einheit:'m²', menge:30, materialpreis:0, stundensatz:45, stunden:0.4 },
+    { pos:'10.4', beschreibung:'Containerentsorgung', einheit:'Stk', menge:2, materialpreis:400, stundensatz:0, stunden:0 },
+  ],
+  rohbau: [
+    { pos:'11.1', beschreibung:'Mauerwerk Kalksandstein', einheit:'m²', menge:20, materialpreis:35, stundensatz:55, stunden:1.2 },
+    { pos:'11.2', beschreibung:'Innenputz', einheit:'m²', menge:100, materialpreis:8, stundensatz:55, stunden:0.4 },
+    { pos:'11.3', beschreibung:'Estrich CT-C25 60mm', einheit:'m²', menge:80, materialpreis:14, stundensatz:55, stunden:0.3 },
+    { pos:'11.4', beschreibung:'Außenputz', einheit:'m²', menge:60, materialpreis:12, stundensatz:55, stunden:0.5 },
+  ],
+  bodenplatte: [
+    { pos:'12.1', beschreibung:'Bodenplatte abfräsen / Risse aufschneiden', einheit:'m²', menge:50, materialpreis:0, stundensatz:55, stunden:0.6 },
+    { pos:'12.2', beschreibung:'Feuchtigkeitssperre auftragen', einheit:'m²', menge:50, materialpreis:8, stundensatz:55, stunden:0.3 },
+    { pos:'12.3', beschreibung:'Bewehrung einlegen', einheit:'m²', menge:50, materialpreis:12, stundensatz:55, stunden:0.4 },
+    { pos:'12.4', beschreibung:'Beton C25/30 einbringen und abziehen', einheit:'m²', menge:50, materialpreis:20, stundensatz:55, stunden:0.5 },
+    { pos:'12.5', beschreibung:'Nachbehandlung / Abdecken', einheit:'m²', menge:50, materialpreis:1.5, stundensatz:55, stunden:0.1 },
+  ],
+};
+
+function addMusterpositionen(gewerkId) {
+  const muster = MUSTER[gewerkId];
+  if (!muster || muster.length === 0) { showToast('Keine Musterpositionen verfügbar'); return; }
+  if (!confirm(`${muster.length} Musterpositionen für dieses Gewerk einfügen?`)) return;
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 0;
+  muster.forEach(m => {
+    daten.positionen[gewerkId].push({
+      id: ++posIdCounter,
+      pos: m.pos,
+      beschreibung: m.beschreibung,
+      einheit: m.einheit,
+      menge: m.menge,
+      materialpreis: m.materialpreis,
+      stundensatz: stdSatz || m.stundensatz,
+      stunden: m.stunden
+    });
+  });
+  renderPositionen(gewerkId);
+  autoSave();
+  showToast('Musterpositionen eingefügt ✅');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Zusammenfassung
+═══════════════════════════════════════════════════════════════ */
+function renderZusammenfassung() {
+  return `
+    <h3 style="margin-bottom:16px;color:#1a3a5c">📊 Zusammenfassung aller Gewerke</h3>
+    <div class="gesamt-box">
+      <div>
+        <div class="g-label">Gesamtbetrag Netto</div>
+        <div style="font-size:13px;opacity:.8" id="z-datum"></div>
+      </div>
+      <div class="g-value" id="z-gesamt">0,00 €</div>
+    </div>
+    <div class="mwst-box">
+      <div class="mwst-item">
+        <div class="ml">Nettobetrag</div>
+        <div class="mv" id="z-netto">0,00 €</div>
+      </div>
+      <div class="mwst-item">
+        <div class="ml">MwSt. <span id="z-mwst-label">19</span>%</div>
+        <div class="mv" id="z-mwst-val">0,00 €</div>
+      </div>
+      <div class="mwst-item">
+        <div class="ml">Brutto inkl. MwSt.</div>
+        <div class="mv" id="z-brutto">0,00 €</div>
+      </div>
+    </div>
+    <div class="summen-grid" id="summenGrid"></div>
+    <div class="notiz-area">
+      <label>📝 Allgemeine Anmerkungen / Zahlungsbedingungen:</label>
+      <textarea id="notiz-allgemein" placeholder="z.B. Zahlungsziel 14 Tage netto, Gewährleistung 5 Jahre …"
+        oninput="daten.notizen['allgemein']=this.value; autoSave()"></textarea>
+    </div>
+  `;
+}
+
+function refreshZusammenfassung() {
+  const grid = document.getElementById('summenGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  let gesamtNetto = 0;
+
+  GEWERKE.filter(g => !g.spezial).forEach(g => {
+    const sum = (daten.positionen[g.id] || []).reduce((s, p) => s + calcGesamtpreis(p), 0);
+    gesamtNetto += sum;
+    const card = document.createElement('div');
+    card.className = 'sum-card';
+    const anzahl = (daten.positionen[g.id] || []).length;
+    card.innerHTML = `
+      <div class="sum-label">${g.label}</div>
+      <div class="sum-value">${formatEur(sum)}</div>
+      <div class="sum-detail">${anzahl} Position${anzahl !== 1 ? 'en' : ''}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  const mwst = parseFloat(document.getElementById('mwstSatz').value) || 19;
+  const mwstBetrag = gesamtNetto * mwst / 100;
+  const brutto = gesamtNetto + mwstBetrag;
+
+  document.getElementById('z-gesamt').textContent = formatEur(gesamtNetto);
+  document.getElementById('z-netto').textContent = formatEur(gesamtNetto);
+  document.getElementById('z-mwst-label').textContent = mwst;
+  document.getElementById('z-mwst-val').textContent = formatEur(mwstBetrag);
+  document.getElementById('z-brutto').textContent = formatEur(brutto);
+  const datumEl = document.getElementById('z-datum');
+  if (datumEl) {
+    const proj = document.getElementById('projektName').value;
+    const dat = document.getElementById('datum').value;
+    datumEl.textContent = [proj, dat ? new Date(dat).toLocaleDateString('de-DE') : ''].filter(Boolean).join(' | ');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Speichern / Laden
+═══════════════════════════════════════════════════════════════ */
+let saveTimer;
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(speichern, 800);
+}
+
+function speichern() {
+  const projektdaten = {
+    angebotsNr: v('angebotsNr'),
+    datum: v('datum'),
+    projektName: v('projektName'),
+    kunde: v('kunde'),
+    adresse: v('adresse'),
+    bearbeiter: v('bearbeiter'),
+    defaultStundensatz: v('defaultStundensatz'),
+    mwstSatz: v('mwstSatz'),
+  };
+  localStorage.setItem('kalkulation_projekt', JSON.stringify(projektdaten));
+  localStorage.setItem('kalkulation_daten', JSON.stringify(daten));
+  showToast('💾 Gespeichert');
+}
+
+function laden() {
+  const pd = JSON.parse(localStorage.getItem('kalkulation_projekt') || 'null');
+  if (pd) {
+    Object.keys(pd).forEach(k => { const el = document.getElementById(k); if (el) el.value = pd[k] || ''; });
+  }
+  const dd = JSON.parse(localStorage.getItem('kalkulation_daten') || 'null');
+  if (dd) {
+    if (dd.positionen) {
+      Object.keys(dd.positionen).forEach(k => {
+        if (daten.positionen[k] !== undefined) {
+          daten.positionen[k] = dd.positionen[k];
+          // Restore IDs
+          daten.positionen[k].forEach(p => { if (p.id > posIdCounter) posIdCounter = p.id; });
+        }
+      });
+    }
+    if (dd.notizen) daten.notizen = { ...daten.notizen, ...dd.notizen };
+  }
+  // Render all positions
+  GEWERKE.filter(g => !g.spezial).forEach(g => {
+    renderPositionen(g.id);
+    const notizEl = document.getElementById('notiz-' + g.id);
+    if (notizEl) notizEl.value = daten.notizen[g.id] || '';
+  });
+  const notizAllg = document.getElementById('notiz-allgemein');
+  if (notizAllg) notizAllg.value = daten.notizen['allgemein'] || '';
+  refreshZusammenfassung();
+}
+
+function allesZuruecksetzen() {
+  if (!confirm('Alle Daten zurücksetzen? Dieser Vorgang kann nicht rückgängig gemacht werden!')) return;
+  localStorage.removeItem('kalkulation_projekt');
+  localStorage.removeItem('kalkulation_daten');
+  location.reload();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Export / Import JSON
+═══════════════════════════════════════════════════════════════ */
+function exportJSON() {
+  const payload = {
+    projekt: {
+      angebotsNr: v('angebotsNr'), datum: v('datum'), projektName: v('projektName'),
+      kunde: v('kunde'), adresse: v('adresse'), bearbeiter: v('bearbeiter'),
+      defaultStundensatz: v('defaultStundensatz'), mwstSatz: v('mwstSatz'),
+    },
+    daten,
+    exportiert: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Kalkulation_${v('angebotsNr') || 'Export'}_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.json`;
+  a.click();
+  showToast('📤 Exportiert');
+}
+
+function importClick() { document.getElementById('importFile').click(); }
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.projekt) {
+        Object.keys(payload.projekt).forEach(k => { const el = document.getElementById(k); if (el) el.value = payload.projekt[k] || ''; });
+      }
+      if (payload.daten) {
+        if (payload.daten.positionen) {
+          Object.keys(payload.daten.positionen).forEach(k => {
+            if (daten.positionen[k] !== undefined) {
+              daten.positionen[k] = payload.daten.positionen[k];
+              daten.positionen[k].forEach(p => { if (p.id > posIdCounter) posIdCounter = p.id; });
+            }
+          });
+        }
+        if (payload.daten.notizen) daten.notizen = { ...daten.notizen, ...payload.daten.notizen };
+      }
+      GEWERKE.filter(g => !g.spezial).forEach(g => {
+        renderPositionen(g.id);
+        const notizEl = document.getElementById('notiz-' + g.id);
+        if (notizEl) notizEl.value = daten.notizen[g.id] || '';
+      });
+      const notizAllg = document.getElementById('notiz-allgemein');
+      if (notizAllg) notizAllg.value = daten.notizen['allgemein'] || '';
+      refreshZusammenfassung();
+      speichern();
+      showToast('📥 Importiert ✅');
+    } catch(err) {
+      alert('Fehler beim Importieren: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Hilfsfunktionen
+═══════════════════════════════════════════════════════════════ */
+function formatEur(val) {
+  return val.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function v(id) { return (document.getElementById(id) || {}).value || ''; }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Init
+═══════════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  // Heutiges Datum als Standard
+  document.getElementById('datum').value = new Date().toISOString().split('T')[0];
+  document.getElementById('defaultStundensatz').value = 65;
+
+  renderTabs();
+  laden();
+});
+</script>
+</body>
+</html>
