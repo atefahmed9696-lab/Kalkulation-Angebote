@@ -341,7 +341,7 @@ const GEWERKE = [
   { id: 'bodenplatte',     label: '⬛ Bodenplatte',     icon: '⬛' },
 ];
 
-const EINHEITEN = ['m²','m³','m lfdm','Stk','Pauschal','h','kg','t','L','Set','VE','lfm'];
+const EINHEITEN = ['m²','m³','lfm','Stk','Pauschal','h','kg','t','L','Set','VE'];
 
 /* ═══════════════════════════════════════════════════════════════
    Daten-Model
@@ -568,13 +568,13 @@ const MUSTER = {
     { pos:'6.1', beschreibung:'Altbelag entfernen und entsorgen', einheit:'m²', menge:80, materialpreis:0, stundensatz:45, stunden:0.2 },
     { pos:'6.2', beschreibung:'Ausgleichsmasse einbringen', einheit:'m²', menge:80, materialpreis:4, stundensatz:45, stunden:0.15 },
     { pos:'6.3', beschreibung:'Laminat verlegen inkl. Material', einheit:'m²', menge:70, materialpreis:22, stundensatz:45, stunden:0.3 },
-    { pos:'6.4', beschreibung:'Sockelleisten montieren', einheit:'m lfdm', menge:40, materialpreis:4, stundensatz:45, stunden:0.2 },
+    { pos:'6.4', beschreibung:'Sockelleisten montieren', einheit:'lfm', menge:40, materialpreis:4, stundensatz:45, stunden:0.2 },
   ],
   fliesen: [
     { pos:'7.1', beschreibung:'Fliesen Bad Wand', einheit:'m²', menge:30, materialpreis:28, stundensatz:60, stunden:0.8 },
     { pos:'7.2', beschreibung:'Fliesen Bad Boden', einheit:'m²', menge:8, materialpreis:35, stundensatz:60, stunden:0.9 },
     { pos:'7.3', beschreibung:'Fliesen Küche Spritzschutz', einheit:'m²', menge:4, materialpreis:25, stundensatz:60, stunden:0.7 },
-    { pos:'7.4', beschreibung:'Verfugen und Silikon', einheit:'m lfdm', menge:20, materialpreis:3, stundensatz:60, stunden:0.3 },
+    { pos:'7.4', beschreibung:'Verfugen und Silikon', einheit:'lfm', menge:20, materialpreis:3, stundensatz:60, stunden:0.3 },
   ],
   tueren: [
     { pos:'8.1', beschreibung:'Innentür liefern und montieren', einheit:'Stk', menge:5, materialpreis:280, stundensatz:60, stunden:3 },
@@ -583,8 +583,8 @@ const MUSTER = {
   ],
   fenster: [
     { pos:'9.1', beschreibung:'Kunststofffenster 2-fach-Verglasung', einheit:'Stk', menge:4, materialpreis:450, stundensatz:65, stunden:4 },
-    { pos:'9.2', beschreibung:'Fensterbrett innen', einheit:'m lfdm', menge:6, materialpreis:35, stundensatz:65, stunden:0.5 },
-    { pos:'9.3', beschreibung:'Fensterbrett außen Aluminium', einheit:'m lfdm', menge:6, materialpreis:45, stundensatz:65, stunden:0.5 },
+    { pos:'9.2', beschreibung:'Fensterbrett innen', einheit:'lfm', menge:6, materialpreis:35, stundensatz:65, stunden:0.5 },
+    { pos:'9.3', beschreibung:'Fensterbrett außen Aluminium', einheit:'lfm', menge:6, materialpreis:45, stundensatz:65, stunden:0.5 },
     { pos:'9.4', beschreibung:'Dichten / Anputzleisten', einheit:'Stk', menge:4, materialpreis:15, stundensatz:65, stunden:1 },
   ],
   abbruch: [
@@ -699,7 +699,12 @@ function refreshZusammenfassung() {
   if (datumEl) {
     const proj = document.getElementById('projektName').value;
     const dat = document.getElementById('datum').value;
-    datumEl.textContent = [proj, dat ? new Date(dat).toLocaleDateString('de-DE') : ''].filter(Boolean).join(' | ');
+    if (dat) {
+      const [y, m, d] = dat.split('-').map(Number);
+      datumEl.textContent = [proj, new Date(y, m - 1, d).toLocaleDateString('de-DE')].filter(Boolean).join(' | ');
+    } else {
+      datumEl.textContent = proj;
+    }
   }
 }
 
@@ -780,7 +785,7 @@ function exportJSON() {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `Kalkulation_${v('angebotsNr') || 'Export'}_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.json`;
+  a.download = `Kalkulation_${(v('angebotsNr') || 'Export').replace(/[\\/:*?"<>|]/g, '_')}_${new Date().toLocaleDateString('de-DE').replace(/\./g,'-')}.json`;
   a.click();
   showToast('📤 Exportiert');
 }
