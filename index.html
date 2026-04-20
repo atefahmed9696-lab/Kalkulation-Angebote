@@ -531,80 +531,112 @@ function renderPositionen(gewerkId) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Musterpositionen je Gewerk
+   Musterpositionen je Gewerk – Preise laut BKI Baupreise Altbau 2026
+   Quelle : BKI Baukosteninformationszentrum, Ausgabe 2026
+            Dokument: BKI_Baupreise_Altbau_2026_BNR-20727.docx
+   Stand  : Preise gültig ab Ausgabe 2026 (ca. Preisstand 2025/2026)
+   Hinweis: Preise sind BKI-Netto-Mittelwerte (ø) in € je Einheit,
+            d.h. sie enthalten bereits Lohn- und Materialanteil.
+            stunden:0, da der BKI-Preis den Lohnanteil einschließt.
+            Der stundensatz-Wert dient als Referenz für manuelle
+            Anpassungen (Benutzer kann stunden nachträglich erhöhen).
+   Update : Preise sollten mit jeder neuen BKI-Ausgabe aktualisiert
+            werden (jährlich).
 ═══════════════════════════════════════════════════════════════ */
 const MUSTER = {
   elektro: [
-    { pos:'1.1', beschreibung:'Unterputz-Installation komplett', einheit:'Pauschal', menge:1, materialpreis:1200, stundensatz:65, stunden:20 },
-    { pos:'1.2', beschreibung:'Unterverteiler inkl. Montage', einheit:'Stk', menge:1, materialpreis:350, stundensatz:65, stunden:4 },
-    { pos:'1.3', beschreibung:'Steckdosen/Schalter (je)', einheit:'Stk', menge:20, materialpreis:15, stundensatz:65, stunden:0.5 },
-    { pos:'1.4', beschreibung:'Deckenleuchten anschließen', einheit:'Stk', menge:8, materialpreis:0, stundensatz:65, stunden:0.5 },
+    // BKI LB 353 Niederspannungsanlagen / LB 358 Leuchten
+    { pos:'1.1', beschreibung:'Installationsleitung NYM-J 3x2,5mm² UP (BKI LB353)', einheit:'m', menge:80, materialpreis:4.60, stundensatz:65, stunden:0 },
+    { pos:'1.2', beschreibung:'Installationsleitung NYM-J 5x2,5mm² UP (BKI LB353)', einheit:'m', menge:20, materialpreis:6.80, stundensatz:65, stunden:0 },
+    { pos:'1.3', beschreibung:'Elektroinstallationsrohr, 40mm (BKI LB353)', einheit:'m', menge:30, materialpreis:6.80, stundensatz:65, stunden:0 },
+    { pos:'1.4', beschreibung:'Wannenleuchte LED, Feuchtraum (BKI LB358)', einheit:'Stk', menge:2, materialpreis:168, stundensatz:65, stunden:0 },
+    { pos:'1.5', beschreibung:'Einbauleuchte LED, 39W (BKI LB358)', einheit:'Stk', menge:8, materialpreis:217, stundensatz:65, stunden:0 },
   ],
   sanitaer: [
-    { pos:'2.1', beschreibung:'Sanitärinstallation Bad komplett', einheit:'Pauschal', menge:1, materialpreis:800, stundensatz:70, stunden:24 },
-    { pos:'2.2', beschreibung:'WC-Anlage liefern und montieren', einheit:'Stk', menge:1, materialpreis:450, stundensatz:70, stunden:4 },
-    { pos:'2.3', beschreibung:'Waschtisch inkl. Armatur', einheit:'Stk', menge:1, materialpreis:380, stundensatz:70, stunden:3 },
-    { pos:'2.4', beschreibung:'Dusche/Badewanne inkl. Armatur', einheit:'Stk', menge:1, materialpreis:600, stundensatz:70, stunden:5 },
+    // BKI LB 342/344/345 Sanitärinstallation / Ausstattung
+    { pos:'2.1', beschreibung:'WC-Anlage demontieren (BKI LB345)', einheit:'Stk', menge:1, materialpreis:48, stundensatz:70, stunden:0 },
+    { pos:'2.2', beschreibung:'Installationselement WC, Unterputz (BKI LB344)', einheit:'Stk', menge:1, materialpreis:317, stundensatz:70, stunden:0 },
+    { pos:'2.3', beschreibung:'Waschtisch Sanitärporzellan 600x500mm (BKI LB345)', einheit:'Stk', menge:1, materialpreis:464, stundensatz:70, stunden:0 },
+    { pos:'2.4', beschreibung:'Badewanne Stahl emailliert 170cm (BKI LB345)', einheit:'Stk', menge:1, materialpreis:569, stundensatz:70, stunden:0 },
+    { pos:'2.5', beschreibung:'Abwasserleitung PP-Rohr DN100/125 (BKI LB344)', einheit:'m', menge:5, materialpreis:35, stundensatz:70, stunden:0 },
   ],
   heizung: [
-    { pos:'3.1', beschreibung:'Heizkörper demontieren und entsorgen', einheit:'Stk', menge:5, materialpreis:0, stundensatz:65, stunden:1 },
-    { pos:'3.2', beschreibung:'Heizkörper neu liefern und montieren', einheit:'Stk', menge:5, materialpreis:250, stundensatz:65, stunden:2 },
-    { pos:'3.3', beschreibung:'Fußbodenheizung verlegen', einheit:'m²', menge:60, materialpreis:18, stundensatz:65, stunden:0.4 },
-    { pos:'3.4', beschreibung:'Thermostat inkl. Verkabelung', einheit:'Stk', menge:5, materialpreis:80, stundensatz:65, stunden:1 },
+    // BKI LB 340/341 Wärmeversorgungsanlagen
+    { pos:'3.1', beschreibung:'Flachheizkörper demontieren bis 50kg (BKI LB341)', einheit:'Stk', menge:4, materialpreis:47, stundensatz:65, stunden:0 },
+    { pos:'3.2', beschreibung:'Gas-Brennwerttherme Wand bis 15kW (BKI LB340)', einheit:'Stk', menge:1, materialpreis:6920, stundensatz:65, stunden:0 },
+    { pos:'3.3', beschreibung:'Leitung Metallverbundrohr DN15 (BKI LB341)', einheit:'m', menge:30, materialpreis:21, stundensatz:65, stunden:0 },
+    { pos:'3.4', beschreibung:'Leitung Kupferrohr 15mm (BKI LB341)', einheit:'m', menge:20, materialpreis:29, stundensatz:65, stunden:0 },
+    { pos:'3.5', beschreibung:'Demontage Heiztherme (BKI LB340)', einheit:'Stk', menge:1, materialpreis:157, stundensatz:65, stunden:0 },
   ],
   trockenbau: [
-    { pos:'4.1', beschreibung:'Ständerwand CW75 einfach beplankt', einheit:'m²', menge:40, materialpreis:12, stundensatz:55, stunden:0.35 },
-    { pos:'4.2', beschreibung:'Ständerwand CW75 doppelt beplankt', einheit:'m²', menge:20, materialpreis:16, stundensatz:55, stunden:0.5 },
-    { pos:'4.3', beschreibung:'Abgehängte Decke GK', einheit:'m²', menge:30, materialpreis:14, stundensatz:55, stunden:0.4 },
-    { pos:'4.4', beschreibung:'Spachtelarbeiten', einheit:'m²', menge:80, materialpreis:2, stundensatz:55, stunden:0.2 },
+    // BKI LB 339 Trockenbauarbeiten
+    { pos:'4.1', beschreibung:'Montagewand abbrechen (BKI LB339)', einheit:'m²', menge:15, materialpreis:33, stundensatz:55, stunden:0 },
+    { pos:'4.2', beschreibung:'Montagewand Metall 100mm GK einlagig (BKI LB339)', einheit:'m²', menge:40, materialpreis:82, stundensatz:55, stunden:0 },
+    { pos:'4.3', beschreibung:'Decke abgehängt GK einlagig (BKI LB339)', einheit:'m²', menge:30, materialpreis:67, stundensatz:55, stunden:0 },
+    { pos:'4.4', beschreibung:'Spachtelung GK-Platten Q3 (BKI LB339)', einheit:'m²', menge:60, materialpreis:13.20, stundensatz:55, stunden:0 },
+    { pos:'4.5', beschreibung:'Ecken Kantenprofil Montagewand (BKI LB339)', einheit:'m', menge:20, materialpreis:12.80, stundensatz:55, stunden:0 },
   ],
   maler: [
-    { pos:'5.1', beschreibung:'Wände grundieren und streichen 2×', einheit:'m²', menge:150, materialpreis:1.5, stundensatz:50, stunden:0.15 },
-    { pos:'5.2', beschreibung:'Decken streichen 2×', einheit:'m²', menge:60, materialpreis:1.5, stundensatz:50, stunden:0.2 },
-    { pos:'5.3', beschreibung:'Fenster/Türen streichen', einheit:'Stk', menge:6, materialpreis:20, stundensatz:50, stunden:2 },
-    { pos:'5.4', beschreibung:'Tapezierarbeiten', einheit:'m²', menge:80, materialpreis:5, stundensatz:50, stunden:0.3 },
+    // BKI LB 334 Maler / LB 337 Tapezierarbeiten
+    { pos:'5.1', beschreibung:'Innenputz abschlagen, Mauerwerk (BKI LB334)', einheit:'m²', menge:50, materialpreis:12.70, stundensatz:50, stunden:0 },
+    { pos:'5.2', beschreibung:'Untergrund spachteln bis 2mm (BKI LB334)', einheit:'m²', menge:100, materialpreis:7.30, stundensatz:50, stunden:0 },
+    { pos:'5.3', beschreibung:'Raufasertapete Wand (BKI LB337)', einheit:'m²', menge:150, materialpreis:8.40, stundensatz:50, stunden:0 },
+    { pos:'5.4', beschreibung:'Glasgewebe Dispersionsbeschichtung (BKI LB337)', einheit:'m²', menge:80, materialpreis:23, stundensatz:50, stunden:0 },
+    { pos:'5.5', beschreibung:'Beschichtung rissüberbrückend (BKI LB334)', einheit:'m²', menge:30, materialpreis:33, stundensatz:50, stunden:0 },
   ],
   boden: [
-    { pos:'6.1', beschreibung:'Altbelag entfernen und entsorgen', einheit:'m²', menge:80, materialpreis:0, stundensatz:45, stunden:0.2 },
-    { pos:'6.2', beschreibung:'Ausgleichsmasse einbringen', einheit:'m²', menge:80, materialpreis:4, stundensatz:45, stunden:0.15 },
-    { pos:'6.3', beschreibung:'Laminat verlegen inkl. Material', einheit:'m²', menge:70, materialpreis:22, stundensatz:45, stunden:0.3 },
-    { pos:'6.4', beschreibung:'Sockelleisten montieren', einheit:'lfm', menge:40, materialpreis:4, stundensatz:45, stunden:0.2 },
+    // BKI LB 328 Parkett / LB 336 Bodenbelagarbeiten
+    { pos:'6.1', beschreibung:'Parkettboden entfernen (BKI LB328)', einheit:'m²', menge:60, materialpreis:17, stundensatz:45, stunden:0 },
+    { pos:'6.2', beschreibung:'Fertigparkettbelag beschichtet (BKI LB328)', einheit:'m²', menge:60, materialpreis:113, stundensatz:45, stunden:0 },
+    { pos:'6.3', beschreibung:'Linoleumbelag über 2,5mm (BKI LB336)', einheit:'m²', menge:30, materialpreis:59, stundensatz:45, stunden:0 },
+    { pos:'6.4', beschreibung:'Bodenbelag lose entfernen (BKI LB336)', einheit:'m²', menge:80, materialpreis:13.90, stundensatz:45, stunden:0 },
+    { pos:'6.5', beschreibung:'Treppenkantenprofil Kunststoff (BKI LB336)', einheit:'m', menge:12, materialpreis:28, stundensatz:45, stunden:0 },
   ],
   fliesen: [
-    { pos:'7.1', beschreibung:'Fliesen Bad Wand', einheit:'m²', menge:30, materialpreis:28, stundensatz:60, stunden:0.8 },
-    { pos:'7.2', beschreibung:'Fliesen Bad Boden', einheit:'m²', menge:8, materialpreis:35, stundensatz:60, stunden:0.9 },
-    { pos:'7.3', beschreibung:'Fliesen Küche Spritzschutz', einheit:'m²', menge:4, materialpreis:25, stundensatz:60, stunden:0.7 },
-    { pos:'7.4', beschreibung:'Verfugen und Silikon', einheit:'lfm', menge:20, materialpreis:3, stundensatz:60, stunden:0.3 },
+    // BKI LB 324 Fliesen- und Plattenarbeiten
+    { pos:'7.1', beschreibung:'Bodenfliesen entfernen, geklebt (BKI LB324)', einheit:'m²', menge:10, materialpreis:28, stundensatz:60, stunden:0 },
+    { pos:'7.2', beschreibung:'Wandfliesen entfernen, Dickbett (BKI LB324)', einheit:'m²', menge:30, materialpreis:22, stundensatz:60, stunden:0 },
+    { pos:'7.3', beschreibung:'Bodenbelag Fliesen 30x30 (BKI LB324)', einheit:'m²', menge:8, materialpreis:88, stundensatz:60, stunden:0 },
+    { pos:'7.4', beschreibung:'Wandbelag Fliesen 15x15 (BKI LB324)', einheit:'m²', menge:30, materialpreis:91, stundensatz:60, stunden:0 },
+    { pos:'7.5', beschreibung:'Kehlsockel Fliesenbelag (BKI LB324)', einheit:'m', menge:12, materialpreis:39, stundensatz:60, stunden:0 },
   ],
   tueren: [
-    { pos:'8.1', beschreibung:'Innentür liefern und montieren', einheit:'Stk', menge:5, materialpreis:280, stundensatz:60, stunden:3 },
-    { pos:'8.2', beschreibung:'Türzarge liefern und montieren', einheit:'Stk', menge:5, materialpreis:120, stundensatz:60, stunden:1.5 },
-    { pos:'8.3', beschreibung:'Wohnungseingangstür', einheit:'Stk', menge:1, materialpreis:1200, stundensatz:60, stunden:5 },
+    // BKI LB 327 Tischlerarbeiten (Innentüren)
+    { pos:'8.1', beschreibung:'Türblatt einflüglig Vollspan (BKI LB327)', einheit:'Stk', menge:5, materialpreis:603, stundensatz:60, stunden:0 },
+    { pos:'8.2', beschreibung:'Massivholzzarge innen (BKI LB327)', einheit:'Stk', menge:5, materialpreis:330, stundensatz:60, stunden:0 },
+    { pos:'8.3', beschreibung:'Schiebetürelement innen (BKI LB327)', einheit:'Stk', menge:1, materialpreis:1574, stundensatz:60, stunden:0 },
+    { pos:'8.4', beschreibung:'Sockel-/Fußleiste Holz (BKI LB327)', einheit:'m', menge:40, materialpreis:30, stundensatz:60, stunden:0 },
   ],
   fenster: [
-    { pos:'9.1', beschreibung:'Kunststofffenster 2-fach-Verglasung', einheit:'Stk', menge:4, materialpreis:450, stundensatz:65, stunden:4 },
-    { pos:'9.2', beschreibung:'Fensterbrett innen', einheit:'lfm', menge:6, materialpreis:35, stundensatz:65, stunden:0.5 },
-    { pos:'9.3', beschreibung:'Fensterbrett außen Aluminium', einheit:'lfm', menge:6, materialpreis:45, stundensatz:65, stunden:0.5 },
-    { pos:'9.4', beschreibung:'Dichten / Anputzleisten', einheit:'Stk', menge:4, materialpreis:15, stundensatz:65, stunden:1 },
+    // BKI LB 326 Fenster und Außentüren
+    { pos:'9.1', beschreibung:'Holzfenster zweiflüglig 1250x1000 2-Scheibe (BKI LB326)', einheit:'Stk', menge:4, materialpreis:866, stundensatz:65, stunden:0 },
+    { pos:'9.2', beschreibung:'Kunststofffenster zweiflüglig 1625x1250 2-Scheibe (BKI LB326)', einheit:'Stk', menge:2, materialpreis:969, stundensatz:65, stunden:0 },
+    { pos:'9.3', beschreibung:'Haustür Kunststoff einflüglig 1010x2013 (BKI LB326)', einheit:'Stk', menge:1, materialpreis:3184, stundensatz:65, stunden:0 },
+    { pos:'9.4', beschreibung:'Kunststofffenstertür einflüglig 1000x2125 (BKI LB326)', einheit:'Stk', menge:1, materialpreis:958, stundensatz:65, stunden:0 },
   ],
   abbruch: [
-    { pos:'10.1', beschreibung:'Trennwand abbrechen', einheit:'m²', menge:15, materialpreis:0, stundensatz:45, stunden:0.8 },
-    { pos:'10.2', beschreibung:'Estrich aufbrechen und entsorgen', einheit:'m²', menge:50, materialpreis:0, stundensatz:45, stunden:0.5 },
-    { pos:'10.3', beschreibung:'Fliesen abschlagen', einheit:'m²', menge:30, materialpreis:0, stundensatz:45, stunden:0.4 },
-    { pos:'10.4', beschreibung:'Containerentsorgung', einheit:'Stk', menge:2, materialpreis:400, stundensatz:0, stunden:0 },
+    // BKI LB 384 Abbruch- und Rückbauarbeiten / LB 312 Abbruch
+    { pos:'10.1', beschreibung:'Holzständerwand abbrechen (BKI LB384)', einheit:'m²', menge:20, materialpreis:28, stundensatz:45, stunden:0 },
+    { pos:'10.2', beschreibung:'Innenmauerwerk abbrechen 11,5cm (BKI LB312)', einheit:'m²', menge:15, materialpreis:48, stundensatz:45, stunden:0 },
+    { pos:'10.3', beschreibung:'Deckenbekleidung abbrechen (BKI LB339)', einheit:'m²', menge:40, materialpreis:31, stundensatz:45, stunden:0 },
+    { pos:'10.4', beschreibung:'Bodenfliesen/Estrich entfernen (BKI LB324)', einheit:'m²', menge:30, materialpreis:62, stundensatz:45, stunden:0 },
+    { pos:'10.5', beschreibung:'Außenputz abschlagen, Teilflächen (BKI LB322)', einheit:'m²', menge:60, materialpreis:34, stundensatz:45, stunden:0 },
   ],
   rohbau: [
-    { pos:'11.1', beschreibung:'Mauerwerk Kalksandstein', einheit:'m²', menge:20, materialpreis:35, stundensatz:55, stunden:1.2 },
-    { pos:'11.2', beschreibung:'Innenputz', einheit:'m²', menge:100, materialpreis:8, stundensatz:55, stunden:0.4 },
-    { pos:'11.3', beschreibung:'Estrich CT-C25 60mm', einheit:'m²', menge:80, materialpreis:14, stundensatz:55, stunden:0.3 },
-    { pos:'11.4', beschreibung:'Außenputz', einheit:'m²', menge:60, materialpreis:12, stundensatz:55, stunden:0.5 },
+    // BKI LB 312 Mauerarbeiten / LB 323 Putz und Stuckarbeiten
+    { pos:'11.1', beschreibung:'Innenwand KS 11,5cm nichttragend (BKI LB312)', einheit:'m²', menge:20, materialpreis:88, stundensatz:55, stunden:0 },
+    { pos:'11.2', beschreibung:'Innenputz Wand Gipsputz einlagig Q2-gefilzt (BKI LB323)', einheit:'m²', menge:100, materialpreis:26, stundensatz:55, stunden:0 },
+    { pos:'11.3', beschreibung:'Außenputz abschlagen, Teilflächen (BKI LB322)', einheit:'m²', menge:60, materialpreis:34, stundensatz:55, stunden:0 },
+    { pos:'11.4', beschreibung:'Haftputz mineralisch Beton (BKI LB323)', einheit:'m²', menge:60, materialpreis:8.90, stundensatz:55, stunden:0 },
+    { pos:'11.5', beschreibung:'WDVS bis 20m PS 100 (BKI LB322)', einheit:'m²', menge:50, materialpreis:97, stundensatz:55, stunden:0 },
   ],
   bodenplatte: [
-    { pos:'12.1', beschreibung:'Bodenplatte abfräsen / Risse aufschneiden', einheit:'m²', menge:50, materialpreis:0, stundensatz:55, stunden:0.6 },
-    { pos:'12.2', beschreibung:'Feuchtigkeitssperre auftragen', einheit:'m²', menge:50, materialpreis:8, stundensatz:55, stunden:0.3 },
-    { pos:'12.3', beschreibung:'Bewehrung einlegen', einheit:'m²', menge:50, materialpreis:12, stundensatz:55, stunden:0.4 },
-    { pos:'12.4', beschreibung:'Beton C25/30 einbringen und abziehen', einheit:'m²', menge:50, materialpreis:20, stundensatz:55, stunden:0.5 },
-    { pos:'12.5', beschreibung:'Nachbehandlung / Abdecken', einheit:'m²', menge:50, materialpreis:1.5, stundensatz:55, stunden:0.1 },
+    // BKI LB 313 Betonarbeiten / LB 318 Abdichtungsarbeiten
+    { pos:'12.1', beschreibung:'Verbundestrich abbrechen bis 50mm (BKI LB325)', einheit:'m²', menge:50, materialpreis:24, stundensatz:55, stunden:0 },
+    { pos:'12.2', beschreibung:'Betonflächen reinigen (BKI LB312)', einheit:'m²', menge:50, materialpreis:1.60, stundensatz:55, stunden:0 },
+    { pos:'12.3', beschreibung:'Voranstrich Bodenabdichtung (BKI LB318)', einheit:'m²', menge:50, materialpreis:9.30, stundensatz:55, stunden:0 },
+    { pos:'12.4', beschreibung:'Fundament Ortbeton unbewehrt (BKI LB312)', einheit:'m³', menge:10, materialpreis:235, stundensatz:55, stunden:0 },
+    { pos:'12.5', beschreibung:'Schutzabdeckung armierte Baufolie (BKI LB312)', einheit:'m²', menge:50, materialpreis:9.20, stundensatz:55, stunden:0 },
   ],
 };
 
