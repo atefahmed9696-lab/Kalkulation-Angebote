@@ -1693,6 +1693,101 @@ function showToast(msg) {
 /* ═══════════════════════════════════════════════════════════════
    SCHNELLKALKULATION – komplettes Angebot nach m²
 ═══════════════════════════════════════════════════════════════ */
+
+// Raumtypen mit Heizlast-Richtwerten (W/m²) und Standard-Mengen
+const SK_ROOM_TYPES = [
+  { id:'wohn',   label:'Wohnzimmer',        w_neu: 65, w_kern: 80, w_teil:100, steckd:6, schalter:1 },
+  { id:'schlaf', label:'Schlafzimmer',       w_neu: 55, w_kern: 70, w_teil: 90, steckd:5, schalter:3 },
+  { id:'kueche', label:'Küche',              w_neu: 70, w_kern: 85, w_teil:105, steckd:8, schalter:1 },
+  { id:'bad',    label:'Bad / Dusche',       w_neu:105, w_kern:125, w_teil:145, steckd:2, schalter:1 },
+  { id:'wc',     label:'WC (separat)',       w_neu:115, w_kern:135, w_teil:155, steckd:1, schalter:1 },
+  { id:'flur',   label:'Flur / Diele',      w_neu: 45, w_kern: 60, w_teil: 75, steckd:2, schalter:1 },
+  { id:'arbeit', label:'Büro / Arbeitszimmer',w_neu:65,w_kern: 80, w_teil:100, steckd:6, schalter:1 },
+  { id:'kind',   label:'Kinderzimmer',       w_neu: 60, w_kern: 75, w_teil: 95, steckd:5, schalter:1 },
+  { id:'keller', label:'Keller / Lager',     w_neu: 30, w_kern: 45, w_teil: 60, steckd:2, schalter:1 },
+];
+
+function skRoomRowHtml(idx, name, type, m2) {
+  const opts = SK_ROOM_TYPES.map(t =>
+    `<option value="${t.id}" ${t.id === type ? 'selected' : ''}>${t.label}</option>`
+  ).join('');
+  return `<div class="sk-room-row" style="display:flex;gap:5px;align-items:center;padding:4px 6px;background:#f7f9fc;border-radius:5px;margin-bottom:3px">
+    <span style="font-size:10px;color:#bbb;width:18px;text-align:right;flex-shrink:0">${idx+1}.</span>
+    <input type="text" value="${name}" placeholder="Raum ${idx+1}"
+      style="flex:1;min-width:0;font-size:11.5px;padding:4px 7px;border:1.5px solid #d0d7e2;border-radius:5px">
+    <select onchange="schnellKalkulationPreview()"
+      style="width:140px;flex-shrink:0;font-size:11px;padding:4px 6px;border:1.5px solid #d0d7e2;border-radius:5px">
+      ${opts}
+    </select>
+    <input type="number" value="${m2}" min="4" max="120"
+      onchange="schnellKalkulationPreview()"
+      style="width:52px;flex-shrink:0;font-size:11.5px;padding:4px 6px;border:1.5px solid #d0d7e2;border-radius:5px;text-align:right">
+    <span style="font-size:10px;color:#aaa;flex-shrink:0">m²</span>
+    <button onclick="skRemoveRoom(this)" title="Entfernen"
+      style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:16px;padding:0 3px;flex-shrink:0;line-height:1">✕</button>
+  </div>`;
+}
+
+function skInitRooms() {
+  const zimmer = parseInt(document.getElementById('sk_zimmer').value) || 4;
+  const schlaf = Math.min(parseInt(document.getElementById('sk_schlafzimmer').value) || 2, zimmer);
+  const baeder = parseInt(document.getElementById('sk_baeder').value) || 1;
+  const m2     = parseFloat(document.getElementById('sk_flaeche').value) || 100;
+
+  const rooms = [];
+  const wohnM2   = Math.max(18, Math.round(m2 * 0.25));
+  const schlafM2 = Math.max(12, Math.round(m2 * 0.14));
+  const kueM2    = Math.max(10, Math.round(m2 * 0.11));
+  const badM2    = Math.max(6,  Math.round(m2 * 0.07));
+  const flurM2   = Math.max(5,  Math.round(m2 * 0.07));
+  const arbM2    = Math.max(10, Math.round(m2 * 0.12));
+
+  rooms.push({ name:'Wohnzimmer',  type:'wohn',   m2:wohnM2 });
+  if (zimmer > 2) rooms.push({ name:'Küche', type:'kueche', m2:kueM2 });
+  for (let i = 0; i < schlaf; i++) {
+    rooms.push({ name: i === 0 ? 'Schlafzimmer' : `Schlafzimmer ${i+1}`, type:'schlaf', m2:schlafM2 });
+  }
+  const sonstRooms = Math.max(0, zimmer - schlaf - (zimmer > 2 ? 2 : 1));
+  for (let i = 0; i < sonstRooms; i++) {
+    rooms.push({ name:`Zimmer ${i+1}`, type:'arbeit', m2:arbM2 });
+  }
+  rooms.push({ name:'Flur / Diele', type:'flur', m2:flurM2 });
+  for (let i = 0; i < baeder; i++) {
+    rooms.push({ name: i === 0 ? 'Bad' : `Bad ${i+1}`, type:'bad', m2:badM2 });
+  }
+
+  const list = document.getElementById('sk-room-list');
+  if (list) list.innerHTML = rooms.map((r, i) => skRoomRowHtml(i, r.name, r.type, r.m2)).join('');
+  schnellKalkulationPreview();
+}
+
+function skAddRoom() {
+  const list = document.getElementById('sk-room-list');
+  if (!list) return;
+  const idx = list.querySelectorAll('.sk-room-row').length;
+  const div = document.createElement('div');
+  div.innerHTML = skRoomRowHtml(idx, '', 'wohn', 15);
+  list.appendChild(div.firstChild);
+  schnellKalkulationPreview();
+}
+
+function skRemoveRoom(btn) {
+  btn.closest('.sk-room-row').remove();
+  // Re-index numbers
+  document.querySelectorAll('#sk-room-list .sk-room-row').forEach((row, i) => {
+    const num = row.querySelector('span');
+    if (num) num.textContent = (i+1) + '.';
+  });
+  schnellKalkulationPreview();
+}
+
+function skGetRooms() {
+  return [...document.querySelectorAll('#sk-room-list .sk-room-row')].map(row => {
+    const inputs = row.querySelectorAll('input, select');
+    return { name: inputs[0].value || 'Raum', type: inputs[1].value, m2: parseFloat(inputs[2].value) || 12 };
+  });
+}
+
 function schnellKalkulationModal() {
   const existing = document.getElementById('schnellModal');
   if (existing) existing.remove();
@@ -1705,70 +1800,113 @@ function schnellKalkulationModal() {
   m.id = 'schnellModal';
   m.className = 'modal-overlay';
   m.innerHTML = `
-    <div class="modal-box-lg">
+    <div class="modal-box-lg" style="max-width:900px">
       <div class="modal-header">
         <h3>🏠 Schnellkalkulation – Schlüsselfertiges Objekt</h3>
         <button class="modal-close" onclick="document.getElementById('schnellModal').remove()">✕</button>
       </div>
-      <div class="modal-body">
-        <div class="wiz-info">
-          Gib die Eckdaten des Objekts ein. Das Tool berechnet automatisch realistische Mengen
-          für alle gewählten Gewerke und fügt diese als Musterpositionen ein.
-        </div>
-        <div class="wiz-section">
-          <div class="wiz-section-title">📐 Objektdaten</div>
-          <div class="wiz-grid">
-            <div class="wiz-field">
-              <label>Wohnfläche (m²)</label>
-              <input type="number" id="sk_flaeche" value="100" min="20" max="2000" step="5">
-            </div>
-            <div class="wiz-field">
-              <label>Objekttyp</label>
-              <select id="sk_typ">
-                <option value="wohnung">Wohnung</option>
-                <option value="haus">Einfamilienhaus</option>
-                <option value="doppelhaus">Doppelhaushälfte</option>
-                <option value="mehrfam">Mehrfamilienhaus</option>
-              </select>
-            </div>
-            <div class="wiz-field">
-              <label>Bauzustand</label>
-              <select id="sk_zustand">
-                <option value="neubau">Neubau</option>
-                <option value="kernsanierung">Kernsanierung</option>
-                <option value="teilsanierung">Teilsanierung</option>
-              </select>
-            </div>
-            <div class="wiz-field">
-              <label>Stockwerke (inkl. EG)</label>
-              <input type="number" id="sk_etagen" value="1" min="1" max="5">
-            </div>
-            <div class="wiz-field">
-              <label>Anz. Zimmer (o. Bad/WC)</label>
-              <input type="number" id="sk_zimmer" value="4" min="1" max="20">
-            </div>
-            <div class="wiz-field">
-              <label>Anz. Badezimmer/WC</label>
-              <input type="number" id="sk_baeder" value="2" min="1" max="8">
+      <div class="modal-body" style="display:flex;gap:14px;min-height:0">
+        <!-- Left column -->
+        <div style="flex:1;min-width:0;overflow-y:auto">
+          <div class="wiz-info">
+            Eckdaten eingeben → Mengen werden automatisch pro Zimmer berechnet.
+            Heizlast wird raumweise ermittelt.
+          </div>
+          <div class="wiz-section">
+            <div class="wiz-section-title">📐 Objektdaten</div>
+            <div class="wiz-grid">
+              <div class="wiz-field">
+                <label>Wohnfläche gesamt (m²)</label>
+                <input type="number" id="sk_flaeche" value="100" min="20" max="2000" step="5"
+                  onchange="skInitRooms()">
+              </div>
+              <div class="wiz-field">
+                <label>Objekttyp</label>
+                <select id="sk_typ">
+                  <option value="wohnung">Wohnung</option>
+                  <option value="haus">Einfamilienhaus</option>
+                  <option value="doppelhaus">Doppelhaushälfte</option>
+                  <option value="mehrfam">Mehrfamilienhaus</option>
+                </select>
+              </div>
+              <div class="wiz-field">
+                <label>Bauzustand</label>
+                <select id="sk_zustand" onchange="schnellKalkulationPreview()">
+                  <option value="neubau">Neubau</option>
+                  <option value="kernsanierung">Kernsanierung</option>
+                  <option value="teilsanierung">Teilsanierung</option>
+                </select>
+              </div>
+              <div class="wiz-field">
+                <label>Stockwerke (inkl. EG)</label>
+                <input type="number" id="sk_etagen" value="1" min="1" max="5"
+                  onchange="schnellKalkulationPreview()">
+              </div>
+              <div class="wiz-field">
+                <label>Zimmer gesamt (o. Bad)</label>
+                <input type="number" id="sk_zimmer" value="4" min="1" max="20"
+                  onchange="skInitRooms()">
+              </div>
+              <div class="wiz-field">
+                <label>davon Schlafzimmer</label>
+                <input type="number" id="sk_schlafzimmer" value="2" min="0" max="15"
+                  onchange="skInitRooms()">
+              </div>
+              <div class="wiz-field">
+                <label>Badezimmer / WC</label>
+                <input type="number" id="sk_baeder" value="1" min="1" max="8"
+                  onchange="skInitRooms()">
+              </div>
             </div>
           </div>
-        </div>
-        <div class="wiz-section">
-          <div class="wiz-section-title">⚙️ Ausstattung</div>
-          <div class="checks-grid">
-            <label class="check-item"><input type="checkbox" id="sk_fbh" checked> Fußbodenheizung</label>
-            <label class="check-item"><input type="checkbox" id="sk_knx"> KNX Smart Home</label>
-            <label class="check-item"><input type="checkbox" id="sk_shelly"> Shelly Smart Home</label>
-            <label class="check-item"><input type="checkbox" id="sk_jalousien" checked> Jalousien/Rollläden</label>
-            <label class="check-item"><input type="checkbox" id="sk_demontage"> Demontage inklusive</label>
-            <label class="check-item"><input type="checkbox" id="sk_fassade"> Fassade inklusive</label>
+          <div class="wiz-section">
+            <div class="wiz-section-title">⚙️ Ausstattung</div>
+            <div class="checks-grid">
+              <label class="check-item"><input type="checkbox" id="sk_fbh" checked
+                onchange="schnellKalkulationPreview()"> Fußbodenheizung + Regler</label>
+              <label class="check-item"><input type="checkbox" id="sk_netzwerk" checked
+                onchange="schnellKalkulationPreview()"> Netzwerk CAT7 komplett</label>
+              <label class="check-item"><input type="checkbox" id="sk_sat" checked
+                onchange="schnellKalkulationPreview()"> SAT-Anlage komplett</label>
+              <label class="check-item"><input type="checkbox" id="sk_knx"
+                onchange="schnellKalkulationPreview()"> KNX Smart Home</label>
+              <label class="check-item"><input type="checkbox" id="sk_shelly"
+                onchange="schnellKalkulationPreview()"> Shelly Smart Home</label>
+              <label class="check-item"><input type="checkbox" id="sk_jalousien" checked
+                onchange="schnellKalkulationPreview()"> Jalousien / Rollläden</label>
+              <label class="check-item"><input type="checkbox" id="sk_demontage"
+                onchange="schnellKalkulationPreview()"> Demontage inklusive</label>
+              <label class="check-item"><input type="checkbox" id="sk_fassade"
+                onchange="schnellKalkulationPreview()"> Fassade inklusive</label>
+            </div>
+          </div>
+          <div class="wiz-section">
+            <div class="wiz-section-title">🔨 Gewerke einbeziehen</div>
+            <div class="checks-grid">${gewerkeOptions}</div>
           </div>
         </div>
-        <div class="wiz-section">
-          <div class="wiz-section-title">🔨 Gewerke einbeziehen</div>
-          <div class="checks-grid">${gewerkeOptions}</div>
+        <!-- Right column: room configurator -->
+        <div style="width:310px;min-width:280px;flex-shrink:0;display:flex;flex-direction:column;gap:0">
+          <div class="wiz-section" style="flex:1;display:flex;flex-direction:column;min-height:0">
+            <div class="wiz-section-title">🏠 Zimmer-Konfiguration
+              <span style="font-weight:400;font-size:10px;color:#9aaabf"> – für Heizlast &amp; Mengen</span>
+            </div>
+            <div style="font-size:11px;color:#8a9ab0;margin-bottom:6px">
+              Typ und m² pro Raum → automatische Steckdosen-, Schalter- und Heizlastberechnung.
+            </div>
+            <div id="sk-room-list" style="flex:1;overflow-y:auto;max-height:320px;padding-right:2px">
+              <!-- auto-generated by skInitRooms() -->
+            </div>
+            <div style="display:flex;gap:6px;margin-top:7px">
+              <button class="btn btn-info btn-sm" onclick="skAddRoom()">+ Raum</button>
+              <button class="btn btn-warning btn-sm" onclick="skInitRooms()">↺ Auto</button>
+            </div>
+          </div>
+          <!-- Heizlast preview -->
+          <div id="sk_heizlast_preview" style="margin-top:8px"></div>
+          <!-- Gewerke summary -->
+          <div id="sk_preview" style="margin-top:6px"></div>
         </div>
-        <div id="sk_preview"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary btn-sm" onclick="schnellKalkulationPreview()">👁️ Vorschau</button>
@@ -1780,160 +1918,222 @@ function schnellKalkulationModal() {
     </div>`;
   document.body.appendChild(m);
   m.addEventListener('click', e => { if (e.target === m) m.remove(); });
-  schnellKalkulationPreview();
+  skInitRooms();
 }
 
 function schnellKalkulationBerechne() {
-  const m2    = parseFloat(document.getElementById('sk_flaeche').value) || 100;
-  const etagen = parseInt(document.getElementById('sk_etagen').value) || 1;
-  const zimmer = parseInt(document.getElementById('sk_zimmer').value) || 4;
-  const baeder = parseInt(document.getElementById('sk_baeder').value) || 2;
-  const fbh    = document.getElementById('sk_fbh').checked;
-  const knx    = document.getElementById('sk_knx').checked;
-  const shelly = document.getElementById('sk_shelly').checked;
+  const m2      = parseFloat(document.getElementById('sk_flaeche').value) || 100;
+  const etagen  = parseInt(document.getElementById('sk_etagen').value) || 1;
+  const zimmer  = parseInt(document.getElementById('sk_zimmer').value) || 4;
+  const schlaf  = Math.min(parseInt(document.getElementById('sk_schlafzimmer').value) || 2, zimmer);
+  const baeder  = parseInt(document.getElementById('sk_baeder').value) || 1;
+  const zustand = document.getElementById('sk_zustand').value;
+  const fbh     = document.getElementById('sk_fbh').checked;
+  const netzwerk= document.getElementById('sk_netzwerk').checked;
+  const sat     = document.getElementById('sk_sat').checked;
+  const knx     = document.getElementById('sk_knx').checked;
+  const shelly  = document.getElementById('sk_shelly').checked;
   const jalousien = document.getElementById('sk_jalousien').checked;
   const demontage = document.getElementById('sk_demontage').checked;
   const fassade   = document.getElementById('sk_fassade').checked;
 
-  const raeume = zimmer + baeder + etagen; // total rooms incl. corridors
+  const raeume = zimmer + baeder + etagen;
   const flaecheJeEtage = m2 / etagen;
 
-  const result = {};
+  // ── Room-based counts ──────────────────────────────────────────
+  const rooms = skGetRooms();
+  const totalSteckdosen = rooms.length > 0
+    ? rooms.reduce((s, r) => { const rt = SK_ROOM_TYPES.find(t => t.id === r.type) || SK_ROOM_TYPES[0]; return s + rt.steckd; }, 0)
+    : Math.round(zimmer * 5.5 + baeder * 2);
+  const totalSchalter = rooms.length > 0
+    ? rooms.reduce((s, r) => { const rt = SK_ROOM_TYPES.find(t => t.id === r.type) || SK_ROOM_TYPES[0]; return s + rt.schalter; }, 0)
+    : (zimmer - schlaf) * 1 + schlaf * 3 + baeder;
 
-  // ── ELEKTRO
+  // ── Heizlast ──────────────────────────────────────────────────
+  const heizlastRaeume = rooms.map(r => {
+    const rt = SK_ROOM_TYPES.find(t => t.id === r.type) || SK_ROOM_TYPES[0];
+    const wpm2 = zustand === 'neubau' ? rt.w_neu : zustand === 'kernsanierung' ? rt.w_kern : rt.w_teil;
+    return { name: r.name, m2: r.m2, wpm2, watt: Math.round(r.m2 * wpm2) };
+  });
+
+  const result = {};
+  result._heizlast = heizlastRaeume;
+
+  // ── ELEKTRO ───────────────────────────────────────────────────
+  // Leitungslängen nach m² (Richtwert: 1,5mm² = Licht ~1,4m/m², 2,5mm² = Kraft ~1,0m/m²)
   result.elektro = [
-    { pos:'E1.01', beschreibung:'Installationsleitung NYM-J 3×1,5mm² UP verlegen', einheit:'m', menge: Math.round(m2*1.4), materialpreis:3.80, stundensatz:65, stunden:0 },
-    { pos:'E1.02', beschreibung:'Installationsleitung NYM-J 3×2,5mm² UP verlegen', einheit:'m', menge: Math.round(m2*0.9), materialpreis:5.20, stundensatz:65, stunden:0 },
-    { pos:'E1.03', beschreibung:'Installationsleitung NYM-J 5×2,5mm² UP verlegen', einheit:'m', menge: Math.round(m2*0.15+baeder*3), materialpreis:7.40, stundensatz:65, stunden:0 },
-    { pos:'E1.04', beschreibung:'Leerrohr-System ∅20mm im Mauerwerk', einheit:'m', menge: Math.round(m2*0.5), materialpreis:3.20, stundensatz:65, stunden:0 },
-    { pos:'E2.01', beschreibung:'Schutzkontaktsteckdose UP 1-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(8, Math.round(zimmer*4+baeder*3)), materialpreis:42, stundensatz:65, stunden:0 },
-    { pos:'E2.02', beschreibung:'Schutzkontaktsteckdose UP 2-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(4, Math.round(zimmer*2)), materialpreis:62, stundensatz:65, stunden:0 },
-    { pos:'E2.05', beschreibung:'Wechselschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(4, raeume), materialpreis:40, stundensatz:65, stunden:0 },
-    { pos:'E2.09', beschreibung:'Netzwerkdose CAT7 UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(3, zimmer+1), materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'E1.01', beschreibung:'Installationsleitung NYM-J 3×1,5mm² UP verlegen (Licht/Schalter)', einheit:'m', menge: Math.round(m2 * 1.4), materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'E1.02', beschreibung:'Installationsleitung NYM-J 3×2,5mm² UP verlegen (Steckdosen)', einheit:'m', menge: Math.round(m2 * 1.0), materialpreis:5.20, stundensatz:65, stunden:0 },
+    { pos:'E1.03', beschreibung:'Installationsleitung NYM-J 5×2,5mm² UP verlegen (Herd/Backofen/Bad)', einheit:'m', menge: Math.round(m2 * 0.15 + baeder * 4), materialpreis:7.40, stundensatz:65, stunden:0 },
+    { pos:'E1.04', beschreibung:'Leerrohr-System ∅20mm im Mauerwerk verlegen', einheit:'m', menge: Math.round(m2 * 0.55), materialpreis:3.20, stundensatz:65, stunden:0 },
+    { pos:'E2.01', beschreibung:'Schutzkontaktsteckdose UP 1-fach inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(8, totalSteckdosen), materialpreis:42, stundensatz:65, stunden:0 },
+    { pos:'E2.02', beschreibung:'Schutzkontaktsteckdose UP 2-fach (Doppelsteckdose)', einheit:'Stk', menge: Math.max(4, Math.round(zimmer * 1.5)), materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'E2.03', beschreibung:'Schutzkontaktsteckdose UP IP44 (Feuchtraum Bad/Küche)', einheit:'Stk', menge: Math.max(2, baeder * 3 + 2), materialpreis:58, stundensatz:65, stunden:0 },
+    { pos:'E2.05', beschreibung:'Wechselschalter UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(4, totalSchalter), materialpreis:40, stundensatz:65, stunden:0 },
+    { pos:'E2.06', beschreibung:'Kreuzschalter UP (für Wechselschaltung Schlafzimmer)', einheit:'Stk', menge: schlaf, materialpreis:52, stundensatz:65, stunden:0 },
     { pos:'E2.10', beschreibung:'SAT-Antennendose UP inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: Math.max(2, zimmer), materialpreis:48, stundensatz:65, stunden:0 },
-    { pos:'E3.03', beschreibung:'Unterverteiler 4-reihig UP bestückt', einheit:'Stk', menge: etagen, materialpreis:520, stundensatz:65, stunden:0 },
-    { pos:'E3.08', beschreibung:'Leitungsschutzschalter B13A einbauen', einheit:'Stk', menge: Math.round(raeume*1.5), materialpreis:24, stundensatz:65, stunden:0 },
-    { pos:'E3.10', beschreibung:'FI-Schutzschalter 2-polig 25A/30mA einbauen', einheit:'Stk', menge: baeder, materialpreis:78, stundensatz:65, stunden:0 },
-    { pos:'E3.11', beschreibung:'FI-Schutzschalter 4-polig 40A/30mA einbauen', einheit:'Stk', menge: etagen, materialpreis:125, stundensatz:65, stunden:0 },
+    { pos:'E3.03', beschreibung:'Unterverteiler 4-reihig UP bestückt (je Etage)', einheit:'Stk', menge: etagen, materialpreis:520, stundensatz:65, stunden:0 },
+    { pos:'E3.08', beschreibung:'Leitungsschutzschalter B16A einbauen', einheit:'Stk', menge: Math.round(raeume * 1.6), materialpreis:24, stundensatz:65, stunden:0 },
+    { pos:'E3.10', beschreibung:'FI-Schutzschalter 2-polig 25A/30mA einbauen (Bad)', einheit:'Stk', menge: baeder, materialpreis:78, stundensatz:65, stunden:0 },
+    { pos:'E3.11', beschreibung:'FI-Schutzschalter 4-polig 40A/30mA einbauen (Hauptverteiler)', einheit:'Stk', menge: etagen, materialpreis:125, stundensatz:65, stunden:0 },
     { pos:'E3.12', beschreibung:'Hauptschalter 63A einbauen', einheit:'Stk', menge:1, materialpreis:145, stundensatz:65, stunden:0 },
-    { pos:'E7.02', beschreibung:'LED-Einbaustrahler Spot 7W schwenkbar inkl. Einbaurahmen', einheit:'Stk', menge: Math.round(raeume*2.5), materialpreis:155, stundensatz:65, stunden:0 },
-    { pos:'E7.05', beschreibung:'LED-Streifen indirekte Beleuchtung verlegen u. anschließen', einheit:'m', menge: Math.round(m2*0.1), materialpreis:48, stundensatz:65, stunden:0 },
-    { pos:'E11.01', beschreibung:'Rauchmelder Funk, vernetzt einbauen', einheit:'Stk', menge: Math.max(2, zimmer+etagen), materialpreis:48, stundensatz:65, stunden:0 },
+    { pos:'E7.02', beschreibung:'LED-Einbaustrahler Spot 7W schwenkbar inkl. Einbaurahmen', einheit:'Stk', menge: Math.round(raeume * 2.5), materialpreis:155, stundensatz:65, stunden:0 },
+    { pos:'E11.01', beschreibung:'Rauchmelder Funk vernetzt einbauen', einheit:'Stk', menge: Math.max(2, zimmer + etagen), materialpreis:48, stundensatz:65, stunden:0 },
   ];
+
+  // Netzwerk CAT7
+  if (netzwerk) {
+    const netzwerkDosen = Math.max(3, zimmer + 1); // je Zimmer + 1 für Wohnzimmer/TV
+    result.elektro.push(
+      { pos:'E2.09', beschreibung:'Netzwerkdose CAT7 UP Keystone inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: netzwerkDosen, materialpreis:62, stundensatz:65, stunden:0 },
+      { pos:'E1.09', beschreibung:'Netzwerkkabel CAT7 S/FTP verlegen (je Dose ~15m)', einheit:'m', menge: Math.round(netzwerkDosen * 15), materialpreis:2.80, stundensatz:65, stunden:0 },
+      { pos:'E3.20', beschreibung:'Netzwerkverteiler 8-Port Patch-Panel inkl. Kabelbinder u. Einbau', einheit:'Stk', menge: etagen, materialpreis:185, stundensatz:65, stunden:0 },
+      { pos:'E3.21', beschreibung:'Patch-Kabel CAT7 0,5m (je Dose)', einheit:'Stk', menge: netzwerkDosen, materialpreis:8, stundensatz:65, stunden:0 }
+    );
+  }
+
+  // SAT-Anlage
+  if (sat) {
+    const satDosen = Math.max(2, zimmer);
+    result.elektro.push(
+      { pos:'E1.11', beschreibung:'SAT-Koaxkabel 4-fach geschirmt RG-6 verlegen (je Dose ~20m)', einheit:'m', menge: Math.round(satDosen * 20), materialpreis:1.90, stundensatz:65, stunden:0 },
+      { pos:'E3.22', beschreibung:'SAT-Multischalter 5/8 inkl. Montage u. Einmessung', einheit:'Stk', menge: Math.ceil(satDosen / 8), materialpreis:145, stundensatz:65, stunden:0 }
+    );
+  }
+
   if (fbh) result.elektro.push(
-    { pos:'E8.01', beschreibung:'Raumthermostat UP digital einbauen u. anschließen', einheit:'Stk', menge: zimmer+baeder, materialpreis:86, stundensatz:65, stunden:0 },
-    { pos:'E8.02', beschreibung:'Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge: Math.round((zimmer+baeder)*1.8), materialpreis:42, stundensatz:65, stunden:0 }
+    { pos:'E8.01', beschreibung:'FBH-Raumthermostat UP digital inkl. Fühler u. Anschluss', einheit:'Stk', menge: zimmer + baeder, materialpreis:86, stundensatz:65, stunden:0 },
+    { pos:'E8.02', beschreibung:'FBH-Stellantrieb thermoelektrisch 24V montieren u. anschließen', einheit:'Stk', menge: Math.round((zimmer + baeder) * 1.8), materialpreis:42, stundensatz:65, stunden:0 },
+    { pos:'E8.03', beschreibung:'FBH-Hauptregler / Busmodul montieren u. anschließen', einheit:'Stk', menge: etagen, materialpreis:185, stundensatz:65, stunden:0 }
   );
   if (jalousien) result.elektro.push(
-    { pos:'E1.21', beschreibung:'NYM-J 3×1,5mm² für Jalousien verlegen', einheit:'m', menge: Math.round(zimmer*6), materialpreis:3.80, stundensatz:65, stunden:0 }
+    { pos:'E1.21', beschreibung:'NYM-J 3×1,5mm² für Jalousienantrieve verlegen', einheit:'m', menge: Math.round(zimmer * 6), materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'E2.22', beschreibung:'Jalousie-Tastschalter UP einbauen u. anschließen', einheit:'Stk', menge: zimmer, materialpreis:58, stundensatz:65, stunden:0 }
   );
   if (knx) result.elektro.push(
-    { pos:'E9.01', beschreibung:'KNX Tastsensor 2-fach UP einbauen u. programmieren', einheit:'Stk', menge: Math.round(raeume*0.7), materialpreis:185, stundensatz:65, stunden:0 },
-    { pos:'E9.04', beschreibung:'KNX Schaltaktor 4-fach 16A Schrank einbauen', einheit:'Stk', menge: etagen+1, materialpreis:285, stundensatz:65, stunden:0 },
+    { pos:'E9.01', beschreibung:'KNX Tastsensor 2-fach UP einbauen u. programmieren', einheit:'Stk', menge: Math.round(raeume * 0.7), materialpreis:185, stundensatz:65, stunden:0 },
+    { pos:'E9.04', beschreibung:'KNX Schaltaktor 4-fach 16A Schrank einbauen', einheit:'Stk', menge: etagen + 1, materialpreis:285, stundensatz:65, stunden:0 },
     { pos:'E9.08', beschreibung:'KNX Inbetriebnahme / Systemkonfiguration pauschal', einheit:'Pauschal', menge:1, materialpreis:850, stundensatz:65, stunden:0 }
   );
   if (shelly && !knx) result.elektro.push(
-    { pos:'E10.01', beschreibung:'Shelly 1 / 1PM UP-Aktor einbauen inkl. App-Einrichtung', einheit:'Stk', menge: Math.round(raeume*0.8), materialpreis:65, stundensatz:65, stunden:0 },
+    { pos:'E10.01', beschreibung:'Shelly 1 / 1PM UP-Aktor einbauen inkl. App-Einrichtung', einheit:'Stk', menge: Math.round(raeume * 0.8), materialpreis:65, stundensatz:65, stunden:0 },
     { pos:'E10.07', beschreibung:'Shelly App-Einrichtung, Szenen u. Automatisierungen pauschal', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:65, stunden:0 }
   );
   if (demontage) result.elektro.push(
-    { pos:'E12.01', beschreibung:'Leitungen / Kabel demontieren', einheit:'m', menge: Math.round(m2*0.8), materialpreis:4.50, stundensatz:65, stunden:0 },
-    { pos:'E12.03', beschreibung:'Steckdosen / Schalter demontieren', einheit:'Stk', menge: Math.round(zimmer*5+baeder*3), materialpreis:18, stundensatz:65, stunden:0 },
+    { pos:'E12.01', beschreibung:'Leitungen / Kabel demontieren', einheit:'m', menge: Math.round(m2 * 0.8), materialpreis:4.50, stundensatz:65, stunden:0 },
+    { pos:'E12.03', beschreibung:'Steckdosen / Schalter demontieren', einheit:'Stk', menge: Math.round(totalSteckdosen * 0.8 + totalSchalter), materialpreis:18, stundensatz:65, stunden:0 },
     { pos:'E12.04', beschreibung:'Verteiler / Unterverteiler demontieren', einheit:'Stk', menge: etagen, materialpreis:95, stundensatz:65, stunden:0 }
   );
 
-  // ── SANITÄR
+  // ── SANITÄR ───────────────────────────────────────────────────
+  // Vollständiges Bad: WC + Dusche + Waschtisch + alle Anschlüsse
   result.sanitaer = [
-    { pos:'S3.01', beschreibung:'Kupferrohr 15mm verlegen', einheit:'m', menge: Math.round(baeder*12+3), materialpreis:22, stundensatz:70, stunden:0 },
-    { pos:'S3.04', beschreibung:'Mehrschichtverbundrohr 16mm verlegen', einheit:'m', menge: Math.round(m2*0.18), materialpreis:16, stundensatz:70, stunden:0 },
-    { pos:'S3.05', beschreibung:'Mehrschichtverbundrohr 20mm verlegen', einheit:'m', menge: Math.round(m2*0.1), materialpreis:19, stundensatz:70, stunden:0 },
-    { pos:'S2.01', beschreibung:'Abwasserrohr PP DN50 verlegen', einheit:'m', menge: Math.round(baeder*6+etagen*3), materialpreis:18, stundensatz:70, stunden:0 },
-    { pos:'S2.03', beschreibung:'Abwasserrohr PP DN100 verlegen', einheit:'m', menge: Math.round(etagen*4+3), materialpreis:35, stundensatz:70, stunden:0 },
-    { pos:'S4.01', beschreibung:'Installationselement WC, Unterputz', einheit:'Stk', menge: baeder, materialpreis:317, stundensatz:70, stunden:0 },
-    { pos:'S4.02', beschreibung:'WC / Toilette Keramik montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:285, stundensatz:70, stunden:0 },
-    { pos:'S4.03', beschreibung:'Waschtisch Sanitärporzellan 600×500mm', einheit:'Stk', menge: baeder, materialpreis:464, stundensatz:70, stunden:0 },
-    { pos:'S4.04', beschreibung:'Eckventil Waschbecken DN15 montieren (je Anschluss)', einheit:'Stk', menge: baeder*2, materialpreis:38, stundensatz:70, stunden:0 },
-    { pos:'S5.01', beschreibung:'Einhebelmischer Waschtisch Aufputz', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
-    { pos:'S5.03', beschreibung:'Einhebelmischer Küche schwenkbar', einheit:'Stk', menge:1, materialpreis:224, stundensatz:70, stunden:0 },
+    { pos:'S3.01', beschreibung:'Kupferrohr 15mm kalt/warm verlegen', einheit:'m', menge: Math.round(baeder * 14 + 3), materialpreis:22, stundensatz:70, stunden:0 },
+    { pos:'S3.04', beschreibung:'Mehrschichtverbundrohr 16mm verlegen', einheit:'m', menge: Math.round(m2 * 0.18), materialpreis:16, stundensatz:70, stunden:0 },
+    { pos:'S3.05', beschreibung:'Mehrschichtverbundrohr 20mm verlegen', einheit:'m', menge: Math.round(m2 * 0.10), materialpreis:19, stundensatz:70, stunden:0 },
+    { pos:'S2.01', beschreibung:'Abwasserrohr PP DN50 verlegen', einheit:'m', menge: Math.round(baeder * 7 + etagen * 3), materialpreis:18, stundensatz:70, stunden:0 },
+    { pos:'S2.03', beschreibung:'Abwasserrohr PP DN100 verlegen (Hauptleitung)', einheit:'m', menge: Math.round(etagen * 4 + 3), materialpreis:35, stundensatz:70, stunden:0 },
+    // WC komplett
+    { pos:'S4.01', beschreibung:'WC-Installationselement Unterputz (Vorwandelement)', einheit:'Stk', menge: baeder, materialpreis:317, stundensatz:70, stunden:0 },
+    { pos:'S4.02', beschreibung:'WC / Toilette Keramik Wand-WC montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:285, stundensatz:70, stunden:0 },
+    { pos:'S4.09', beschreibung:'WC-Drückerplatte Betätigungsplatte Chrom montieren', einheit:'Stk', menge: baeder, materialpreis:68, stundensatz:70, stunden:0 },
+    // Waschtisch komplett
+    { pos:'S4.03', beschreibung:'Waschtisch Sanitärporzellan 600×500mm montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:464, stundensatz:70, stunden:0 },
+    { pos:'S4.04', beschreibung:'Eckventil DN15 montieren (je Anschluss Waschtisch 2×)', einheit:'Stk', menge: baeder * 2, materialpreis:38, stundensatz:70, stunden:0 },
+    { pos:'S5.01', beschreibung:'Einhebelmischer Waschtisch Aufputz montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
+    { pos:'S4.10', beschreibung:'Waschtisch-Unterschrank / Waschtischunterbau montieren', einheit:'Stk', menge: baeder, materialpreis:345, stundensatz:70, stunden:0 },
+    // Dusche komplett
+    { pos:'S4.20', beschreibung:'Duschwanne / Duschtasse 90×90cm inkl. Ablaufgarnitur', einheit:'Stk', menge: baeder, materialpreis:345, stundensatz:70, stunden:0 },
+    { pos:'S4.21', beschreibung:'Eckventil DN15 Dusche (je Anschluss 2×)', einheit:'Stk', menge: baeder * 2, materialpreis:38, stundensatz:70, stunden:0 },
+    { pos:'S5.10', beschreibung:'UP-Thermostat Brausemischer Unterputz montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:489, stundensatz:70, stunden:0 },
+    { pos:'S5.11', beschreibung:'Brausegarnitur Stange + Handbrause + Kopfbrause montieren', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
+    { pos:'S4.22', beschreibung:'Duschabtrennung Klarglas Falttür 90×90cm montieren', einheit:'Stk', menge: baeder, materialpreis:485, stundensatz:70, stunden:0 },
+    // Küche
+    { pos:'S5.03', beschreibung:'Einhebelmischer Küche schwenkbar montieren u. anschließen', einheit:'Stk', menge:1, materialpreis:224, stundensatz:70, stunden:0 },
+    { pos:'S4.30', beschreibung:'Eckventil DN15 Küche (je Anschluss 2×)', einheit:'Stk', menge: 2, materialpreis:38, stundensatz:70, stunden:0 },
   ];
   if (demontage) result.sanitaer.push(
-    { pos:'S1.05', beschreibung:'Wasserleitung Kupfer demontieren', einheit:'m', menge: Math.round(baeder*12), materialpreis:8, stundensatz:70, stunden:0 },
-    { pos:'S1.06', beschreibung:'Abflussrohr PP demontieren', einheit:'m', menge: Math.round(baeder*8), materialpreis:7, stundensatz:70, stunden:0 }
+    { pos:'S1.05', beschreibung:'Wasserleitung Kupfer demontieren', einheit:'m', menge: Math.round(baeder * 14), materialpreis:8, stundensatz:70, stunden:0 },
+    { pos:'S1.06', beschreibung:'Abflussrohr PP demontieren', einheit:'m', menge: Math.round(baeder * 8), materialpreis:7, stundensatz:70, stunden:0 }
   );
 
-  // ── HEIZUNG
+  // ── HEIZUNG ───────────────────────────────────────────────────
+  const totalHeizlastW = heizlastRaeume.reduce((s, r) => s + r.watt, 0) || Math.round(m2 * 75);
   result.heizung = [
-    { pos:'H3.01', beschreibung:'Metallverbundrohr 15mm (DN15) verlegen', einheit:'m', menge: Math.round(m2*0.35), materialpreis:21, stundensatz:65, stunden:0 },
-    { pos:'H3.02', beschreibung:'Metallverbundrohr 20mm (DN20) verlegen', einheit:'m', menge: Math.round(m2*0.15), materialpreis:26, stundensatz:65, stunden:0 },
-    { pos:'H3.17', beschreibung:'Rohrisolierung DN15 (Schlauch)', einheit:'m', menge: Math.round(m2*0.3), materialpreis:3.80, stundensatz:65, stunden:0 },
-    { pos:'H5.01', beschreibung:'Thermostatventil DN15', einheit:'Stk', menge: zimmer+baeder, materialpreis:68, stundensatz:65, stunden:0 },
+    { pos:'H3.01', beschreibung:'Metallverbundrohr 15mm (DN15) verlegen', einheit:'m', menge: Math.round(m2 * 0.35), materialpreis:21, stundensatz:65, stunden:0 },
+    { pos:'H3.02', beschreibung:'Metallverbundrohr 20mm (DN20) verlegen', einheit:'m', menge: Math.round(m2 * 0.15), materialpreis:26, stundensatz:65, stunden:0 },
+    { pos:'H3.17', beschreibung:'Rohrisolierung DN15 (Schlauch)', einheit:'m', menge: Math.round(m2 * 0.30), materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'H5.01', beschreibung:'Thermostatventil DN15 inkl. Fernfühler', einheit:'Stk', menge: zimmer + baeder, materialpreis:68, stundensatz:65, stunden:0 },
   ];
   if (fbh) {
+    const kreise = Math.max(etagen, Math.round(rooms.filter(r => r.type !== 'flur').length * 0.9));
     result.heizung.push(
-      { pos:'H4.03', beschreibung:'Fußbodenheizung Nass-System 25mm', einheit:'m²', menge: Math.round(m2*0.85), materialpreis:44, stundensatz:65, stunden:0 },
-      { pos:'H4.05', beschreibung:'FBH-Verteiler 3-Kreise inkl. Stellantriebe u. Halterung', einheit:'Stk', menge: etagen, materialpreis:485, stundensatz:65, stunden:0 }
+      { pos:'H4.03', beschreibung:'FBH Nass-System Verlegeabstand 15cm verlegen', einheit:'m²', menge: Math.round(m2 * 0.88), materialpreis:44, stundensatz:65, stunden:0 },
+      { pos:'H4.05', beschreibung:`FBH-Verteiler ${Math.ceil(kreise/etagen)}-Kreise inkl. Stellantriebe, Halterung u. Einregulierung`, einheit:'Stk', menge: etagen, materialpreis:485 + Math.ceil(kreise/etagen)*42, stundensatz:65, stunden:0 },
+      { pos:'H4.06', beschreibung:'FBH Estrich aufheizprotokoll + Einregulierung pauschal', einheit:'Pauschal', menge:1, materialpreis:185, stundensatz:65, stunden:0 }
     );
   } else {
     result.heizung.push(
-      { pos:'H4.01', beschreibung:'Flachheizkörper 600×600mm Typ 22', einheit:'Stk', menge: zimmer, materialpreis:285, stundensatz:65, stunden:0 }
+      { pos:'H4.01', beschreibung:`Flachheizkörper 600×600mm Typ 22 (Heizlast ~${Math.round(totalHeizlastW/zimmer/100)*100}W/Stk)`, einheit:'Stk', menge: zimmer + baeder, materialpreis:285, stundensatz:65, stunden:0 }
     );
   }
   if (demontage) result.heizung.push(
     { pos:'H1.02', beschreibung:'Flachheizkörper demontieren bis 50kg', einheit:'Stk', menge: zimmer, materialpreis:47, stundensatz:65, stunden:0 }
   );
 
-  // ── TROCKENBAU
+  // ── TROCKENBAU ────────────────────────────────────────────────
   result.trockenbau = [
-    { pos:'T2.01', beschreibung:'Montagewand GK einlagig 100mm', einheit:'m²', menge: Math.round(m2*0.4), materialpreis:64, stundensatz:55, stunden:0 },
-    { pos:'T3.01', beschreibung:'Decke abgehängt GK einlagig', einheit:'m²', menge: Math.round(m2*0.35), materialpreis:67, stundensatz:55, stunden:0 },
-    { pos:'T5.01', beschreibung:'Spachtelung GK-Platten Q2', einheit:'m²', menge: Math.round(m2*0.65), materialpreis:9.80, stundensatz:55, stunden:0 },
+    { pos:'T2.01', beschreibung:'Montagewand GK einlagig 100mm', einheit:'m²', menge: Math.round(m2 * 0.4), materialpreis:64, stundensatz:55, stunden:0 },
+    { pos:'T3.01', beschreibung:'Decke abgehängt GK einlagig', einheit:'m²', menge: Math.round(m2 * 0.35), materialpreis:67, stundensatz:55, stunden:0 },
+    { pos:'T5.01', beschreibung:'Spachtelung GK-Platten Q2', einheit:'m²', menge: Math.round(m2 * 0.65), materialpreis:9.80, stundensatz:55, stunden:0 },
   ];
 
-  // ── MALER
+  // ── MALER ─────────────────────────────────────────────────────
   result.maler = [
-    { pos:'M3.01', beschreibung:'Wandfarbe Innen weiß 1-fach streichen', einheit:'m²', menge: Math.round(m2*2.8), materialpreis:8.40, stundensatz:50, stunden:0 },
-    { pos:'M3.02', beschreibung:'Wandfarbe Innen weiß 2-fach streichen', einheit:'m²', menge: Math.round(m2*1.8), materialpreis:14, stundensatz:50, stunden:0 },
-    { pos:'M1.02', beschreibung:'Decke streichen weiß 2-fach', einheit:'m²', menge: Math.round(m2*1.0), materialpreis:10, stundensatz:50, stunden:0 },
-    { pos:'M5.01', beschreibung:'Glattputz Innen einlagig bis 10mm', einheit:'m²', menge: Math.round(m2*0.5), materialpreis:22, stundensatz:50, stunden:0 },
+    { pos:'M3.01', beschreibung:'Wandfarbe Innen weiß 1-fach streichen', einheit:'m²', menge: Math.round(m2 * 2.8), materialpreis:8.40, stundensatz:50, stunden:0 },
+    { pos:'M3.02', beschreibung:'Wandfarbe Innen weiß 2-fach streichen', einheit:'m²', menge: Math.round(m2 * 1.8), materialpreis:14, stundensatz:50, stunden:0 },
+    { pos:'M1.02', beschreibung:'Decke streichen weiß 2-fach', einheit:'m²', menge: Math.round(m2 * 1.0), materialpreis:10, stundensatz:50, stunden:0 },
+    { pos:'M5.01', beschreibung:'Glattputz Innen einlagig bis 10mm', einheit:'m²', menge: Math.round(m2 * 0.5), materialpreis:22, stundensatz:50, stunden:0 },
   ];
   if (fassade) result.maler.push(
-    { pos:'M7.03', beschreibung:'Fassade streichen 2-fach Silikatfarbe', einheit:'m²', menge: Math.round(Math.sqrt(m2)*4*3*etagen), materialpreis:24, stundensatz:50, stunden:0 },
-    { pos:'M7.04', beschreibung:'Fassadendämmung WDVS EPS 100mm', einheit:'m²', menge: Math.round(Math.sqrt(m2)*4*2.5*etagen), materialpreis:98, stundensatz:50, stunden:0 }
+    { pos:'M7.03', beschreibung:'Fassade streichen 2-fach Silikatfarbe', einheit:'m²', menge: Math.round(Math.sqrt(m2) * 4 * 3 * etagen), materialpreis:24, stundensatz:50, stunden:0 },
+    { pos:'M7.04', beschreibung:'Fassadendämmung WDVS EPS 100mm', einheit:'m²', menge: Math.round(Math.sqrt(m2) * 4 * 2.5 * etagen), materialpreis:98, stundensatz:50, stunden:0 }
   );
 
-  // ── BODEN
+  // ── BODEN ─────────────────────────────────────────────────────
   result.boden = [
-    { pos:'B3.01', beschreibung:'Laminat 8mm AC4 verlegen', einheit:'m²', menge: Math.round(m2*0.55), materialpreis:58, stundensatz:45, stunden:0 },
-    { pos:'B5.01', beschreibung:'Sockel-/Fußleiste MDF lackiert montieren', einheit:'m', menge: Math.round(m2*0.55), materialpreis:28, stundensatz:45, stunden:0 },
+    { pos:'B3.01', beschreibung:'Laminat 8mm AC4 verlegen', einheit:'m²', menge: Math.round(m2 * 0.55), materialpreis:58, stundensatz:45, stunden:0 },
+    { pos:'B5.01', beschreibung:'Sockel-/Fußleiste MDF lackiert montieren', einheit:'m', menge: Math.round(m2 * 0.55), materialpreis:28, stundensatz:45, stunden:0 },
   ];
 
-  // ── FLIESEN
+  // ── FLIESEN ───────────────────────────────────────────────────
   result.fliesen = [
-    { pos:'F3.03', beschreibung:'Bodenfliesen 60×60cm, Feinsteinzeug', einheit:'m²', menge: Math.round(m2*0.35), materialpreis:122, stundensatz:60, stunden:0 },
-    { pos:'F4.02', beschreibung:'Wandfliesen 30×60cm, Feinsteinzeug', einheit:'m²', menge: Math.round(baeder*16), materialpreis:98, stundensatz:60, stunden:0 },
-    { pos:'F2.01', beschreibung:'Verbundabdichtung 1-lagig Nassbereich', einheit:'m²', menge: Math.round(baeder*6), materialpreis:28, stundensatz:60, stunden:0 },
+    { pos:'F3.03', beschreibung:'Bodenfliesen 60×60cm Feinsteinzeug', einheit:'m²', menge: Math.round(m2 * 0.35), materialpreis:122, stundensatz:60, stunden:0 },
+    { pos:'F4.02', beschreibung:'Wandfliesen Bad 30×60cm Feinsteinzeug', einheit:'m²', menge: Math.round(baeder * 18), materialpreis:98, stundensatz:60, stunden:0 },
+    { pos:'F2.01', beschreibung:'Verbundabdichtung 1-lagig Nassbereich', einheit:'m²', menge: Math.round(baeder * 7), materialpreis:28, stundensatz:60, stunden:0 },
+    { pos:'F4.05', beschreibung:'Duschwandfliesen Nische / Duschbereich', einheit:'m²', menge: Math.round(baeder * 5), materialpreis:115, stundensatz:60, stunden:0 },
   ];
 
-  // ── ABBRUCH (nur wenn Demontage gewählt)
+  // ── ABBRUCH ───────────────────────────────────────────────────
   if (demontage) {
     result.abbruch = [
-      { pos:'A3.01', beschreibung:'Tapete entfernen (1 Lage)', einheit:'m²', menge: Math.round(m2*2.5), materialpreis:6.50, stundensatz:45, stunden:0 },
-      { pos:'A2.02', beschreibung:'Verbundestrich abbrechen bis 50mm', einheit:'m²', menge: Math.round(m2*0.6), materialpreis:28, stundensatz:45, stunden:0 },
+      { pos:'A3.01', beschreibung:'Tapete entfernen (1 Lage)', einheit:'m²', menge: Math.round(m2 * 2.5), materialpreis:6.50, stundensatz:45, stunden:0 },
+      { pos:'A2.02', beschreibung:'Verbundestrich abbrechen bis 50mm', einheit:'m²', menge: Math.round(m2 * 0.6), materialpreis:28, stundensatz:45, stunden:0 },
       { pos:'A6.03', beschreibung:'Sanitärobjekte Bad komplett demontieren', einheit:'Pauschal', menge: baeder, materialpreis:485, stundensatz:45, stunden:0 },
-      { pos:'A6.06', beschreibung:'Schuttabfuhr und Entsorgung', einheit:'t', menge: Math.round(m2*0.08), materialpreis:185, stundensatz:45, stunden:0 },
+      { pos:'A6.06', beschreibung:'Schuttabfuhr und Entsorgung', einheit:'t', menge: Math.round(m2 * 0.08), materialpreis:185, stundensatz:45, stunden:0 },
     ];
   }
 
-  // ── ROHBAU
+  // ── ROHBAU ────────────────────────────────────────────────────
   result.rohbau = [
-    { pos:'R2.01', beschreibung:'Innenputz Gipsputz einlagig Q2-gefilzt', einheit:'m²', menge: Math.round(m2*2.2), materialpreis:26, stundensatz:55, stunden:0 },
-    { pos:'R1.01', beschreibung:'Innenwand KS 11,5cm nichttragend', einheit:'m²', menge: Math.round(m2*0.25), materialpreis:88, stundensatz:55, stunden:0 },
+    { pos:'R2.01', beschreibung:'Innenputz Gipsputz einlagig Q2-gefilzt', einheit:'m²', menge: Math.round(m2 * 2.2), materialpreis:26, stundensatz:55, stunden:0 },
+    { pos:'R1.01', beschreibung:'Innenwand KS 11,5cm nichttragend', einheit:'m²', menge: Math.round(m2 * 0.25), materialpreis:88, stundensatz:55, stunden:0 },
   ];
 
-  // ── BODENPLATTE
+  // ── BODENPLATTE ───────────────────────────────────────────────
   result.bodenplatte = [
-    { pos:'BP5.01', beschreibung:'Zementestrich ZE 20 / 60mm auf Dämmung', einheit:'m²', menge: Math.round(flaecheJeEtage*0.95), materialpreis:36, stundensatz:55, stunden:0 },
-    { pos:'BP4.02', beschreibung:'Trittschalldämmung EPS T 30mm', einheit:'m²', menge: Math.round(flaecheJeEtage*0.95), materialpreis:9.80, stundensatz:55, stunden:0 },
+    { pos:'BP5.01', beschreibung:'Zementestrich ZE 20 / 60mm auf Dämmung', einheit:'m²', menge: Math.round(flaecheJeEtage * 0.95), materialpreis:36, stundensatz:55, stunden:0 },
+    { pos:'BP4.02', beschreibung:'Trittschalldämmung EPS T 30mm', einheit:'m²', menge: Math.round(flaecheJeEtage * 0.95), materialpreis:9.80, stundensatz:55, stunden:0 },
   ];
 
   return result;
@@ -1941,10 +2141,49 @@ function schnellKalkulationBerechne() {
 
 function schnellKalkulationPreview() {
   const result = schnellKalkulationBerechne();
-  const box = document.getElementById('sk_preview');
+  const box    = document.getElementById('sk_preview');
+  const hlBox  = document.getElementById('sk_heizlast_preview');
+
+  // ── Heizlast table ─────────────────────────────────────────────
+  if (hlBox && result._heizlast && result._heizlast.length > 0) {
+    const hl = result._heizlast;
+    const totalW = hl.reduce((s, r) => s + r.watt, 0);
+    const totalM2 = hl.reduce((s, r) => s + r.m2, 0);
+    const rows = hl.map(r =>
+      `<tr>
+        <td style="padding:2px 6px;font-size:11px">${r.name}</td>
+        <td style="padding:2px 6px;font-size:11px;text-align:right">${r.m2}</td>
+        <td style="padding:2px 6px;font-size:11px;text-align:right">${r.wpm2}</td>
+        <td style="padding:2px 6px;font-size:11px;text-align:right;font-weight:700">${r.watt}</td>
+      </tr>`
+    ).join('');
+    hlBox.innerHTML = `
+      <div style="background:#fff8ef;border:1.5px solid #f0a03a;border-radius:8px;padding:8px 10px">
+        <div style="font-size:11px;font-weight:800;color:#a05a00;margin-bottom:5px">🌡️ Heizlastberechnung pro Raum</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#fdecc0">
+            <th style="padding:3px 6px;font-size:10px;text-align:left">Raum</th>
+            <th style="padding:3px 6px;font-size:10px;text-align:right">m²</th>
+            <th style="padding:3px 6px;font-size:10px;text-align:right">W/m²</th>
+            <th style="padding:3px 6px;font-size:10px;text-align:right">Watt</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr style="background:#f39c12;color:#fff">
+            <td style="padding:3px 6px;font-size:11px;font-weight:900">Gesamt</td>
+            <td style="padding:3px 6px;font-size:11px;text-align:right">${totalM2} m²</td>
+            <td style="padding:3px 6px;font-size:11px;text-align:right">${totalM2 > 0 ? Math.round(totalW/totalM2) : '–'} Ø</td>
+            <td style="padding:3px 6px;font-size:11px;text-align:right;font-weight:900">${totalW} W = <b>${(totalW/1000).toFixed(1)} kW</b></td>
+          </tr></tfoot>
+        </table>
+      </div>`;
+  } else if (hlBox) {
+    hlBox.innerHTML = '';
+  }
+
+  // ── Gewerke summary ────────────────────────────────────────────
   if (!box) return;
   const gewSelected = [...document.querySelectorAll('.sk-gewerk:checked')].map(c => c.value);
-  let html = '<div style="margin-top:10px">';
+  let html = '<div style="margin-top:8px">';
   let totalMat = 0, totalPos = 0;
   gewSelected.forEach(id => {
     const items = result[id] || [];
@@ -1953,13 +2192,13 @@ function schnellKalkulationPreview() {
     const matSum = items.reduce((s, p) => s + (p.menge * p.materialpreis), 0);
     totalMat += matSum;
     totalPos += items.length;
-    html += `<div style="display:flex;justify-content:space-between;padding:5px 8px;margin-bottom:3px;background:#f7f9fc;border-radius:5px;font-size:12.5px">
-      <span>${g.label}</span>
+    html += `<div style="display:flex;justify-content:space-between;padding:4px 8px;margin-bottom:2px;background:#f7f9fc;border-radius:5px;font-size:11.5px">
+      <span>${g ? g.label : id}</span>
       <span><b>${items.length} Pos.</b> · Material ca. ${matSum.toLocaleString('de-DE',{maximumFractionDigits:0})} €</span>
     </div>`;
   });
-  html += `<div style="display:flex;justify-content:space-between;padding:8px 10px;background:#1a3a5c;color:#fff;border-radius:6px;margin-top:8px;font-weight:700">
-    <span>Gesamt Positionen: ${totalPos}</span>
+  html += `<div style="display:flex;justify-content:space-between;padding:7px 10px;background:#1a3a5c;color:#fff;border-radius:6px;margin-top:6px;font-weight:700;font-size:12px">
+    <span>Gesamt: ${totalPos} Positionen</span>
     <span>Material ca. ${totalMat.toLocaleString('de-DE',{maximumFractionDigits:0})} €</span>
   </div></div>`;
   box.innerHTML = html;
