@@ -1697,7 +1697,7 @@ function showToast(msg) {
 // Raumtypen mit Heizlast-Richtwerten (W/m²) und Standard-Mengen
 const SK_ROOM_TYPES = [
   { id:'wohn',   label:'Wohnzimmer',        w_neu: 65, w_kern: 80, w_teil:100, steckd:6, schalter:1 },
-  { id:'schlaf', label:'Schlafzimmer',       w_neu: 55, w_kern: 70, w_teil: 90, steckd:5, schalter:3 },
+  { id:'schlaf', label:'Schlafzimmer',       w_neu: 55, w_kern: 70, w_teil: 90, steckd:5, schalter:3 /* Wechselschaltung: 2× Wechselschalter + 1× Kreuzschalter */ },
   { id:'kueche', label:'Küche',              w_neu: 70, w_kern: 85, w_teil:105, steckd:8, schalter:1 },
   { id:'bad',    label:'Bad / Dusche',       w_neu:105, w_kern:125, w_teil:145, steckd:2, schalter:1 },
   { id:'wc',     label:'WC (separat)',       w_neu:115, w_kern:135, w_teil:155, steckd:1, schalter:1 },
@@ -1986,7 +1986,7 @@ function schnellKalkulationBerechne() {
     const netzwerkDosen = Math.max(3, zimmer + 1); // je Zimmer + 1 für Wohnzimmer/TV
     result.elektro.push(
       { pos:'E2.09', beschreibung:'Netzwerkdose CAT7 UP Keystone inkl. Gerätedose u. Putzdeckel', einheit:'Stk', menge: netzwerkDosen, materialpreis:62, stundensatz:65, stunden:0 },
-      { pos:'E1.09', beschreibung:'Netzwerkkabel CAT7 S/FTP verlegen (je Dose ~15m)', einheit:'m', menge: Math.round(netzwerkDosen * 15), materialpreis:2.80, stundensatz:65, stunden:0 },
+      { pos:'E1.09', beschreibung:'Netzwerkkabel CAT7 S/FTP verlegen (je Dose ~15m)', einheit:'m', menge: Math.round(netzwerkDosen * 15), materialpreis:5.80, stundensatz:65, stunden:0 },
       { pos:'E3.20', beschreibung:'Netzwerkverteiler 8-Port Patch-Panel inkl. Kabelbinder u. Einbau', einheit:'Stk', menge: etagen, materialpreis:185, stundensatz:65, stunden:0 },
       { pos:'E3.21', beschreibung:'Patch-Kabel CAT7 0,5m (je Dose)', einheit:'Stk', menge: netzwerkDosen, materialpreis:8, stundensatz:65, stunden:0 }
     );
@@ -1997,7 +1997,7 @@ function schnellKalkulationBerechne() {
     const satDosen = Math.max(2, zimmer);
     result.elektro.push(
       { pos:'E1.11', beschreibung:'SAT-Koaxkabel 4-fach geschirmt RG-6 verlegen (je Dose ~20m)', einheit:'m', menge: Math.round(satDosen * 20), materialpreis:1.90, stundensatz:65, stunden:0 },
-      { pos:'E3.22', beschreibung:'SAT-Multischalter 5/8 inkl. Montage u. Einmessung', einheit:'Stk', menge: Math.ceil(satDosen / 8), materialpreis:145, stundensatz:65, stunden:0 }
+      { pos:'E3.22', beschreibung:'SAT-Multischalter 5/8 inkl. Montage u. Einmessung', einheit:'Stk', menge: Math.max(1, Math.ceil(satDosen / 8)), materialpreis:145, stundensatz:65, stunden:0 }
     );
   }
 
@@ -2039,16 +2039,16 @@ function schnellKalkulationBerechne() {
     { pos:'S4.09', beschreibung:'WC-Drückerplatte Betätigungsplatte Chrom montieren', einheit:'Stk', menge: baeder, materialpreis:68, stundensatz:70, stunden:0 },
     // Waschtisch komplett
     { pos:'S4.03', beschreibung:'Waschtisch Sanitärporzellan 600×500mm montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:464, stundensatz:70, stunden:0 },
-    { pos:'S4.04', beschreibung:'Eckventil DN15 montieren (je Anschluss Waschtisch 2×)', einheit:'Stk', menge: baeder * 2, materialpreis:38, stundensatz:70, stunden:0 },
+    { pos:'S4.04', beschreibung:'Eckventil DN15 Waschtisch (kalt + warm)', einheit:'Stk', menge: baeder * 2, materialpreis:38, stundensatz:70, stunden:0 },
     { pos:'S5.01', beschreibung:'Einhebelmischer Waschtisch Aufputz montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
-    { pos:'S4.10', beschreibung:'Waschtisch-Unterschrank / Waschtischunterbau montieren', einheit:'Stk', menge: baeder, materialpreis:345, stundensatz:70, stunden:0 },
+    { pos:'S4.05', beschreibung:'Waschtisch-Unterschrank / Waschtischunterbau montieren', einheit:'Stk', menge: baeder, materialpreis:345, stundensatz:70, stunden:0 },
     // Dusche komplett
-    { pos:'S4.20', beschreibung:'Duschwanne / Duschtasse 90×90cm inkl. Ablaufgarnitur', einheit:'Stk', menge: baeder, materialpreis:345, stundensatz:70, stunden:0 },
-    { pos:'S4.21', beschreibung:'Eckventil DN15 Dusche (je Anschluss 2×)', einheit:'Stk', menge: baeder * 2, materialpreis:38, stundensatz:70, stunden:0 },
-    { pos:'S5.10', beschreibung:'UP-Thermostat Brausemischer Unterputz montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:489, stundensatz:70, stunden:0 },
-    { pos:'S5.11', beschreibung:'Brausegarnitur Stange + Handbrause + Kopfbrause montieren', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
-    { pos:'S4.22', beschreibung:'Duschabtrennung Klarglas Falttür 90×90cm montieren', einheit:'Stk', menge: baeder, materialpreis:485, stundensatz:70, stunden:0 },
-    // Küche
+    // Dusche komplett
+    { pos:'S4.06', beschreibung:'Duschwanne / Duschtasse 90×90cm inkl. Ablaufgarnitur', einheit:'Stk', menge: baeder, materialpreis:345, stundensatz:70, stunden:0 },
+    { pos:'S4.04', beschreibung:'Eckventil DN15 Dusche (je Anschluss kalt+warm)', einheit:'Stk', menge: baeder * 2, materialpreis:38, stundensatz:70, stunden:0 },
+    { pos:'S4.07', beschreibung:'UP-Thermostat Brausemischer Unterputz montieren u. anschließen', einheit:'Stk', menge: baeder, materialpreis:489, stundensatz:70, stunden:0 },
+    { pos:'S4.12', beschreibung:'Brausegarnitur Stange + Handbrause + Kopfbrause montieren', einheit:'Stk', menge: baeder, materialpreis:198, stundensatz:70, stunden:0 },
+    { pos:'S4.08', beschreibung:'Duschabtrennung / Duschkabinenscheibe Klarglas montieren', einheit:'Stk', menge: baeder, materialpreis:485, stundensatz:70, stunden:0 },
     { pos:'S5.03', beschreibung:'Einhebelmischer Küche schwenkbar montieren u. anschließen', einheit:'Stk', menge:1, materialpreis:224, stundensatz:70, stunden:0 },
     { pos:'S4.30', beschreibung:'Eckventil DN15 Küche (je Anschluss 2×)', einheit:'Stk', menge: 2, materialpreis:38, stundensatz:70, stunden:0 },
   ];
