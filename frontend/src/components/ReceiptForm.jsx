@@ -2,6 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 
 const KATEGORIEN = ['Baumaterial', 'Lebensmittel', 'Sonstiges']
 
+// Only allow blob: URLs (from createObjectURL) and relative /uploads/ paths
+function safeSrc(url) {
+  if (!url) return null
+  if (url.startsWith('blob:')) return url
+  if (url.startsWith('/uploads/')) return url
+  return null
+}
+
 const emptyForm = {
   datum: '', markt: '', kategorie: 'Sonstiges',
   gesamtsumme: '', projekt_id: '', bild_pfad: '', positionen: []
@@ -28,7 +36,9 @@ export default function ReceiptForm({ receipt, onSaved, onCancel }) {
 
   const [projekte, setProjekte] = useState([])
   const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(receipt?.bild_pfad ? `/uploads/${receipt.bild_pfad}` : null)
+  const [imagePreview, setImagePreview] = useState(
+    receipt?.bild_pfad ? `/uploads/${encodeURIComponent(receipt.bild_pfad)}` : null
+  )
   const [scanning, setScanning] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -169,7 +179,7 @@ export default function ReceiptForm({ receipt, onSaved, onCancel }) {
             <p>Bild hier ablegen oder klicken zum Auswählen</p>
             <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>JPG, PNG, WEBP · max. 20 MB</p>
             {imagePreview && (
-              <img src={imagePreview} alt="Vorschau" className="scan-preview" />
+              <img src={safeSrc(imagePreview)} alt="Vorschau" className="scan-preview" />
             )}
           </div>
           <input
@@ -222,7 +232,7 @@ export default function ReceiptForm({ receipt, onSaved, onCancel }) {
 
           {imagePreview && (
             <div style={{ marginBottom: '1rem' }}>
-              <img src={imagePreview} alt="Beleg" className="scan-preview" style={{ maxWidth: '200px' }} />
+              <img src={safeSrc(imagePreview)} alt="Beleg" className="scan-preview" style={{ maxWidth: '200px' }} />
             </div>
           )}
 
