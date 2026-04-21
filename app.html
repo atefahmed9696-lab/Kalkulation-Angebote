@@ -61,7 +61,7 @@
       background: #fff; border-radius: 12px;
       margin: 10px 12px 0; padding: 14px 16px;
       box-shadow: 0 1px 5px rgba(0,0,0,.1);
-      cursor: pointer; active: scale(.98);
+      cursor: pointer;
       border-left: 4px solid var(--blue-mid);
       transition: box-shadow .15s;
     }
@@ -421,7 +421,7 @@ function openProjektDetail(id) {
       return `<div class="pos-item ${pos.erledigt?'pos-done':''}" id="app-pos-${id}-${gId}-${pos.id}">
         <input type="checkbox" class="pos-check"
           ${pos.erledigt ? 'checked' : ''}
-          onchange="togglePos('${id}','${gId}',${pos.id},this.checked)">
+          onchange="togglePos('${id}','${gId}','${pos.id}',this.checked)">
         <div class="pos-text">
           <div class="pos-desc">${esc(pos.pos ? pos.pos+' · ' : '')}${esc(pos.beschreibung||'')}</div>
           ${menge ? `<div class="pos-qty">Menge: ${menge}</div>` : ''}
@@ -449,7 +449,7 @@ function togglePos(projektId, gewerkId, posId, erledigt) {
   const arr = getProjekte();
   const proj = arr.find(p => p.id === projektId);
   if (!proj) return;
-  const pos = proj.gewerke[gewerkId]?.positionen.find(p => p.id == posId);
+  const pos = proj.gewerke[gewerkId]?.positionen.find(p => String(p.id) === String(posId));
   if (!pos) return;
   pos.erledigt = erledigt;
   pos.erledigtAm = erledigt ? new Date().toISOString() : null;
