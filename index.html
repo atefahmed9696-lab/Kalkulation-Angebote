@@ -2912,222 +2912,595 @@ function ekEinfuegen() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   HEIZLASTBERECHNUNG – vereinfacht nach DIN EN 12831
+   HEIZLASTBERECHNUNG – detailliert nach DIN EN 12831
 ═══════════════════════════════════════════════════════════════ */
+
+/* ── EN 12831 Konstanten ─────────────────────────────────────── */
+const HL_REGION_OPTS = [
+  { label:'Hamburg (−12°C)',            te: -12 },
+  { label:'Berlin / Hannover (−14°C)',  te: -14 },
+  { label:'Frankfurt / Stuttgart (−12°C)', te:-12 },
+  { label:'München (−16°C)',            te: -16 },
+  { label:'Mittelgebirge (−18°C)',      te: -18 },
+  { label:'Alpen / Hochlage (−20°C)',   te: -20 },
+  { label:'Benutzerdefiniert',          te: null },
+];
+const HL_BAUTEIL_TYPEN = [
+  { key:'AW',  label:'Außenwand',          e: 1.00, color:'#1a3a5c' },
+  { key:'FE',  label:'Fenster',            e: 1.00, color:'#2e6da4' },
+  { key:'TUA', label:'Außentür',           e: 1.00, color:'#5ba8e5' },
+  { key:'DA',  label:'Dach / oberste Decke', e: 1.00, color:'#8e44ad' },
+  { key:'BO',  label:'Boden (Keller unbeh.)', e: 0.50, color:'#27ae60' },
+  { key:'BOG', label:'Boden auf Erdreich', e: 0.45, color:'#1a7a40' },
+  { key:'IW',  label:'Innenwand (unbeh. Raum)', e: 0.50, color:'#e67e22' },
+  { key:'ID',  label:'Decke (unbeh. Raum)', e: 0.50, color:'#c0392b' },
+  { key:'KD',  label:'Kellerdecke (beh.→unbeh.)', e: 0.50, color:'#95a5a6' },
+];
+const HL_U_PRESETS = {
+  AW:  [{v:0.13,l:'Neubau KfW55'},{v:0.18,l:'Neubau GEG'},{v:0.28,l:'WDVS-saniert'},{v:0.45,l:'Teilsaniert'},{v:0.80,l:'Vollziegel unsaniert'},{v:1.40,l:'Altbau unsaniert'}],
+  FE:  [{v:0.75,l:'Passivhaus 3-Glas'},{v:0.95,l:'KfW55 3-Glas'},{v:1.10,l:'Neubau GEG'},{v:1.40,l:'3-Glas saniert'},{v:1.80,l:'2-Glas modern'},{v:2.80,l:'2-Glas alt'},{v:5.20,l:'Einfachglas'}],
+  TUA: [{v:1.20,l:'Neubau'},{v:1.80,l:'Saniert'},{v:3.50,l:'Altbau'}],
+  DA:  [{v:0.10,l:'KfW55'},{v:0.15,l:'GEG Neubau'},{v:0.22,l:'Gedämmt'},{v:0.35,l:'Teilgedämmt'},{v:0.90,l:'Ungedämmt'}],
+  BO:  [{v:0.15,l:'KfW55'},{v:0.22,l:'GEG Neubau'},{v:0.35,l:'Gedämmt'},{v:0.60,l:'Ungedämmt'}],
+  BOG: [{v:0.22,l:'GEG Neubau'},{v:0.35,l:'Gedämmt'},{v:0.55,l:'Ungedämmt'}],
+  IW:  [{v:0.80,l:'Massiv'},{v:1.20,l:'Leicht'},{v:2.00,l:'Alt'}],
+  ID:  [{v:0.50,l:'Massiv'},{v:0.90,l:'Leicht'},{v:1.50,l:'Alt'}],
+  KD:  [{v:0.22,l:'Gedämmt'},{v:0.45,l:'Teilgedämmt'},{v:1.20,l:'Ungedämmt'}],
+};
+
+/* ── State ───────────────────────────────────────────────────── */
+window._hlState = {
+  te: -14,
+  gebaeude: 'EFH',
+  raeume: [],
+};
+
+/* ── Modal öffnen ────────────────────────────────────────────── */
 function heizlastModal() {
   const existing = document.getElementById('heizlastModal');
   if (existing) existing.remove();
 
+  const regionOpts = HL_REGION_OPTS.map((r,i) =>
+    `<option value="${r.te ?? 'custom'}" ${r.te===-14?'selected':''}>${r.label}</option>`).join('');
+
   const m = document.createElement('div');
   m.id = 'heizlastModal';
   m.className = 'modal-overlay';
+  m.style.cssText = 'align-items:flex-start;overflow-y:auto;padding:16px 0';
   m.innerHTML = `
-    <div class="modal-box-lg">
-      <div class="modal-header">
-        <h3>🌡️ Heizlastberechnung (vereinfacht nach EN 12831)</h3>
+    <div class="modal-box-lg" style="max-width:960px;max-height:none;overflow:visible">
+      <div class="modal-header" style="position:sticky;top:0;z-index:10;background:linear-gradient(135deg,#12294a,#1a3a5c)">
+        <h3>🌡️ Heizlastberechnung nach DIN EN 12831</h3>
         <button class="modal-close" onclick="document.getElementById('heizlastModal').remove()">✕</button>
       </div>
-      <div class="modal-body">
-        <div class="wiz-info">
-          Vereinfachte Heizlastermittlung für die Auslegung von Heizungsanlagen.
-          Ergebnis dient als erste Orientierung – eine normgerechte Berechnung durch einen Energieberater empfohlen.
-        </div>
+      <div class="modal-body" style="padding:16px">
+
+        <!-- Gebäude-Stammdaten -->
         <div class="wiz-section">
-          <div class="wiz-section-title">🏠 Gebäude</div>
+          <div class="wiz-section-title">🏠 Gebäude &amp; Klimadaten</div>
           <div class="wiz-grid">
-            <div class="wiz-field"><label>Beheizte Wohnfläche (m²)</label><input type="number" id="hl_m2" value="120" min="20" max="2000" step="5" oninput="hlBerechne()"></div>
-            <div class="wiz-field"><label>Lichte Raumhöhe (m)</label><input type="number" id="hl_hoehe" value="2.6" min="2.0" max="5.0" step="0.1" oninput="hlBerechne()"></div>
-            <div class="wiz-field"><label>Anzahl Außenwände</label><input type="number" id="hl_aussenwaende" value="2" min="1" max="4" oninput="hlBerechne()"></div>
             <div class="wiz-field">
-              <label>Gebäudetyp</label>
-              <select id="hl_gebtype" oninput="hlBerechne()">
-                <option value="efw">Einfamilienhaus (freistehend)</option>
-                <option value="rh">Reihenhaus / Doppelhaus</option>
-                <option value="mfh">Mehrfamilienhaus Wohnung</option>
+              <label>Projektbezeichnung</label>
+              <input type="text" id="hl_proj" placeholder="z.B. EFH Musterstraße 1" oninput="hlRenderErgebnis()">
+            </div>
+            <div class="wiz-field">
+              <label>Standort / Norm-Außentemperatur θe</label>
+              <select id="hl_region" onchange="hlRegionChange()">
+                ${regionOpts}
+              </select>
+            </div>
+            <div class="wiz-field">
+              <label>θe benutzerdefiniert (°C)</label>
+              <input type="number" id="hl_te_custom" value="-14" step="1" style="display:none" oninput="hlRenderErgebnis()">
+            </div>
+            <div class="wiz-field">
+              <label>Aufheizzuschlag fRH (W/m²)</label>
+              <select id="hl_frh" oninput="hlRenderErgebnis()">
+                <option value="0">Kein Aufheizzuschlag (Dauerbetrieb)</option>
+                <option value="11" selected>11 W/m² (1h Absenkung)</option>
+                <option value="22">22 W/m² (2h Absenkung)</option>
+                <option value="34">34 W/m² (8h Absenkung Nacht)</option>
               </select>
             </div>
           </div>
         </div>
+
+        <!-- Räume -->
         <div class="wiz-section">
-          <div class="wiz-section-title">🌍 Klimazone / Außentemperatur</div>
-          <div class="wiz-grid">
-            <div class="wiz-field">
-              <label>Region</label>
-              <select id="hl_region" oninput="hlBerechne()">
-                <option value="-12">Norddeutschland (−12°C)</option>
-                <option value="-14" selected>Mitteldeutschland (−14°C)</option>
-                <option value="-16">Süddeutschland/Mittelgebirge (−16°C)</option>
-                <option value="-18">Alpen / Hochlage (−18°C)</option>
-                <option value="-10">Küstenregion (−10°C)</option>
-              </select>
-            </div>
-            <div class="wiz-field"><label>Innentemperatur (°C)</label><input type="number" id="hl_tin" value="20" min="15" max="25" oninput="hlBerechne()"></div>
+          <div class="wiz-section-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>🚪 Räume</span>
+            <button class="btn btn-success btn-sm" onclick="hlAddRaum()">+ Raum hinzufügen</button>
           </div>
+          <div id="hl_raeume_liste" style="margin-top:8px"></div>
         </div>
-        <div class="wiz-section">
-          <div class="wiz-section-title">🧱 Gebäudehülle – U-Werte (W/m²K)</div>
-          <div class="wiz-grid">
-            <div class="wiz-field">
-              <label>Außenwand U-Wert</label>
-              <select id="hl_uw" oninput="hlBerechne()">
-                <option value="0.13">Neubau KfW55 (0,13)</option>
-                <option value="0.18" selected>Neubau GEG (0,18)</option>
-                <option value="0.28">WDVS-saniert (0,28)</option>
-                <option value="0.45">Teilsaniert (0,45)</option>
-                <option value="0.80">Unsaniert Vollziegel (0,80)</option>
-                <option value="1.40">Unsaniert Altbau (1,40)</option>
-              </select>
-            </div>
-            <div class="wiz-field">
-              <label>Dach/Decke U-Wert</label>
-              <select id="hl_ur" oninput="hlBerechne()">
-                <option value="0.10">Neubau KfW55 (0,10)</option>
-                <option value="0.15" selected>Neubau GEG (0,15)</option>
-                <option value="0.22">Gedämmt (0,22)</option>
-                <option value="0.35">Teilgedämmt (0,35)</option>
-                <option value="0.90">Ungedämmt (0,90)</option>
-              </select>
-            </div>
-            <div class="wiz-field">
-              <label>Boden/Kellerdecke U-Wert</label>
-              <select id="hl_ub" oninput="hlBerechne()">
-                <option value="0.15">Neubau KfW55 (0,15)</option>
-                <option value="0.22" selected>Neubau GEG (0,22)</option>
-                <option value="0.35">Gedämmt (0,35)</option>
-                <option value="0.60">Ungedämmt (0,60)</option>
-              </select>
-            </div>
-            <div class="wiz-field">
-              <label>Fenster U-Wert</label>
-              <select id="hl_uf" oninput="hlBerechne()">
-                <option value="0.75">Passivhaus 3-Glas (0,75)</option>
-                <option value="0.95">Neubau KfW55 (0,95)</option>
-                <option value="1.10" selected>Neubau GEG (1,10)</option>
-                <option value="1.40">Saniert 3-Glas (1,40)</option>
-                <option value="1.80">2-Glas modern (1,80)</option>
-                <option value="2.80">2-Glas alt (2,80)</option>
-                <option value="5.20">Einfachverglasung (5,20)</option>
-              </select>
-            </div>
-            <div class="wiz-field"><label>Fensterflächenanteil (%)</label><input type="number" id="hl_fensterant" value="15" min="5" max="60" oninput="hlBerechne()"></div>
-            <div class="wiz-field">
-              <label>Lüftung</label>
-              <select id="hl_lueft" oninput="hlBerechne()">
-                <option value="0.5" selected>Freie Lüftung (n=0,5)</option>
-                <option value="0.3">KWL Anlage (n=0,3)</option>
-                <option value="0.8">Schlecht gedichtet (n=0,8)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div id="hl_result"></div>
+
+        <!-- Ergebnis -->
+        <div id="hl_result" style="margin-top:4px"></div>
       </div>
-      <div class="modal-footer">
-        <span style="font-size:11px;color:#888">Berechnung: Transmissions- + Lüftungswärmeverluste nach EN 12831</span>
-        <div style="display:flex;gap:8px">
+      <div class="modal-footer" style="position:sticky;bottom:0;background:#fff;border-top:1px solid #e0e6f0">
+        <span style="font-size:11px;color:#888">Normheizlast nach DIN EN 12831 · ΦHL = ΦT,i + ΦV,i + ΦRH,i</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-info btn-sm" onclick="hlDrucken()">🖨️ Drucken</button>
           <button class="btn btn-danger btn-sm" onclick="document.getElementById('heizlastModal').remove()">Schließen</button>
-          <button class="btn btn-success btn-sm" onclick="hlPositionenEinfuegen()">➕ Heizlast-Position in Angebot übernehmen</button>
+          <button class="btn btn-success btn-sm" onclick="hlPositionenEinfuegen()">➕ Ins Angebot übernehmen</button>
         </div>
       </div>
     </div>`;
   document.body.appendChild(m);
   m.addEventListener('click', e => { if (e.target === m) m.remove(); });
-  hlBerechne();
+
+  // Init with 1 example room if empty
+  if (!window._hlState.raeume.length) {
+    window._hlState.raeume = [hlNeuerRaum('Wohnzimmer', 25, 2.6, 20, [
+      { typ:'AW', beschr:'Außenwand Süd', flaeche:9.5, u:0.18, e:1.0 },
+      { typ:'FE', beschr:'Fenster Süd',   flaeche:3.5, u:1.10, e:1.0 },
+      { typ:'DA', beschr:'Dach',          flaeche:25,  u:0.15, e:1.0 },
+      { typ:'BO', beschr:'Boden Keller',  flaeche:25,  u:0.35, e:0.5 },
+    ])];
+  }
+  hlRenderRaeume();
 }
 
-function hlBerechne() {
-  const m2     = parseFloat(document.getElementById('hl_m2')?.value) || 120;
-  const hoehe  = parseFloat(document.getElementById('hl_hoehe')?.value) || 2.6;
-  const aussen = parseInt(document.getElementById('hl_aussenwaende')?.value) || 2;
-  const ta     = parseFloat(document.getElementById('hl_region')?.value) || -14;
-  const ti     = parseFloat(document.getElementById('hl_tin')?.value) || 20;
-  const uw     = parseFloat(document.getElementById('hl_uw')?.value) || 0.18;
-  const ur     = parseFloat(document.getElementById('hl_ur')?.value) || 0.15;
-  const ub     = parseFloat(document.getElementById('hl_ub')?.value) || 0.22;
-  const uf     = parseFloat(document.getElementById('hl_uf')?.value) || 1.10;
-  const fant   = (parseFloat(document.getElementById('hl_fensterant')?.value) || 15) / 100;
-  const n      = parseFloat(document.getElementById('hl_lueft')?.value) || 0.5;
-  const gebtyp = document.getElementById('hl_gebtype')?.value || 'efw';
+function hlNeuerRaum(name, flaeche, hoehe, tinnen, bauteile) {
+  return {
+    id: Date.now() + Math.random(),
+    name: name || 'Neuer Raum',
+    flaeche: flaeche || 20,
+    hoehe: hoehe || 2.6,
+    tinnen: tinnen || 20,
+    nLuft: 0.5,
+    bauteile: bauteile || [],
+  };
+}
 
-  const dt = ti - ta;
-  // estimate geometry
-  const grundflaeche = m2;
-  const perimeter = Math.sqrt(m2) * 4;
-  const wandhoehe = hoehe;
-  // Außenwandfläche = Perimeter × Höhe × Anteil Außenwände (1=4 Seiten, 0.25 per Seite)
-  const awAnteil = { efw: 1.0, rh: 0.5, mfh: 0.35 }[gebtyp] || 1.0;
-  const Aw_brutto = perimeter * wandhoehe * awAnteil;
-  const Af = Aw_brutto * fant;
-  const Aw = Aw_brutto - Af;
-  const Ar = grundflaeche;  // Dachfläche ≈ Grundfläche
-  const Ab = grundflaeche;  // Bodenfläche
+function hlAddRaum() {
+  window._hlState.raeume.push(hlNeuerRaum('Raum ' + (window._hlState.raeume.length + 1)));
+  hlRenderRaeume();
+}
 
-  // Transmission
-  const Qt = (Aw*uw + Af*uf + Ar*ur + Ab*ub) * dt / 1000; // kW
+function hlDeleteRaum(idx) {
+  window._hlState.raeume.splice(idx, 1);
+  hlRenderRaeume();
+}
 
-  // Lüftung: QL = 0.34 × V × n × ΔT / 1000
-  const V = m2 * hoehe; // Raumvolumen
-  const Ql = 0.34 * V * n * dt / 1000; // kW
+function hlRaumUpdate(idx, field, val) {
+  if (!window._hlState.raeume[idx]) return;
+  window._hlState.raeume[idx][field] = field === 'name' ? val : parseFloat(val) || 0;
+  hlRenderErgebnis();
+}
 
-  const Qges = Qt + Ql;
-  const Qsicher = Qges * 1.10; // 10% Sicherheitszuschlag
+function hlAddBauteil(raumIdx) {
+  window._hlState.raeume[raumIdx].bauteile.push({ typ:'AW', beschr:'', flaeche:0, u:0.18, e:1.0 });
+  hlRenderRaeume();
+}
+
+function hlDeleteBauteil(raumIdx, btIdx) {
+  window._hlState.raeume[raumIdx].bauteile.splice(btIdx, 1);
+  hlRenderRaeume();
+}
+
+function hlBauteilUpdate(raumIdx, btIdx, field, val) {
+  const bt = window._hlState.raeume[raumIdx]?.bauteile[btIdx];
+  if (!bt) return;
+  if (field === 'typ') {
+    bt.typ = val;
+    const typDef = HL_BAUTEIL_TYPEN.find(t => t.key === val);
+    if (typDef) bt.e = typDef.e;
+    // Auto-fill default U-Wert
+    const presets = HL_U_PRESETS[val];
+    if (presets && presets.length) bt.u = presets[0].v;
+    hlRenderRaeume();
+  } else if (field === 'u' || field === 'flaeche' || field === 'e') {
+    bt[field] = parseFloat(val) || 0;
+    hlRenderErgebnis();
+  } else {
+    bt[field] = val;
+    hlRenderErgebnis();
+  }
+}
+
+function hlRegionChange() {
+  const sel = document.getElementById('hl_region');
+  const customEl = document.getElementById('hl_te_custom');
+  if (sel.value === 'custom') {
+    customEl.style.display = '';
+  } else {
+    customEl.style.display = 'none';
+  }
+  hlRenderErgebnis();
+}
+
+function hlGetTe() {
+  const sel = document.getElementById('hl_region');
+  if (!sel) return -14;
+  if (sel.value === 'custom') return parseFloat(document.getElementById('hl_te_custom')?.value) || -14;
+  return parseFloat(sel.value) || -14;
+}
+
+/* ── Räume rendern ───────────────────────────────────────────── */
+function hlRenderRaeume() {
+  const container = document.getElementById('hl_raeume_liste');
+  if (!container) return;
+
+  container.innerHTML = window._hlState.raeume.map((raum, ri) => {
+    const bauteilRows = raum.bauteile.map((bt, bi) => {
+      const typSelect = HL_BAUTEIL_TYPEN.map(t =>
+        `<option value="${t.key}" ${bt.typ===t.key?'selected':''}>${t.label}</option>`).join('');
+      const uPresets = (HL_U_PRESETS[bt.typ] || []).map(p =>
+        `<option value="${p.v}" ${Math.abs(bt.u - p.v) < 0.001 ? 'selected':''}>${p.l} (${p.v})</option>`).join('');
+      const typDef = HL_BAUTEIL_TYPEN.find(t => t.key === bt.typ);
+      return `<tr style="font-size:12px">
+        <td style="padding:4px 6px">
+          <select style="font-size:11.5px;padding:2px 4px;border:1px solid #d0d7e2;border-radius:4px;width:100%"
+            onchange="hlBauteilUpdate(${ri},${bi},'typ',this.value)">${typSelect}</select>
+        </td>
+        <td style="padding:4px 6px">
+          <input type="text" value="${esc(bt.beschr||'')}" placeholder="z.B. Südwand"
+            style="width:100%;padding:2px 6px;border:1px solid #d0d7e2;border-radius:4px;font-size:11.5px"
+            oninput="hlBauteilUpdate(${ri},${bi},'beschr',this.value)">
+        </td>
+        <td style="padding:4px 6px">
+          <input type="number" value="${bt.flaeche}" step="0.1" min="0"
+            style="width:72px;padding:2px 6px;border:1px solid #d0d7e2;border-radius:4px;font-size:11.5px"
+            oninput="hlBauteilUpdate(${ri},${bi},'flaeche',this.value)">
+        </td>
+        <td style="padding:4px 6px">
+          <select style="font-size:11.5px;padding:2px 4px;border:1px solid #d0d7e2;border-radius:4px;width:100%"
+            onchange="hlBauteilUpdate(${ri},${bi},'u',this.value)">${uPresets}</select>
+        </td>
+        <td style="padding:4px 6px">
+          <input type="number" value="${bt.u}" step="0.01" min="0.01"
+            style="width:56px;padding:2px 6px;border:1px solid #d0d7e2;border-radius:4px;font-size:11.5px"
+            oninput="hlBauteilUpdate(${ri},${bi},'u',this.value)">
+        </td>
+        <td style="padding:4px 6px">
+          <input type="number" value="${bt.e}" step="0.05" min="0" max="1"
+            title="Temp.-Korrekturfaktor e: Außen=1,0 / Unbeh.Raum=0,5 / Erdreich≈0,45"
+            style="width:48px;padding:2px 6px;border:1px solid #d0d7e2;border-radius:4px;font-size:11.5px"
+            oninput="hlBauteilUpdate(${ri},${bi},'e',this.value)">
+        </td>
+        <td style="padding:4px 6px;text-align:center">
+          <button onclick="hlDeleteBauteil(${ri},${bi})"
+            style="background:#e74c3c;color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:12px;cursor:pointer">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div style="background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;border:1.5px solid #d0d7e2;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-weight:800;font-size:12px;color:#1a3a5c;text-transform:uppercase;letter-spacing:.3px">🚪</span>
+        <input type="text" value="${esc(raum.name)}" placeholder="Raumbezeichnung"
+          style="font-size:13px;font-weight:700;color:#1a3a5c;border:none;border-bottom:1.5px solid #2e6da4;padding:2px 4px;flex:1;min-width:120px;background:transparent"
+          oninput="hlRaumUpdate(${ri},'name',this.value)">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px;font-size:11.5px">
+            <label style="color:#888">Fläche m²</label>
+            <input type="number" value="${raum.flaeche}" step="0.5" min="1"
+              style="width:56px;padding:3px 6px;border:1.5px solid #d0d7e2;border-radius:5px;font-size:12px"
+              oninput="hlRaumUpdate(${ri},'flaeche',this.value)">
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11.5px">
+            <label style="color:#888">Höhe m</label>
+            <input type="number" value="${raum.hoehe}" step="0.1" min="2" max="6"
+              style="width:50px;padding:3px 6px;border:1.5px solid #d0d7e2;border-radius:5px;font-size:12px"
+              oninput="hlRaumUpdate(${ri},'hoehe',this.value)">
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11.5px">
+            <label style="color:#888">θint °C</label>
+            <input type="number" value="${raum.tinnen}" step="1" min="10" max="30"
+              style="width:48px;padding:3px 6px;border:1.5px solid #d0d7e2;border-radius:5px;font-size:12px"
+              oninput="hlRaumUpdate(${ri},'tinnen',this.value)">
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11.5px">
+            <label style="color:#888">n (1/h)</label>
+            <select style="padding:3px 5px;border:1.5px solid #d0d7e2;border-radius:5px;font-size:11px"
+              onchange="hlRaumUpdate(${ri},'nLuft',this.value)">
+              <option value="0.3" ${raum.nLuft===0.3?'selected':''}>0,3 KWL</option>
+              <option value="0.5" ${raum.nLuft===0.5||!raum.nLuft?'selected':''}>0,5 normal</option>
+              <option value="0.8" ${raum.nLuft===0.8?'selected':''}>0,8 schlecht</option>
+              <option value="1.0" ${raum.nLuft===1.0?'selected':''}>1,0 Bad/WC</option>
+              <option value="1.5" ${raum.nLuft===1.5?'selected':''}>1,5 Küche</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="hlDeleteRaum(${ri})"
+          style="background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;flex-shrink:0">🗑️</button>
+      </div>
+
+      <!-- Bauteile-Tabelle -->
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:600px">
+          <thead>
+            <tr style="background:#f0f2f5">
+              <th style="padding:5px 6px;text-align:left;font-size:10.5px;color:#555;white-space:nowrap">Bauteiltyp</th>
+              <th style="padding:5px 6px;text-align:left;font-size:10.5px;color:#555">Bezeichnung</th>
+              <th style="padding:5px 6px;text-align:left;font-size:10.5px;color:#555">Fläche m²</th>
+              <th style="padding:5px 6px;text-align:left;font-size:10.5px;color:#555">U-Wert Vorwahl</th>
+              <th style="padding:5px 6px;text-align:left;font-size:10.5px;color:#555">U W/m²K</th>
+              <th style="padding:5px 6px;text-align:left;font-size:10.5px;color:#555" title="Temperatur-Korrekturfaktor">e / b</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${bauteilRows}</tbody>
+        </table>
+      </div>
+      <button onclick="hlAddBauteil(${ri})"
+        style="margin-top:8px;background:#eef2fa;border:1.5px dashed #2e6da4;color:#2e6da4;border-radius:6px;padding:4px 14px;font-size:12px;cursor:pointer;font-weight:600">
+        + Bauteil hinzufügen
+      </button>
+      <span id="hl_raum_result_${ri}" style="float:right;font-size:13px;font-weight:700;color:#1a3a5c;margin-top:8px"></span>
+    </div>`;
+  }).join('');
+
+  hlRenderErgebnis();
+}
+
+/* ── Berechnung nach EN 12831 ────────────────────────────────── */
+function hlBerechneRaum(raum, te, fRH) {
+  const dT = raum.tinnen - te;
+  const V  = raum.flaeche * raum.hoehe;
+
+  // Transmissionswärmeverluste: ΦT,i = HT,i × ΔT
+  let HT = 0;
+  const btDetail = [];
+  raum.bauteile.forEach(bt => {
+    const h = bt.flaeche * bt.u * bt.e;
+    HT += h;
+    btDetail.push({
+      ...bt,
+      H:  h,
+      phi: h * dT,
+    });
+  });
+  const phiT = HT * dT; // W
+
+  // Lüftungswärmeverluste: ΦV,i = 0,34 × V × n × ΔT
+  const phiV = 0.34 * V * raum.nLuft * dT; // W
+
+  // Aufheizzuschlag: ΦRH,i = fRH × Ai
+  const phiRH = fRH * raum.flaeche; // W
+
+  const phiHL = phiT + phiV + phiRH; // Gesamt W
+
+  return { phiT, phiV, phiRH, phiHL, HT, btDetail, V, dT };
+}
+
+/* ── Ergebnis rendern ────────────────────────────────────────── */
+function hlRenderErgebnis() {
+  const te  = hlGetTe();
+  const fRH = parseFloat(document.getElementById('hl_frh')?.value) || 0;
+  const raeume = window._hlState.raeume;
+
+  if (!raeume.length) {
+    const el = document.getElementById('hl_result');
+    if (el) el.innerHTML = '<div class="wiz-info">Noch keine Räume hinzugefügt.</div>';
+    return;
+  }
+
+  let totalPhiT = 0, totalPhiV = 0, totalPhiRH = 0, totalFlaeche = 0;
+  const raumErgebnisse = raeume.map((raum, ri) => {
+    const res = hlBerechneRaum(raum, te, fRH);
+    totalPhiT   += res.phiT;
+    totalPhiV   += res.phiV;
+    totalPhiRH  += res.phiRH;
+    totalFlaeche += raum.flaeche;
+    // Update inline result badge
+    const badge = document.getElementById('hl_raum_result_' + ri);
+    if (badge) badge.textContent = `ΦHL = ${(res.phiHL/1000).toFixed(2)} kW`;
+    return { raum, res };
+  });
+
+  const totalPhi = totalPhiT + totalPhiV + totalPhiRH;
+  const spez = totalFlaeche > 0 ? (totalPhi / totalFlaeche).toFixed(1) : '–';
+
+  // Empfehlung
+  const kw = totalPhi / 1000;
+  let heizungsTyp = '';
+  if (kw < 5)        heizungsTyp = 'Luft-Wasser-WP 4–6 kW';
+  else if (kw < 8)   heizungsTyp = 'Luft-Wasser-WP 6–8 kW';
+  else if (kw < 12)  heizungsTyp = 'Luft-Wasser-WP 8–12 kW';
+  else if (kw < 16)  heizungsTyp = 'Wärmepumpe 12–16 kW oder Gas 15 kW';
+  else if (kw < 24)  heizungsTyp = 'Gas-Brennwert 20–24 kW';
+  else               heizungsTyp = 'Gas-Brennwert 24 kW+ oder Pelletkessel';
+
+  const fbhLeistung = totalFlaeche > 0 ? (totalPhi / (totalFlaeche * 0.85)).toFixed(0) : '–';
+
+  // Tabelle je Raum
+  const raumRows = raumErgebnisse.map(({ raum, res }) => {
+    const phiHLkW = (res.phiHL / 1000).toFixed(2);
+    const pct = totalPhi > 0 ? (res.phiHL / totalPhi * 100).toFixed(0) : 0;
+    return `<tr style="font-size:12px">
+      <td style="padding:6px 10px;font-weight:600">${esc(raum.name)}</td>
+      <td style="padding:6px 10px;text-align:right">${raum.flaeche}</td>
+      <td style="padding:6px 10px;text-align:right">${raum.tinnen}</td>
+      <td style="padding:6px 10px;text-align:right">${(res.phiT/1000).toFixed(2)}</td>
+      <td style="padding:6px 10px;text-align:right">${(res.phiV/1000).toFixed(2)}</td>
+      <td style="padding:6px 10px;text-align:right">${(res.phiRH/1000).toFixed(2)}</td>
+      <td style="padding:6px 10px;text-align:right;font-weight:700;color:#1a3a5c"><b>${phiHLkW}</b></td>
+      <td style="padding:6px 10px">
+        <div style="background:#e0e6f0;border-radius:3px;height:8px;width:100%;min-width:50px">
+          <div style="background:linear-gradient(90deg,#2e6da4,#27ae60);height:8px;border-radius:3px;width:${pct}%"></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Bauteil-Detailtabelle für alle Räume
+  const detailSection = raumErgebnisse.map(({ raum, res }) => {
+    if (!res.btDetail.length) return '';
+    const rows = res.btDetail.map(bt => {
+      const typDef = HL_BAUTEIL_TYPEN.find(t => t.key === bt.typ);
+      return `<tr style="font-size:11px">
+        <td style="padding:3px 8px;color:${typDef?.color||'#333'};font-weight:600">${typDef?.label||bt.typ}</td>
+        <td style="padding:3px 8px">${esc(bt.beschr||'')}</td>
+        <td style="padding:3px 8px;text-align:right">${bt.flaeche} m²</td>
+        <td style="padding:3px 8px;text-align:right">${bt.u} W/m²K</td>
+        <td style="padding:3px 8px;text-align:right">${bt.e}</td>
+        <td style="padding:3px 8px;text-align:right">${bt.H.toFixed(2)} W/K</td>
+        <td style="padding:3px 8px;text-align:right;font-weight:600">${bt.phi.toFixed(0)} W</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:800;color:#1a3a5c;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
+        ${esc(raum.name)} – Bauteildetail
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <tr style="background:#f0f2f5">
+          <th style="padding:3px 8px;text-align:left">Typ</th><th style="padding:3px 8px;text-align:left">Bezeichnung</th>
+          <th style="padding:3px 8px;text-align:right">Fläche</th><th style="padding:3px 8px;text-align:right">U</th>
+          <th style="padding:3px 8px;text-align:right">e/b</th>
+          <th style="padding:3px 8px;text-align:right">HT W/K</th><th style="padding:3px 8px;text-align:right">ΦT W</th>
+        </tr>
+        ${rows}
+        <tr style="background:#eef2fa;font-weight:700;font-size:11px">
+          <td colspan="5" style="padding:4px 8px;text-align:right">ΦT,i = HT × ΔT = ${res.HT.toFixed(2)} × ${res.dT} K</td>
+          <td style="padding:4px 8px;text-align:right">${res.HT.toFixed(2)}</td>
+          <td style="padding:4px 8px;text-align:right;color:#1a3a5c">${res.phiT.toFixed(0)} W</td>
+        </tr>
+        <tr style="font-size:11px;color:#666">
+          <td colspan="6" style="padding:3px 8px;text-align:right">ΦV,i = 0,34 × ${res.V.toFixed(1)} m³ × ${raum.nLuft}/h × ${res.dT} K</td>
+          <td style="padding:3px 8px;text-align:right">${res.phiV.toFixed(0)} W</td>
+        </tr>
+        ${fRH > 0 ? `<tr style="font-size:11px;color:#666">
+          <td colspan="6" style="padding:3px 8px;text-align:right">ΦRH,i = ${fRH} W/m² × ${raum.flaeche} m²</td>
+          <td style="padding:3px 8px;text-align:right">${res.phiRH.toFixed(0)} W</td>
+        </tr>` : ''}
+      </table>
+    </div>`;
+  }).join('');
 
   const hlEl = document.getElementById('hl_result');
   if (!hlEl) return;
+  hlEl.innerHTML = `
+    <div class="hlb-result" id="hl_print_area">
+      <h4>📊 Ergebnis der Normheizlastberechnung nach DIN EN 12831</h4>
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:12px">
+        <div>
+          <span class="hlb-kw">${kw.toFixed(2)} kW</span>
+          <span style="font-size:13px;color:#555;margin-left:8px">Normheizlast Gesamt ΦHL</span>
+        </div>
+        <div style="font-size:12.5px;color:#444;line-height:1.7">
+          <b>θe Norm-Außentemperatur:</b> ${te}°C<br>
+          <b>Beheizte Fläche gesamt:</b> ${totalFlaeche.toFixed(0)} m²<br>
+          <b>Spez. Heizlast:</b> ${spez} W/m²
+        </div>
+      </div>
 
-  // Empfehlung
-  let empfehlung = '';
-  let heizungstyp = '';
-  if (Qsicher < 6)       { heizungstyp = 'Luft-Wasser-Wärmepumpe 5–8 kW'; }
-  else if (Qsicher < 10) { heizungstyp = 'Luft-Wasser-Wärmepumpe 8–12 kW'; }
-  else if (Qsicher < 15) { heizungstyp = 'Wärmepumpe 12–15 kW oder Gas-Brennwert 15 kW'; }
-  else if (Qsicher < 22) { heizungstyp = 'Gas-Brennwert 20–24 kW'; }
-  else                    { heizungstyp = 'Gas-Brennwert 24 kW+ oder Pelletkessel'; }
+      <!-- Zusammenfassung je Raum -->
+      <div style="overflow-x:auto;margin-bottom:16px">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px">
+          <thead>
+            <tr style="background:#1a3a5c;color:#fff">
+              <th style="padding:7px 10px;text-align:left">Raum</th>
+              <th style="padding:7px 10px;text-align:right">Fläche m²</th>
+              <th style="padding:7px 10px;text-align:right">θint °C</th>
+              <th style="padding:7px 10px;text-align:right">ΦT kW</th>
+              <th style="padding:7px 10px;text-align:right">ΦV kW</th>
+              <th style="padding:7px 10px;text-align:right">ΦRH kW</th>
+              <th style="padding:7px 10px;text-align:right">ΦHL kW</th>
+              <th style="padding:7px 10px;min-width:80px">Anteil</th>
+            </tr>
+          </thead>
+          <tbody>${raumRows}</tbody>
+          <tfoot>
+            <tr style="background:#eef2fa;font-weight:800;font-size:12.5px">
+              <td style="padding:7px 10px">GESAMT</td>
+              <td style="padding:7px 10px;text-align:right">${totalFlaeche.toFixed(0)}</td>
+              <td></td>
+              <td style="padding:7px 10px;text-align:right">${(totalPhiT/1000).toFixed(2)}</td>
+              <td style="padding:7px 10px;text-align:right">${(totalPhiV/1000).toFixed(2)}</td>
+              <td style="padding:7px 10px;text-align:right">${(totalPhiRH/1000).toFixed(2)}</td>
+              <td style="padding:7px 10px;text-align:right;color:#1a3a5c"><b>${kw.toFixed(2)}</b></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
 
-  // FBH Auslegung
-  const fbhFlaeche = m2 * 0.85;
-  const fbhLeistung = (Qges * 1000 / fbhFlaeche).toFixed(0); // W/m²
+      <!-- Empfehlung -->
+      <div class="hlb-recommend">
+        <b>🔥 Wärmeerzeuger-Empfehlung:</b> ${heizungsTyp}<br>
+        <b>♨️ Fußbodenheizung:</b> Auslegeleistung ca. ${fbhLeistung} W/m² (nutzbare Fläche ${(totalFlaeche*0.85).toFixed(0)} m²)<br>
+        <b>📐 Heizkörper-Auslegung:</b> ${(totalPhi / Math.max(raeume.length,1) / 1000).toFixed(2)} kW ∅ je Raum<br>
+        <b>💡 Spez. Normheizlast:</b> ${spez} W/m² – ${parseFloat(spez) < 50 ? 'sehr gut (Neubau KfW)' : parseFloat(spez) < 80 ? 'gut (Neubau GEG)' : parseFloat(spez) < 120 ? 'mittel (saniert)' : 'hoch (Sanierungsbedarf)'}
+      </div>
 
-  empfehlung = `
-    <div class="hlb-recommend">
-      <b>🔥 Empfohlene Heizungsanlage:</b> ${heizungstyp}<br>
-      <b>♨️ FBH-Auslegung:</b> ${fbhFlaeche.toFixed(0)} m² @ ca. ${fbhLeistung} W/m² Heizfläche<br>
-      <b>💡 Normheizlast:</b> ${(Qsicher/m2*1000).toFixed(0)} W/m² spezifische Heizlast
+      <!-- Bauteil-Detailtabellen -->
+      <details style="margin-top:12px">
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:#2e6da4;padding:6px 0">
+          ▶ Bauteil-Detailnachweis (für alle Räume aufklappen)
+        </summary>
+        <div style="margin-top:10px;overflow-x:auto">${detailSection}</div>
+      </details>
+
+      <div style="margin-top:12px;font-size:10px;color:#aaa">
+        Berechnet nach DIN EN 12831 | ΦHL,i = ΦT,i + ΦV,i + ΦRH,i<br>
+        ΦT,i = HT,i × (θint,i − θe) | HT,i = Σ(Aj × Uj × ej) | ΦV,i = 0,34 × Vi × ni × (θint,i − θe)
+      </div>
     </div>`;
 
-  hlEl.innerHTML = `<div class="hlb-result">
-    <h4>📊 Heizlastergebnis</h4>
-    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <span class="hlb-kw">${Qsicher.toFixed(1)} kW</span>
-      <span style="font-size:13px;color:#555">Normheizlast (inkl. 10% Zuschlag)</span>
-    </div>
-    <div class="hlb-detail">
-      <b>Transmissionswärmeverluste Qt:</b> ${Qt.toFixed(2)} kW<br>
-      <b>Lüftungswärmeverluste Ql:</b> ${Ql.toFixed(2)} kW<br>
-      <b>Gesamtverluste (ohne Zuschlag):</b> ${Qges.toFixed(2)} kW<br>
-      <b>Außenwandfläche (netto):</b> ${Aw.toFixed(0)} m² · U=${uw} · <b>Fensterfläche:</b> ${Af.toFixed(0)} m² · U=${uf}<br>
-      <b>Temperaturdifferenz ΔT:</b> ${dt}K · <b>Raumvolumen:</b> ${(m2*hoehe).toFixed(0)} m³
-    </div>
-    ${empfehlung}
-  </div>`;
-  window._hlErgebnis = { kw: Qsicher, heizungstyp, m2 };
+  window._hlErgebnis = { kw, heizungsTyp, totalFlaeche, raumErgebnisse, te, spez };
+}
+
+function hlBerechne() { hlRenderErgebnis(); } // backward compat
+
+function hlDrucken() {
+  const content = document.getElementById('hl_print_area');
+  if (!content) return;
+  const proj = document.getElementById('hl_proj')?.value || 'Heizlastberechnung';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
+    <title>${esc(proj)} – Heizlast EN 12831</title>
+    <style>
+      body{font-family:Arial,sans-serif;font-size:12px;color:#222;padding:20px}
+      h4{font-size:14px;color:#1a3a5c;border-bottom:2px solid #2e6da4;padding-bottom:6px}
+      table{width:100%;border-collapse:collapse;margin-bottom:16px}
+      th{background:#1a3a5c;color:#fff;padding:6px 8px;text-align:left;font-size:11px}
+      td{padding:5px 8px;border-bottom:1px solid #e0e6f0;font-size:11.5px}
+      tfoot td{background:#eef2fa;font-weight:700}
+      .rec{background:#fff9c4;border:1px solid #f39c12;border-radius:6px;padding:10px 14px;margin-top:12px;font-size:12px}
+      details{display:none}
+      @media print{body{padding:0}button{display:none}}
+    </style></head><body>
+    <h2 style="color:#1a3a5c">${esc(proj)}</h2>
+    <p style="color:#666;font-size:11px">Normheizlastberechnung nach DIN EN 12831 · Erstellt: ${new Date().toLocaleDateString('de-DE')}</p>
+    ${content.innerHTML}
+    <button onclick="window.print()" style="margin-top:14px;padding:7px 16px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;cursor:pointer">🖨️ Drucken</button>
+    </body></html>`);
+  win.document.close();
 }
 
 function hlPositionenEinfuegen() {
-  if (!window._hlErgebnis) return;
-  const { kw, heizungstyp, m2 } = window._hlErgebnis;
+  if (!window._hlErgebnis) { showToast('⚠️ Bitte zuerst Räume eingeben.'); return; }
+  const { kw, heizungsTyp, totalFlaeche, raumErgebnisse } = window._hlErgebnis;
   const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+
+  // Gesamtposition
   daten.positionen.heizung.push({
     id: ++posIdCounter,
     pos: 'H0.HL',
-    beschreibung: `Heizlast ${m2}m² = ${kw.toFixed(1)} kW – Empfehlung: ${heizungstyp}`,
+    beschreibung: `Normheizlast ${totalFlaeche}m² = ${kw.toFixed(2)} kW (DIN EN 12831) – ${heizungsTyp}`,
     einheit: 'Pauschal', menge: 1, materialpreis: 0, stundensatz: stdSatz, stunden: 0
   });
+
+  // Je Raum eine Heizkörper-/FBH-Position
+  raumErgebnisse.forEach(({ raum, res }) => {
+    const w = Math.round(res.phiHL / 100) * 100; // auf 100W gerundet
+    daten.positionen.heizung.push({
+      id: ++posIdCounter,
+      pos: 'H1',
+      beschreibung: `Heizkörper ${esc(raum.name)} (~${w} W) montieren und anschließen`,
+      einheit: 'Stk', menge: 1,
+      materialpreis: Math.round(w / 100) * 45 + 120,
+      stundensatz: stdSatz, stunden: 2.5
+    });
+  });
+
   renderPositionen('heizung');
   autoSave();
-  const m = document.getElementById('heizlastModal');
-  if (m) m.remove();
-  showToast('✅ Heizlast-Position ins Angebot übernommen');
+  const modal = document.getElementById('heizlastModal');
+  if (modal) modal.remove();
+  showToast(`✅ Heizlast (${kw.toFixed(2)} kW) + ${raumErgebnisse.length} Heizkörper ins Angebot übernommen`);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
