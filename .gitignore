@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
+
+# Build output
+dist/
+build/
+
+# Uploads (keep .gitkeep)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
