@@ -4039,14 +4039,27 @@ const GR_LIB = [
 let grState = {
   tool: null,
   items: [],
-  walls: [],          // {x1,y1,x2,y2, type:'wall'|'wall_int'|'window'}
+  walls: [],          // {x1,y1,x2,y2, type, rot:0}
   rooms: [],          // {x,y,w,h, type, label}
   nextId: 1,
   drawStart: null,    // for wall/rect drawing
   zoom: 1.0,
   showGrid: true,
   selectedId: null,
-  snapEnabled: true
+  snapEnabled: true,
+  snapToPoints: true,
+  // Undo/Redo
+  history: [],
+  historyIdx: -1,
+  // Drag-to-Move
+  dragState: null,    // {kind, id, startMx, startMy, orig}
+  // Resize (rooms)
+  resizeState: null,  // {id, handle, startMx, startMy, orig:{x,y,w,h}}
+  // Pan
+  panState: null,     // {startMx, startMy, startSL, startST}
+  spaceDown: false,
+  // click-vs-drag guard
+  _mouseMovedDist: 0,
 };
 
 const GR_WALL_HEIGHT_M    = 3.5;   // assumed room height in metres for wall area calculation
@@ -4076,18 +4089,26 @@ function openGrundrissEditor() {
         <h3>🏠 Grundriss-Editor / Installationsplan</h3>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <button class="btn btn-success btn-sm" onclick="grExportSVG()">💾 SVG</button>
+          <button class="btn btn-success btn-sm" onclick="grSaveJSON()">📥 JSON</button>
+          <button class="btn btn-info btn-sm" onclick="grLoadJSONClick()">📂 Laden</button>
+          <button class="btn btn-info btn-sm" onclick="grPrintPlan()">🖨️ Drucken</button>
           <button class="btn btn-warning btn-sm" onclick="grClearAll()">🗑️ Alles löschen</button>
           <button class="modal-close" onclick="closeGrundrissEditor()">✕</button>
         </div>
       </div>
       <!-- Toolbar -->
       <div class="gr-toolbar no-print">
-        <button class="gr-tool-btn" id="grtb-grid" onclick="grToggleGrid()">⊞ Raster</button>
-        <button class="gr-tool-btn" id="grtb-snap" onclick="grToggleSnap()">🧲 Einrasten</button>
-        <button class="gr-tool-btn" onclick="grZoom(0.25)">🔍+</button>
-        <button class="gr-tool-btn" onclick="grZoom(-0.25)">🔍−</button>
-        <button class="gr-tool-btn" onclick="grZoom(0,'reset')">1:1</button>
-        <span class="gr-scale-info">Maßstab: 1 Kästchen = 1&nbsp;m &nbsp;|&nbsp; <span id="gr-zoom-label">100%</span></span>
+        <button class="gr-tool-btn" id="grtb-grid" onclick="grToggleGrid()" title="Raster an/aus">⊞ Raster</button>
+        <button class="gr-tool-btn" id="grtb-snap" onclick="grToggleSnap()" title="Einrasten auf Gitter">🧲 Gitter</button>
+        <button class="gr-tool-btn" id="grtb-snapp" onclick="grToggleSnapPoints()" title="Einrasten auf Endpunkte">📍 Punkte</button>
+        <div style="width:1px;height:20px;background:#d0d7e2;margin:0 2px"></div>
+        <button class="gr-tool-btn" id="grtb-undo" onclick="grUndo()" title="Rückgängig (Ctrl+Z)">↩ Undo</button>
+        <button class="gr-tool-btn" id="grtb-redo" onclick="grRedo()" title="Wiederholen (Ctrl+Y)">↪ Redo</button>
+        <div style="width:1px;height:20px;background:#d0d7e2;margin:0 2px"></div>
+        <button class="gr-tool-btn" onclick="grZoom(0.25)" title="Vergrößern">🔍+</button>
+        <button class="gr-tool-btn" onclick="grZoom(-0.25)" title="Verkleinern">🔍−</button>
+        <button class="gr-tool-btn" onclick="grZoom(0,'reset')" title="1:1 Zoom">1:1</button>
+        <span class="gr-scale-info">1 Kästchen = 1&nbsp;m &nbsp;|&nbsp; <span id="gr-zoom-label">100%</span></span>
         <div style="flex:1"></div>
         <span style="font-size:11px;color:#8a97a8" id="gr-status-hint">Werkzeug wählen →</span>
       </div>
@@ -4106,8 +4127,10 @@ function openGrundrissEditor() {
               onmousedown="grMouseDown(event)"
               onmousemove="grMouseMove(event)"
               onmouseup="grMouseUp(event)"
-              onclick="grClick(event)">
+              onclick="grClick(event)"
+              oncontextmenu="grContextMenu(event)">
             </svg>
+            <input type="file" id="gr-json-input" accept=".json" style="display:none" onchange="grLoadJSON(event)">
           </div>
         </div>
         <!-- Right panel -->
@@ -4122,7 +4145,9 @@ function openGrundrissEditor() {
         </div>
       </div>
       <div class="gr-footer">
-        <div style="font-size:11px;color:#8a97a8" id="gr-coord-display">x: —, y: —</div>
+        <div style="font-size:10px;color:#8a97a8" id="gr-coord-display">x: —, y: —
+            <span style="margin-left:8px;color:#b0bbc8;font-size:9px">ESC=Abbrechen · Del=Löschen · Ctrl+Z=Undo · Rechtsklick=Drehen · Mittelmaustaste=Pan</span>
+          </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-teal btn-sm" onclick="grToKalk()" title="Flächen u. Symbole in die Kalkulation übernehmen">📋 In Kalkulation übernehmen</button>
           <button class="btn btn-primary btn-sm" onclick="closeGrundrissEditor()">Schließen</button>
@@ -4130,6 +4155,20 @@ function openGrundrissEditor() {
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  // Middle-mouse-button pan on canvas wrap
+  const wrap = overlay.querySelector('.gr-canvas-wrap');
+  if (wrap) {
+    wrap.addEventListener('mousedown', grWrapMouseDown, { passive: false });
+    wrap.addEventListener('wheel', e => { e.preventDefault(); grZoom(e.deltaY < 0 ? 0.1 : -0.1); }, { passive: false });
+  }
+  grSnapshot(); // initial snapshot
+  // Restore from localStorage if available
+  try {
+    const saved = localStorage.getItem('grPlan');
+    if (saved && (grState.items.length + grState.walls.length + grState.rooms.length) === 0) {
+      grRestoreSnapshot(saved);
+    }
+  } catch(e) {}
   grRender();
   grUpdateToolbar();
 }
@@ -4185,11 +4224,57 @@ function grToggleSnap() {
   grState.snapEnabled = !grState.snapEnabled;
   grUpdateToolbar();
 }
+function grToggleSnapPoints() {
+  grState.snapToPoints = !grState.snapToPoints;
+  grUpdateToolbar();
+}
 function grUpdateToolbar() {
   const gBtn = document.getElementById('grtb-grid');
   if (gBtn) gBtn.classList.toggle('active', grState.showGrid);
   const sBtn = document.getElementById('grtb-snap');
   if (sBtn) sBtn.classList.toggle('active', grState.snapEnabled);
+  const spBtn = document.getElementById('grtb-snapp');
+  if (spBtn) spBtn.classList.toggle('active', grState.snapToPoints);
+  const uBtn = document.getElementById('grtb-undo');
+  if (uBtn) uBtn.disabled = grState.historyIdx <= 0;
+  const rBtn = document.getElementById('grtb-redo');
+  if (rBtn) rBtn.disabled = grState.historyIdx >= grState.history.length - 1;
+}
+
+/* ── Pan via wrap mousedown (middle button or space+left) ────── */
+function grWrapMouseDown(e) {
+  if (e.button !== 1 && !grState.spaceDown) return;
+  e.preventDefault();
+  const wrap = document.querySelector('.gr-canvas-wrap');
+  if (!wrap) return;
+  grState.panState = { startMx: e.clientX, startMy: e.clientY,
+    startSL: wrap.scrollLeft, startST: wrap.scrollTop };
+  const onMove = ev => {
+    if (!grState.panState) return;
+    wrap.scrollLeft = grState.panState.startSL - (ev.clientX - grState.panState.startMx);
+    wrap.scrollTop  = grState.panState.startST - (ev.clientY - grState.panState.startMy);
+  };
+  const onUp = () => {
+    grState.panState = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+/* ── Snap helpers ────────────────────────────────────────────── */
+function grSnapToNearestEndpoint(x, y) {
+  if (!grState.snapToPoints) return { x, y, snapped: false };
+  const thr = GR_GRID * 0.7;
+  let best = null, bestD = thr;
+  for (const w of grState.walls) {
+    for (const pt of [{x:w.x1,y:w.y1},{x:w.x2,y:w.y2}]) {
+      const d = Math.hypot(x - pt.x, y - pt.y);
+      if (d < bestD) { bestD = d; best = pt; }
+    }
+  }
+  return best ? { x: best.x, y: best.y, snapped: true } : { x, y, snapped: false };
 }
 
 /* ── Coordinate helpers ──────────────────────────────────────── */
@@ -4198,10 +4283,7 @@ function grSvgCoords(e) {
   if (!svg) return { x: 0, y: 0 };
   const r = svg.getBoundingClientRect();
   const z = grState.zoom;
-  return {
-    x: (e.clientX - r.left) / z,
-    y: (e.clientY - r.top)  / z
-  };
+  return { x: (e.clientX - r.left) / z, y: (e.clientY - r.top) / z };
 }
 function grSnap(v) {
   return grState.snapEnabled ? Math.round(v / GR_GRID) * GR_GRID : v;
@@ -4209,40 +4291,191 @@ function grSnap(v) {
 function grSnapCell(v) {
   return Math.floor(v / GR_GRID) * GR_GRID;
 }
+function grSnapFull(x, y) {
+  const gx = grSnap(x), gy = grSnap(y);
+  const ep = grSnapToNearestEndpoint(gx, gy);
+  return ep.snapped ? ep : { x: gx, y: gy };
+}
+
+/* ── Hit testing helpers ─────────────────────────────────────── */
+function grHitItem(mx, my) {
+  const thr = GR_GRID * 0.6;
+  for (let i = grState.items.length - 1; i >= 0; i--) {
+    const it = grState.items[i];
+    const d = Math.hypot(it.x + GR_GRID/2 - mx, it.y + GR_GRID/2 - my);
+    if (d < thr) return { kind:'item', obj: it };
+  }
+  return null;
+}
+function grHitWall(mx, my) {
+  for (let i = grState.walls.length - 1; i >= 0; i--) {
+    const w = grState.walls[i];
+    if (grPointOnSegment(mx, my, w.x1, w.y1, w.x2, w.y2, GR_GRID * 0.4))
+      return { kind:'wall', obj: w };
+  }
+  return null;
+}
+function grHitRoom(mx, my) {
+  for (let i = grState.rooms.length - 1; i >= 0; i--) {
+    const r = grState.rooms[i];
+    if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h)
+      return { kind:'room', obj: r };
+  }
+  return null;
+}
+// Returns resize handle name (nw,n,ne,e,se,s,sw,w) or null
+function grHitResizeHandle(mx, my, room) {
+  const thr = GR_GRID * 0.35;
+  const handles = grResizeHandles(room);
+  for (const [name, hx, hy] of handles) {
+    if (Math.hypot(mx - hx, my - hy) < thr) return name;
+  }
+  return null;
+}
+function grResizeHandles(r) {
+  const cx = r.x + r.w/2, cy = r.y + r.h/2;
+  return [
+    ['nw', r.x,     r.y     ], ['n',  cx,    r.y     ], ['ne', r.x+r.w, r.y     ],
+    ['e',  r.x+r.w, cy      ], ['se', r.x+r.w, r.y+r.h], ['s',  cx,    r.y+r.h  ],
+    ['sw', r.x,     r.y+r.h ], ['w',  r.x,    cy      ],
+  ];
+}
 
 /* ── Mouse events ────────────────────────────────────────────── */
 let _grDragging = false;
 
 function grMouseDown(e) {
+  if (e.button === 1 || grState.spaceDown) return; // handled by wrap
   if (e.button !== 0) return;
-  const tool = GR_LIB.find(t => t.type === grState.tool);
-  if (!tool) return;
+  grState._mouseMovedDist = 0;
   const c = grSvgCoords(e);
+  const tool = GR_LIB.find(t => t.type === grState.tool);
+
+  // ── No tool → move/resize mode ───────────────────────────────
+  if (!tool || grState.tool === null) {
+    // Check resize handle first (only for selected room)
+    const selRoom = grState.rooms.find(r => r.id === grState.selectedId);
+    if (selRoom) {
+      const hName = grHitResizeHandle(c.x, c.y, selRoom);
+      if (hName) {
+        grState.resizeState = { id: selRoom.id, handle: hName,
+          startMx: c.x, startMy: c.y,
+          orig: { x: selRoom.x, y: selRoom.y, w: selRoom.w, h: selRoom.h } };
+        return;
+      }
+    }
+    // Check drag start
+    const hit = grHitItem(c.x, c.y) || grHitWall(c.x, c.y) || grHitRoom(c.x, c.y);
+    if (hit) {
+      const obj = hit.obj;
+      grState.selectedId = obj.id;
+      if (hit.kind === 'wall') {
+        grState.dragState = { kind:'wall', id: obj.id, startMx: c.x, startMy: c.y,
+          orig: { x1: obj.x1, y1: obj.y1, x2: obj.x2, y2: obj.y2 } };
+      } else if (hit.kind === 'room') {
+        grState.dragState = { kind:'room', id: obj.id, startMx: c.x, startMy: c.y,
+          orig: { x: obj.x, y: obj.y } };
+      } else {
+        grState.dragState = { kind:'item', id: obj.id, startMx: c.x, startMy: c.y,
+          orig: { x: obj.x, y: obj.y } };
+      }
+      grUpdateProps();
+      grRender();
+    } else {
+      grState.selectedId = null;
+      grUpdateProps();
+      grRender();
+    }
+    return;
+  }
+
+  // ── Tool: rect (room/floor) ──────────────────────────────────
   if (tool.snap === 'rect') {
     _grDragging = true;
     grState.drawStart = { x: grSnap(c.x), y: grSnap(c.y) };
-  } else if (tool.snap === 'line') {
-    if (!grState.drawStart) {
-      grState.drawStart = { x: grSnap(c.x), y: grSnap(c.y) };
-    }
   }
+  // ── Tool: line (wall/window) – click-to-start handled in grClick ──
 }
 
 function grMouseMove(e) {
   const c = grSvgCoords(e);
   const coord = document.getElementById('gr-coord-display');
   if (coord) {
-    const mx = (grSnap(c.x) / GR_GRID).toFixed(1);
-    const my = (grSnap(c.y) / GR_GRID).toFixed(1);
-    coord.textContent = `x: ${mx}m, y: ${my}m`;
+    coord.textContent = `x: ${(grSnap(c.x)/GR_GRID).toFixed(1)}m, y: ${(grSnap(c.y)/GR_GRID).toFixed(1)}m`;
   }
+
+  // Track movement distance to distinguish click from drag
+  if (grState.dragState || grState.resizeState) {
+    const ds = grState.dragState || grState.resizeState;
+    grState._mouseMovedDist = Math.hypot(c.x - ds.startMx, c.y - ds.startMy);
+  }
+
+  // ── Resize ────────────────────────────────────────────────────
+  if (grState.resizeState) {
+    const rs = grState.resizeState;
+    const room = grState.rooms.find(r => r.id === rs.id);
+    if (!room) return;
+    const dx = grSnap(c.x) - grSnap(rs.startMx);
+    const dy = grSnap(c.y) - grSnap(rs.startMy);
+    const orig = rs.orig;
+    const minSize = GR_GRID;
+    const h = rs.handle;
+    if (h.includes('w')) { room.x = orig.x + dx; room.w = Math.max(minSize, orig.w - dx); }
+    if (h.includes('e')) { room.w = Math.max(minSize, orig.w + dx); }
+    if (h.includes('n')) { room.y = orig.y + dy; room.h = Math.max(minSize, orig.h - dy); }
+    if (h.includes('s')) { room.h = Math.max(minSize, orig.h + dy); }
+    grRender(); grUpdateStats(); return;
+  }
+
+  // ── Drag-to-move ──────────────────────────────────────────────
+  if (grState.dragState) {
+    const ds = grState.dragState;
+    const dx = grSnap(c.x) - grSnap(ds.startMx);
+    const dy = grSnap(c.y) - grSnap(ds.startMy);
+    if (ds.kind === 'wall') {
+      const w = grState.walls.find(w => w.id === ds.id);
+      if (w) { w.x1 = ds.orig.x1 + dx; w.y1 = ds.orig.y1 + dy; w.x2 = ds.orig.x2 + dx; w.y2 = ds.orig.y2 + dy; }
+    } else if (ds.kind === 'room') {
+      const r = grState.rooms.find(r => r.id === ds.id);
+      if (r) { r.x = ds.orig.x + dx; r.y = ds.orig.y + dy; }
+    } else {
+      const it = grState.items.find(i => i.id === ds.id);
+      if (it) { it.x = grSnapCell(ds.orig.x + dx); it.y = grSnapCell(ds.orig.y + dy); }
+    }
+    grRender(); grUpdateStats(); return;
+  }
+
+  // ── Draw rect preview ─────────────────────────────────────────
   if (_grDragging && grState.drawStart) {
     grState._previewEnd = { x: grSnap(c.x), y: grSnap(c.y) };
+    grRender();
+    return;
+  }
+
+  // ── Line draw preview ─────────────────────────────────────────
+  if (grState.drawStart) {
+    const snap = grSnapFull(c.x, c.y);
+    grState._previewEnd = snap;
     grRender();
   }
 }
 
 function grMouseUp(e) {
+  // ── End resize ────────────────────────────────────────────────
+  if (grState.resizeState) {
+    grState.resizeState = null;
+    grSnapshot();
+    grUpdateStats();
+    return;
+  }
+  // ── End drag ─────────────────────────────────────────────────
+  if (grState.dragState) {
+    if (grState._mouseMovedDist > 4) grSnapshot();
+    grState.dragState = null;
+    grUpdateStats();
+    return;
+  }
+  // ── End rect draw ─────────────────────────────────────────────
   if (!_grDragging) return;
   _grDragging = false;
   const tool = GR_LIB.find(t => t.type === grState.tool);
@@ -4251,10 +4484,7 @@ function grMouseUp(e) {
   const ex = grSnap(c.x), ey = grSnap(c.y);
   const sx = grState.drawStart.x, sy = grState.drawStart.y;
   if (Math.abs(ex - sx) < GR_GRID * 0.4 && Math.abs(ey - sy) < GR_GRID * 0.4) {
-    grState.drawStart = null;
-    grState._previewEnd = null;
-    grRender();
-    return;
+    grState.drawStart = null; grState._previewEnd = null; grRender(); return;
   }
   grState.rooms.push({
     id: grState.nextId++,
@@ -4263,62 +4493,60 @@ function grMouseUp(e) {
     w: Math.abs(ex - sx), h: Math.abs(ey - sy),
     label: grDefaultLabel(grState.tool)
   });
-  grState.drawStart = null;
-  grState._previewEnd = null;
-  grRender();
-  grUpdateStats();
+  grState.drawStart = null; grState._previewEnd = null;
+  grSnapshot();
+  grRender(); grUpdateStats();
 }
 
 function grClick(e) {
   if (_grDragging) return;
+  if (grState._mouseMovedDist > 6) { grState._mouseMovedDist = 0; return; }
   const tool = GR_LIB.find(t => t.type === grState.tool);
   if (!tool) return;
   const c = grSvgCoords(e);
 
   if (tool.snap === 'line') {
     if (grState.drawStart) {
-      // Complete wall/window
-      const ex = grSnap(c.x), ey = grSnap(c.y);
+      const snap = grSnapFull(c.x, c.y);
       grState.walls.push({
-        id: grState.nextId++,
-        type: grState.tool,
+        id: grState.nextId++, type: grState.tool,
         x1: grState.drawStart.x, y1: grState.drawStart.y,
-        x2: ex, y2: ey
+        x2: snap.x, y2: snap.y, rot: 0
       });
-      grState.drawStart = null;
+      grState.drawStart = null; grState._previewEnd = null;
+      grSnapshot();
+      grRender(); grUpdateStats();
+    } else {
+      const snap = grSnapFull(c.x, c.y);
+      grState.drawStart = { x: snap.x, y: snap.y };
       grRender();
-      grUpdateStats();
     }
     return;
   }
 
   if (tool.snap === 'cell') {
     const cx = grSnapCell(c.x), cy = grSnapCell(c.y);
-
-    if (grState.tool === 'eraser') {
-      grEraseAt(cx, cy, c.x, c.y);
-      return;
-    }
-
-    // Check not placing on top of existing symbol at same cell
-    const exists = grState.items.find(i =>
-      Math.abs(i.x - cx) < 2 && Math.abs(i.y - cy) < 2 &&
-      i.type === grState.tool
-    );
+    if (grState.tool === 'eraser') { grEraseAt(cx, cy, c.x, c.y); return; }
+    const exists = grState.items.find(i => Math.abs(i.x-cx)<2 && Math.abs(i.y-cy)<2 && i.type===grState.tool);
     if (exists) return;
-
-    const item = {
-      id: grState.nextId++,
-      type: grState.tool,
-      x: cx, y: cy,
-      label: ''
-    };
+    const item = { id: grState.nextId++, type: grState.tool, x: cx, y: cy, label: '', rot: 0 };
     grState.items.push(item);
     grState.selectedId = item.id;
-    grUpdateProps();
-    grRender();
-    grUpdateStats();
+    grSnapshot();
+    grUpdateProps(); grRender(); grUpdateStats();
   }
+}
+
+/* ── Context menu → rotate symbol ────────────────────────────── */
+function grContextMenu(e) {
+  e.preventDefault();
+  const c = grSvgCoords(e);
+  const hit = grHitItem(c.x, c.y);
+  if (!hit) return;
+  const item = hit.obj;
+  item.rot = ((item.rot || 0) + 90) % 360;
+  grSnapshot();
+  grRender();
 }
 
 /* ── Erase ───────────────────────────────────────────────────── */
@@ -4381,7 +4609,6 @@ function grRender() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   let s = '<defs>';
-  // Hatch patterns for floor types
   s += `<pattern id="parkett-pat" x="0" y="0" width="${GR_GRID}" height="${GR_GRID/5}" patternUnits="userSpaceOnUse">
     <rect width="${GR_GRID}" height="${GR_GRID/5}" fill="#f5deb3"/>
     <line x1="0" y1="${GR_GRID/10}" x2="${GR_GRID}" y2="${GR_GRID/10}" stroke="#c4a068" stroke-width="0.8"/>
@@ -4396,6 +4623,8 @@ function grRender() {
   s += `<pattern id="room-pat" x="0" y="0" width="${GR_GRID}" height="${GR_GRID}" patternUnits="userSpaceOnUse">
     <rect width="${GR_GRID}" height="${GR_GRID}" fill="#fff"/>
   </pattern>`;
+  // Drop shadow filter for selected elements
+  s += `<filter id="sel-glow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#f39c12" flood-opacity=".8"/></filter>`;
   s += '</defs>';
 
   // Background
@@ -4409,7 +4638,6 @@ function grRender() {
     for (let y = 0; y <= H; y += GR_GRID) {
       s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${y % (GR_GRID*5) === 0 ? '#ccd4e0' : '#e2e8f0'}" stroke-width="${y % (GR_GRID*5) === 0 ? 1 : 0.5}"/>`;
     }
-    // Grid labels (every 5m)
     for (let x = 0; x <= W; x += GR_GRID * 5) {
       s += `<text x="${x+2}" y="10" font-size="7" fill="#bbc5d4" font-family="monospace">${x/GR_GRID}m</text>`;
     }
@@ -4427,43 +4655,68 @@ function grRender() {
     s += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"
       fill="url(#${pat})" stroke="${strokeC}" stroke-width="${isSel ? 2.5 : 1.5}"
       stroke-dasharray="${isSel ? '6,3' : 'none'}" rx="2"
-      onclick="grSelectItem(event,'room',${r.id})" style="cursor:pointer"/>`;
-    // Label
+      onclick="grSelectItem(event,'room',${r.id})" style="cursor:${grState.tool?'crosshair':'move'}"/>`;
     if (r.label) {
-      s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2}" text-anchor="middle"
+      s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2 - 6}" text-anchor="middle"
         dominant-baseline="middle" font-size="11" font-weight="700"
         fill="#4a5568" font-family="sans-serif">${esc(r.label)}</text>`;
     }
-    // Size annotation
-    const wm = (r.w / GR_GRID).toFixed(1);
-    const hm = (r.h / GR_GRID).toFixed(1);
-    s += `<text x="${r.x + r.w/2}" y="${r.y + r.h - 4}" text-anchor="middle"
-      font-size="8" fill="#7a8898" font-family="monospace">${wm}×${hm}m</text>`;
+    const wm = (r.w / GR_GRID).toFixed(1), hm = (r.h / GR_GRID).toFixed(1);
+    const am = (r.w * r.h / (GR_GRID * GR_GRID)).toFixed(1);
+    s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2 + 7}" text-anchor="middle"
+      font-size="8" fill="#7a8898" font-family="monospace">${wm}×${hm}m = ${am}m²</text>`;
+
+    // Resize handles (only for selected room)
+    if (isSel) {
+      for (const [name, hx, hy] of grResizeHandles(r)) {
+        s += `<rect x="${hx-5}" y="${hy-5}" width="10" height="10"
+          fill="#fff" stroke="#f39c12" stroke-width="2" rx="2"
+          style="cursor:${grResizeCursor(name)}" pointer-events="all"
+          onmousedown="grStartResizeHandle(event,'${name}',${r.id})"/>`;
+      }
+      // Dimension lines
+      s += grDimensionLine(r.x, r.y - 18, r.x + r.w, r.y - 18, `${wm}m`);
+      s += grDimensionLine(r.x - 22, r.y, r.x - 22, r.y + r.h, `${hm}m`);
+    }
   }
 
-  // Walls & Windows (lines)
+  // Walls & Windows (as proper thick lines with correct caps)
   for (const w of grState.walls) {
     const isSel = w.id === grState.selectedId;
-    let strokeC, sw, dash;
-    if (w.type === 'wall')     { strokeC = '#2c3e50'; sw = 8; dash = 'none'; }
-    else if (w.type === 'wall_int') { strokeC = '#5d6d7e'; sw = 5; dash = 'none'; }
-    else if (w.type === 'window')   { strokeC = '#2e86c1'; sw = 6; dash = '8,4'; }
-    else { strokeC = '#555'; sw = 4; dash = 'none'; }
-    if (isSel) strokeC = '#f39c12';
+    let strokeC, sw, dash, fill;
+    if (w.type === 'wall')     { strokeC = isSel?'#f39c12':'#2c3e50'; sw = 10; dash = 'none'; }
+    else if (w.type === 'wall_int') { strokeC = isSel?'#f39c12':'#5d6d7e'; sw = 6; dash = 'none'; }
+    else if (w.type === 'window')   { strokeC = isSel?'#f39c12':'#2e86c1'; sw = 5; dash = '8,4'; }
+    else { strokeC = isSel?'#f39c12':'#555'; sw = 4; dash = 'none'; }
 
-    // Clickable wider transparent hit area
+    // Hit area
     s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
-      stroke="transparent" stroke-width="14" stroke-linecap="round"
-      onclick="grSelectItem(event,'wall',${w.id})" style="cursor:pointer"/>`;
+      stroke="transparent" stroke-width="18" stroke-linecap="round"
+      onclick="grSelectItem(event,'wall',${w.id})" style="cursor:${grState.tool?'crosshair':'move'}"/>`;
     s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
-      stroke="${strokeC}" stroke-width="${sw}" stroke-linecap="round"
+      stroke="${strokeC}" stroke-width="${sw}" stroke-linecap="square"
       stroke-dasharray="${dash}" pointer-events="none"/>`;
+
+    // Endpoint dots
+    if (isSel) {
+      s += `<circle cx="${w.x1}" cy="${w.y1}" r="5" fill="#f39c12" opacity=".8" pointer-events="none"/>`;
+      s += `<circle cx="${w.x2}" cy="${w.y2}" r="5" fill="#f39c12" opacity=".8" pointer-events="none"/>`;
+    }
 
     // Length annotation
     const len = Math.hypot(w.x2 - w.x1, w.y2 - w.y1);
     const mx2 = (w.x1 + w.x2) / 2, my2 = (w.y1 + w.y2) / 2;
-    s += `<text x="${mx2}" y="${my2 - 6}" text-anchor="middle"
-      font-size="8" fill="#8a9ab0" font-family="monospace">${(len/GR_GRID).toFixed(2)}m</text>`;
+    const angle = Math.atan2(w.y2 - w.y1, w.x2 - w.x1) * 180 / Math.PI;
+    s += `<text x="${mx2}" y="${my2 - (sw/2 + 5)}"
+      text-anchor="middle" font-size="8" fill="${isSel?'#e67e22':'#8a9ab0'}"
+      font-family="monospace" transform="rotate(${angle > 90 || angle < -90 ? angle+180 : angle},${mx2},${my2 - (sw/2 + 5)})"
+      pointer-events="none">${(len/GR_GRID).toFixed(2)}m</text>`;
+
+    // Existing endpoint markers (snap indicators)
+    if (grState.drawStart) {
+      s += `<circle cx="${w.x1}" cy="${w.y1}" r="6" fill="none" stroke="#27ae60" stroke-width="1.5" opacity=".5" pointer-events="none"/>`;
+      s += `<circle cx="${w.x2}" cy="${w.y2}" r="6" fill="none" stroke="#27ae60" stroke-width="1.5" opacity=".5" pointer-events="none"/>`;
+    }
   }
 
   // Symbols (cell-based)
@@ -4483,13 +4736,25 @@ function grRender() {
           fill="rgba(46,109,164,.08)" stroke="#2e6da4" stroke-width="1.5"
           stroke-dasharray="5,3" rx="2" pointer-events="none"/>`;
       } else if (tool.snap === 'line') {
+        const len = Math.hypot(pe.x - ds.x, pe.y - ds.y);
         s += `<line x1="${ds.x}" y1="${ds.y}" x2="${pe.x}" y2="${pe.y}"
           stroke="#2e6da4" stroke-width="4" stroke-dasharray="8,4"
-          stroke-linecap="round" opacity=".6" pointer-events="none"/>`;
+          stroke-linecap="round" opacity=".7" pointer-events="none"/>`;
+        // Live measurement label
+        s += `<rect x="${(ds.x+pe.x)/2 - 22}" y="${(ds.y+pe.y)/2 - 11}"
+          width="44" height="13" fill="rgba(255,255,255,.85)" rx="3" pointer-events="none"/>`;
+        s += `<text x="${(ds.x+pe.x)/2}" y="${(ds.y+pe.y)/2}"
+          text-anchor="middle" dominant-baseline="middle"
+          font-size="9" font-weight="700" fill="#1a3a5c" font-family="monospace" pointer-events="none"
+          >${(len/GR_GRID).toFixed(2)}m</text>`;
+        // Snapped endpoint indicator
+        if (pe.snapped) {
+          s += `<circle cx="${pe.x}" cy="${pe.y}" r="8" fill="rgba(39,174,96,.25)" stroke="#27ae60" stroke-width="2" pointer-events="none"/>`;
+        }
       }
     }
     // Start dot
-    s += `<circle cx="${ds.x}" cy="${ds.y}" r="4" fill="#2e6da4" opacity=".8" pointer-events="none"/>`;
+    s += `<circle cx="${ds.x}" cy="${ds.y}" r="5" fill="#2e6da4" opacity=".9" pointer-events="none"/>`;
   }
 
   // Compass
@@ -4505,40 +4770,33 @@ function grRenderSymbol(item) {
   const cx = item.x + GR_GRID / 2;
   const cy = item.y + GR_GRID / 2;
   const r = GR_GRID * 0.42;
+  const rot = item.rot || 0;
 
-  let s = `<g onclick="grSelectItem(event,'item',${item.id})" style="cursor:pointer">`;
+  let s = `<g onclick="grSelectItem(event,'item',${item.id})" style="cursor:${grState.tool?'crosshair':'move'}"
+    transform="rotate(${rot},${cx},${cy})">`;
 
-  // Background circle
   s += `<circle cx="${cx}" cy="${cy}" r="${r}"
     fill="${tool.color}22" stroke="${isSel ? '#f39c12' : tool.color}"
     stroke-width="${isSel ? 2.5 : 1.5}"/>`;
 
-  // Custom SVG shapes for sanitär/elektro
   switch (item.type) {
-    case 'wc':
-      s += grSymWC(cx, cy, r); break;
-    case 'dusche':
-      s += grSymDusche(cx, cy, r); break;
-    case 'wanne':
-      s += grSymWanne(item.x, item.y, GR_GRID); break;
-    case 'waschb':
-      s += grSymWaschb(cx, cy, r); break;
-    case 'steckd':
-      s += grSymSteckdose(cx, cy, r); break;
-    case 'schalter':
-      s += grSymSchalter(cx, cy, r); break;
-    case 'licht':
-      s += grSymLicht(cx, cy, r); break;
+    case 'wc':     s += grSymWC(cx, cy, r); break;
+    case 'dusche': s += grSymDusche(cx, cy, r); break;
+    case 'wanne':  s += grSymWanne(item.x, item.y, GR_GRID); break;
+    case 'waschb': s += grSymWaschb(cx, cy, r); break;
+    case 'steckd': s += grSymSteckdose(cx, cy, r); break;
+    case 'schalter': s += grSymSchalter(cx, cy, r); break;
+    case 'licht':  s += grSymLicht(cx, cy, r); break;
     case 'door':
-    case 'door180':
-      s += grSymDoor(item.x, item.y, GR_GRID, item.type === 'door180'); break;
+    case 'door180': s += grSymDoor(item.x, item.y, GR_GRID, item.type === 'door180'); break;
     default:
-      // Emoji fallback
       s += `<text x="${cx}" y="${cy + 1}" text-anchor="middle" dominant-baseline="middle"
         font-size="${GR_GRID * 0.38}" font-family="sans-serif">${tool.emoji}</text>`;
   }
 
-  // Label under symbol
+  s += '</g>';
+
+  // Label outside rotate group so it stays horizontal
   if (item.label) {
     s += `<text x="${cx}" y="${item.y + GR_GRID + 10}" text-anchor="middle"
       font-size="9" fill="${tool.color}" font-weight="700" font-family="sans-serif">${esc(item.label)}</text>`;
@@ -4546,12 +4804,40 @@ function grRenderSymbol(item) {
     s += `<text x="${cx}" y="${item.y + GR_GRID + 10}" text-anchor="middle"
       font-size="8" fill="#aaa" font-family="sans-serif">${tool.label}</text>`;
   }
-
-  s += '</g>';
+  // Rotation hint for selected
+  if (isSel && rot !== 0) {
+    s += `<text x="${cx}" y="${item.y - 4}" text-anchor="middle"
+      font-size="8" fill="#e67e22" font-family="sans-serif">${rot}°</text>`;
+  }
   return s;
 }
 
-/* ── Symbol shapes ───────────────────────────────────────────── */
+/* ── Dimension line helper ───────────────────────────────────── */
+function grDimensionLine(x1, y1, x2, y2, label) {
+  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+      stroke="#e67e22" stroke-width="1" marker-start="url(#arr)" marker-end="url(#arr)" pointer-events="none"/>
+    <line x1="${x1}" y1="${y1-4}" x2="${x1}" y2="${y1+4}" stroke="#e67e22" stroke-width="1" pointer-events="none"/>
+    <line x1="${x2}" y1="${y2-4}" x2="${x2}" y2="${y2+4}" stroke="#e67e22" stroke-width="1" pointer-events="none"/>
+    <rect x="${mx-18}" y="${Math.min(y1,y2) - 8}" width="36" height="11" fill="rgba(255,255,255,.85)" rx="2" pointer-events="none"/>
+    <text x="${mx}" y="${Math.min(y1,y2)}" text-anchor="middle" dominant-baseline="middle"
+      font-size="8" font-weight="700" fill="#e67e22" font-family="monospace" pointer-events="none">${label}</text>`;
+}
+
+function grResizeCursor(handle) {
+  const map = { nw:'nw-resize', n:'n-resize', ne:'ne-resize', e:'e-resize',
+    se:'se-resize', s:'s-resize', sw:'sw-resize', w:'w-resize' };
+  return map[handle] || 'pointer';
+}
+
+function grStartResizeHandle(e, handle, roomId) {
+  e.stopPropagation();
+  const c = grSvgCoords(e);
+  const room = grState.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  grState.resizeState = { id: roomId, handle, startMx: c.x, startMy: c.y,
+    orig: { x: room.x, y: room.y, w: room.w, h: room.h } };
+}
 function grSymWC(cx, cy, r) {
   const w = r * 1.4, h = r * 1.8;
   return `<ellipse cx="${cx}" cy="${cy + r*0.1}" rx="${w*0.5}" ry="${h*0.48}" fill="#d6e4f7" stroke="#2e86c1" stroke-width="1.5"/>
@@ -4688,6 +4974,7 @@ function grDeleteSelected() {
   grState.walls = grState.walls.filter(i => i.id !== id);
   grState.rooms = grState.rooms.filter(i => i.id !== id);
   grState.selectedId = null;
+  grSnapshot();
   grUpdateProps();
   grRender();
   grUpdateStats();
@@ -4733,9 +5020,111 @@ function grClearAll() {
   grState.selectedId = null;
   grState.drawStart = null;
   grState._previewEnd = null;
+  grSnapshot();
   grUpdateProps();
   grRender();
   grUpdateStats();
+}
+
+/* ── Undo / Redo ─────────────────────────────────────────────── */
+function grSnapshot() {
+  const snap = JSON.stringify({
+    items: grState.items, walls: grState.walls,
+    rooms: grState.rooms, nextId: grState.nextId
+  });
+  grState.history = grState.history.slice(0, grState.historyIdx + 1);
+  if (grState.history[grState.historyIdx] === snap) return;
+  grState.history.push(snap);
+  if (grState.history.length > 50) grState.history.shift();
+  else grState.historyIdx++;
+  grUpdateToolbar();
+  try { localStorage.setItem('grPlan', snap); } catch(e) {}
+}
+function grUndo() {
+  if (grState.historyIdx <= 0) return;
+  grState.historyIdx--;
+  grRestoreSnapshot(grState.history[grState.historyIdx]);
+}
+function grRedo() {
+  if (grState.historyIdx >= grState.history.length - 1) return;
+  grState.historyIdx++;
+  grRestoreSnapshot(grState.history[grState.historyIdx]);
+}
+function grRestoreSnapshot(snap) {
+  if (!snap) return;
+  try {
+    const d = JSON.parse(snap);
+    grState.items = d.items || [];
+    grState.walls = d.walls || [];
+    grState.rooms = d.rooms || [];
+    grState.nextId = d.nextId || 1;
+    grState.selectedId = null;
+    grUpdateProps(); grRender(); grUpdateStats(); grUpdateToolbar();
+  } catch(e) { console.error('Snapshot fehlerhaft', e); }
+}
+
+/* ── JSON Save / Load ────────────────────────────────────────── */
+function grSaveJSON() {
+  const data = JSON.stringify({ version:2,
+    items: grState.items, walls: grState.walls,
+    rooms: grState.rooms, nextId: grState.nextId }, null, 2);
+  const blob = new Blob([data], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'Grundriss.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function grLoadJSONClick() {
+  const inp = document.getElementById('gr-json-input');
+  if (inp) inp.click();
+}
+function grLoadJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      grState.items  = d.items  || [];
+      grState.walls  = d.walls  || [];
+      grState.rooms  = d.rooms  || [];
+      grState.nextId = d.nextId || 1;
+      grState.selectedId = null;
+      grSnapshot();
+      grUpdateProps(); grRender(); grUpdateStats();
+      showToast('✅ Grundriss geladen');
+    } catch(err) { showToast('❌ Datei fehlerhaft: ' + err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+/* ── Print ───────────────────────────────────────────────────── */
+function grPrintPlan() {
+  const svg = document.getElementById('gr-svg');
+  if (!svg) return;
+  const clone = svg.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', GR_W * GR_GRID);
+  clone.setAttribute('height', GR_H * GR_GRID);
+  ['onclick','onmousedown','oncontextmenu'].forEach(attr =>
+    clone.querySelectorAll(`[${attr}]`).forEach(el => el.removeAttribute(attr)));
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
+    <title>Grundriss / Installationsplan</title>
+    <style>body{margin:0;padding:12px;background:#fff}h2{font-family:sans-serif;font-size:14px;color:#1a3a5c;margin-bottom:4px}
+    @media print{button{display:none}body{padding:0}}</style></head><body>
+    <h2>🏠 Grundriss / Installationsplan</h2>
+    <p style="font-family:sans-serif;font-size:11px;color:#888;margin:0 0 8px">
+      Erstellt: ${new Date().toLocaleDateString('de-DE')} · 1 Kästchen = 1 m</p>
+    ${clone.outerHTML}
+    <button onclick="window.print()"
+      style="margin-top:14px;padding:8px 18px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">
+      🖨️ Drucken</button>
+    </body></html>`);
+  win.document.close();
 }
 
 /* ── SVG Export ──────────────────────────────────────────────── */
@@ -4920,16 +5309,53 @@ function grToKalk() {
   }
 }
 
-/* ── Keyboard shortcut (ESC = deselect tool) ─────────────────── */
+/* ── Keyboard shortcuts ───────────────────────────────────────── */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('grModal')) {
+  // Space = pan mode
+  if (e.code === 'Space' && document.getElementById('grModal')) {
+    e.preventDefault();
+    grState.spaceDown = true;
+    const inner = document.getElementById('gr-canvas-inner');
+    if (inner) inner.style.cursor = 'grab';
+  }
+
+  if (!document.getElementById('grModal')) return;
+
+  // Ctrl+Z / Ctrl+Y
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); grUndo(); return; }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); grRedo(); return; }
+
+  // ESC = deselect tool
+  if (e.key === 'Escape') {
     grState.tool = null;
     grState.drawStart = null;
     grState._previewEnd = null;
+    grState.selectedId = null;
+    grState.dragState = null;
+    grState.resizeState = null;
     document.querySelectorAll('.gr-lib-item').forEach(el => el.classList.remove('active'));
     const hint = document.getElementById('gr-status-hint');
     if (hint) hint.textContent = 'Werkzeug wählen →';
+    const inner = document.getElementById('gr-canvas-inner');
+    if (inner) inner.style.cursor = '';
+    grUpdateProps();
     grRender();
+  }
+
+  // Del / Backspace = delete selected
+  if ((e.key === 'Delete' || e.key === 'Backspace') && grState.selectedId) {
+    // Don't delete if focused on an input
+    if (document.activeElement && ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+    e.preventDefault();
+    grDeleteSelected();
+  }
+});
+
+document.addEventListener('keyup', e => {
+  if (e.code === 'Space') {
+    grState.spaceDown = false;
+    const inner = document.getElementById('gr-canvas-inner');
+    if (inner) inner.style.cursor = '';
   }
 });
 
