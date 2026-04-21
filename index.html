@@ -542,87 +542,569 @@
     .gr-tool-btn.active { background: #2e6da4; color: #fff; border-color: #2e6da4; }
     .gr-scale-info { font-size: 10.5px; color: #8a97a8; margin-left: 6px; }
     @media print { .gr-modal-box { display: none !important; } }
+
+    /* ═══════════════════════════════════════════════════════════════
+       APP SHELL – Sidebar + Multi-Page Layout
+    ═══════════════════════════════════════════════════════════════ */
+    body { background: #0d1f35; overflow: hidden; height: 100vh; }
+    .app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ────────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px; min-width: 240px;
+      background: linear-gradient(180deg, #0a1726 0%, #0f2035 35%, #12294a 100%);
+      color: #fff; display: flex; flex-direction: column; overflow: hidden;
+      z-index: 200; box-shadow: 4px 0 16px rgba(0,0,0,.4);
+      transition: width .25s;
+    }
+    .sidebar.collapsed { width: 58px; min-width: 58px; }
+    .sidebar-header {
+      padding: 18px 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .sidebar-logo-icon { font-size: 2rem; flex-shrink: 0; }
+    .sidebar-logo-text h2 { font-size: .95rem; font-weight: 800; letter-spacing: .3px; white-space: nowrap; }
+    .sidebar-logo-text p { font-size: 9.5px; opacity: .55; margin-top: 2px; white-space: nowrap; }
+    .sidebar.collapsed .sidebar-logo-text { display: none; }
+    .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 6px 0; }
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 2px; }
+    .nav-section-label {
+      font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px;
+      color: rgba(255,255,255,.35); padding: 10px 16px 3px;
+      white-space: nowrap; overflow: hidden;
+    }
+    .sidebar.collapsed .nav-section-label { opacity: 0; height: 0; padding: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 500;
+      color: rgba(255,255,255,.7); border-left: 3px solid transparent;
+      transition: all .15s; user-select: none; white-space: nowrap; overflow: hidden;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-item.active { background: rgba(46,109,164,.35); border-left-color: #5ba8e5; color: #fff; font-weight: 700; }
+    .nav-item-icon { font-size: 16px; flex-shrink: 0; min-width: 20px; text-align: center; }
+    .nav-item-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar.collapsed .nav-item-label { display: none; }
+    .nav-badge { margin-left: auto; background: #e74c3c; color: #fff; font-size: 9.5px; font-weight: 900; padding: 1px 6px; border-radius: 10px; flex-shrink: 0; }
+    .sidebar.collapsed .nav-badge { display: none; }
+    .sidebar-footer {
+      padding: 10px 14px; border-top: 1px solid rgba(255,255,255,.1);
+      font-size: 10px; color: rgba(255,255,255,.35); display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .sidebar-toggle {
+      background: none; border: none; color: rgba(255,255,255,.5); cursor: pointer; font-size: 18px; padding: 0;
+    }
+    .sidebar-toggle:hover { color: #fff; }
+
+    /* ── Main Content Area ──────────────────────────────────────── */
+    .main-content {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      background: linear-gradient(160deg, #e8edf5 0%, #f0f2f5 60%, #e8eff8 100%);
+      min-width: 0;
+    }
+    .page { display: none; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ── Page header bar ────────────────────────────────────────── */
+    .page-topbar {
+      background: linear-gradient(135deg, #12294a 0%, #1a3a5c 40%, #2e6da4 100%);
+      color: #fff; padding: 0 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 56px; gap: 12px; flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .page-topbar h2 { font-size: 1.05rem; font-weight: 700; }
+    .page-topbar-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    /* ── Dashboard ──────────────────────────────────────────────── */
+    .dashboard-hero {
+      background: linear-gradient(135deg, #0d1f35 0%, #12294a 35%, #1a3a5c 60%, #2e6da4 100%);
+      padding: 40px 32px; color: #fff; position: relative; overflow: hidden;
+    }
+    .dashboard-hero::after {
+      content: '🏗️'; font-size: 8rem; position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+      opacity: .08; pointer-events: none;
+    }
+    .dashboard-hero h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -.3px; }
+    .dashboard-hero p { font-size: .9rem; opacity: .7; margin-top: 6px; }
+    .dashboard-hero .hero-sub { font-size: .8rem; opacity: .55; margin-top: 4px; }
+    .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; padding: 24px 24px 16px; }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1); transition: transform .15s, box-shadow .15s;
+      border-left: 4px solid #2e6da4; cursor: default;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.14); }
+    .stat-card .sc-value { font-size: 2rem; font-weight: 900; color: #1a3a5c; }
+    .stat-card .sc-label { font-size: 11px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-top: 4px; }
+    .stat-card .sc-icon { font-size: 1.5rem; float: right; margin-top: -4px; }
+    .stat-card.green { border-left-color: #27ae60; } .stat-card.green .sc-value { color: #1a7a40; }
+    .stat-card.orange { border-left-color: #e67e22; } .stat-card.orange .sc-value { color: #b85c00; }
+    .stat-card.red { border-left-color: #e74c3c; } .stat-card.red .sc-value { color: #c0392b; }
+    .stat-card.purple { border-left-color: #8e44ad; } .stat-card.purple .sc-value { color: #6c3483; }
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 24px 24px; }
+    @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    .dash-widget {
+      background: #fff; border-radius: 12px; padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .dash-widget-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: #1a3a5c; margin-bottom: 12px; border-bottom: 2px solid #e0e6f0; padding-bottom: 8px; }
+    .dash-list-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f0f2f5; font-size: 13px; }
+    .dash-list-item:last-child { border-bottom: none; }
+    .dash-quick-btns { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 24px; }
+
+    /* ── List Pages (Angebote, etc.) ────────────────────────────── */
+    .page-container { padding: 20px 24px; }
+    .list-filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .list-filters input, .list-filters select { padding: 7px 11px; border: 1.5px solid #d0d7e2; border-radius: 7px; font-size: 13px; background: #fff; }
+    .list-filters input:focus, .list-filters select:focus { outline: none; border-color: #2e6da4; }
+    .list-card {
+      background: #fff; border-radius: 10px; padding: 16px 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 10px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+      transition: box-shadow .15s;
+    }
+    .list-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.14); }
+    .list-card-main { flex: 1; min-width: 0; }
+    .list-card-title { font-size: 14px; font-weight: 700; color: #1a3a5c; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-card-sub { font-size: 12px; color: #666; }
+    .list-card-meta { display: flex; gap: 12px; margin-top: 5px; flex-wrap: wrap; }
+    .list-card-badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .badge-draft { background: #fff3cd; color: #856404; }
+    .badge-done { background: #d4edda; color: #155724; }
+    .badge-aktiv { background: #cce5ff; color: #004085; }
+    .badge-abgeschlossen { background: #d4edda; color: #155724; }
+    .badge-pausiert { background: #f8d7da; color: #721c24; }
+    .list-card-actions { display: flex; gap: 6px; flex-shrink: 0; flex-direction: column; align-items: flex-end; }
+    .list-card-betrag { font-size: 1.1rem; font-weight: 900; color: #1a3a5c; white-space: nowrap; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    .empty-state .es-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Projekte Module ────────────────────────────────────────── */
+    .projekt-detail-header {
+      background: linear-gradient(135deg, #12294a, #2e6da4);
+      color: #fff; padding: 20px 24px; margin-bottom: 20px;
+      border-radius: 0 0 14px 14px;
+    }
+    .projekt-detail-header h2 { font-size: 1.3rem; font-weight: 900; }
+    .projekt-detail-header .pdh-meta { font-size: 12px; opacity: .75; margin-top: 5px; }
+    .gewerk-progress-card {
+      background: #fff; border-radius: 10px; padding: 14px 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.1); margin-bottom: 10px;
+    }
+    .gpc-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .gpc-title { font-size: 13px; font-weight: 700; color: #1a3a5c; }
+    .gpc-pct { font-size: 13px; font-weight: 900; color: #2e6da4; }
+    .progress-bar-wrap { height: 8px; background: #e0e6f0; border-radius: 4px; margin: 8px 0 0; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #2e6da4, #27ae60); border-radius: 4px; transition: width .4s; }
+    .progress-bar.warn { background: linear-gradient(90deg, #f39c12, #e67e22); }
+    .progress-bar.done { background: linear-gradient(90deg, #27ae60, #1a7a40); }
+    .gpc-positions { margin-top: 10px; display: none; }
+    .gpc-positions.open { display: block; }
+    .pos-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 5px; margin-bottom: 3px; font-size: 12.5px; background: #f7f9fc; }
+    .pos-row:hover { background: #eef2fa; }
+    .pos-row-check { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+    .pos-row-desc { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pos-row-qty { font-size: 11px; color: #888; flex-shrink: 0; width: 80px; text-align: right; }
+    .pos-row-done { text-decoration: line-through; color: #aaa; }
+    .gesamtfortschritt-ring {
+      width: 120px; height: 120px; border-radius: 50%;
+      background: conic-gradient(#2e6da4 0%, #27ae60 var(--pct), #e0e6f0 var(--pct) 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .gesamtfortschritt-ring::before { content: ''; position: absolute; inset: 14px; background: #fff; border-radius: 50%; }
+    .gesamtfortschritt-pct { position: relative; z-index: 1; font-size: 1.4rem; font-weight: 900; color: #1a3a5c; }
+
+    /* ── Nachträge ──────────────────────────────────────────────── */
+    .nachtrag-card {
+      background: #fff; border-radius: 10px; padding: 14px 18px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.1); margin-bottom: 10px;
+      border-left: 4px solid #e67e22;
+    }
+    .nachtrag-card.approved { border-left-color: #27ae60; }
+    .nachtrag-card.pending { border-left-color: #f39c12; }
+    .nachtrag-card.rejected { border-left-color: #e74c3c; }
+    .nachtrag-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .nachtrag-title { font-size: 13px; font-weight: 700; color: #1a3a5c; }
+    .nachtrag-meta { font-size: 11.5px; color: #666; margin-top: 3px; }
+    .nachtrag-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── Materialliste ──────────────────────────────────────────── */
+    .material-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .material-table th { background: #1a3a5c; color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; }
+    .material-table td { padding: 7px 10px; border-bottom: 1px solid #f0f2f5; }
+    .material-table tr:hover td { background: #f7f9fc; }
+    .material-table .gewerk-row td { background: #eef2fa; font-weight: 700; color: #1a3a5c; font-size: 12px; }
+
+    /* ── Print ──────────────────────────────────────────────────── */
+    @media print {
+      body { background: #fff; overflow: visible; height: auto; }
+      .sidebar { display: none !important; }
+      .app-shell { display: block; }
+      .main-content { overflow: visible; }
+      .page { display: block !important; }
+      .page-topbar { display: none; }
+      .no-print { display: none !important; }
+    }
+
+    /* ── Sidebar Mobile Toggle ──────────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 300; transform: translateX(-100%); transition: transform .25s; }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .mobile-menu-btn { display: flex !important; }
+    }
+    .mobile-menu-btn { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; padding: 4px; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 299; }
+    .sidebar-overlay.show { display: block; }
   </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<header>
-  <div style="display:flex;flex-direction:column;width:100%">
-    <div class="header-main">
-      <div class="header-left">
-        <span class="logo">🏗️</span>
-        <div>
-          <h1>Kalkulation &amp; Angebote</h1>
-          <div class="header-subtitle">GU Sanierungsbetrieb – Alle Gewerke</div>
+<!-- ═══════════════════════════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════════════════════════ -->
+<div class="app-shell">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo-icon">🏗️</span>
+      <div class="sidebar-logo-text">
+        <h2>GU Sanierung</h2>
+        <p>Kalkulation &amp; Verwaltung</p>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Übersicht</div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <span class="nav-item-icon">🏠</span>
+        <span class="nav-item-label">Dashboard</span>
+      </div>
+
+      <div class="nav-section-label">Kalkulation</div>
+      <div class="nav-item" data-page="kalkulation" onclick="showPage('kalkulation')">
+        <span class="nav-item-icon">📋</span>
+        <span class="nav-item-label">Neue Kalkulation</span>
+      </div>
+      <div class="nav-item" data-page="nachtraege" onclick="showPage('nachtraege')">
+        <span class="nav-item-icon">➕</span>
+        <span class="nav-item-label">Nachträge</span>
+        <span class="nav-badge" id="badge-nachtraege" style="display:none">0</span>
+      </div>
+
+      <div class="nav-section-label">Angebote</div>
+      <div class="nav-item" data-page="angebote-draft" onclick="showPage('angebote-draft')">
+        <span class="nav-item-icon">📝</span>
+        <span class="nav-item-label">In Bearbeitung</span>
+        <span class="nav-badge" id="badge-draft">0</span>
+      </div>
+      <div class="nav-item" data-page="angebote-done" onclick="showPage('angebote-done')">
+        <span class="nav-item-icon">✅</span>
+        <span class="nav-item-label">Fertige Angebote</span>
+        <span class="nav-badge" id="badge-done">0</span>
+      </div>
+      <div class="nav-item" data-page="rechnungen" onclick="showPage('rechnungen')">
+        <span class="nav-item-icon">🧾</span>
+        <span class="nav-item-label">Rechnungen</span>
+        <span class="nav-badge" id="badge-rech">0</span>
+      </div>
+
+      <div class="nav-section-label">Projekte</div>
+      <div class="nav-item" data-page="projekte" onclick="showPage('projekte')">
+        <span class="nav-item-icon">📁</span>
+        <span class="nav-item-label">Alle Projekte</span>
+        <span class="nav-badge" id="badge-projekte">0</span>
+      </div>
+
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item" onclick="showPage('kalkulation'); setTimeout(()=>heizlastModal(),200)">
+        <span class="nav-item-icon">🌡️</span>
+        <span class="nav-item-label">Heizlastberechnung</span>
+      </div>
+      <div class="nav-item" onclick="showPage('kalkulation'); setTimeout(()=>schnellKalkulationModal(),200)">
+        <span class="nav-item-icon">⚡</span>
+        <span class="nav-item-label">Schnellkalkulation</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Sidebar ein-/ausklappen">☰</button>
+      <span class="nav-item-label" style="font-size:10px;color:rgba(255,255,255,.3)">v3.0</span>
+    </div>
+  </nav>
+
+  <!-- ── MAIN CONTENT ─────────────────────────────────────────── -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: DASHBOARD
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="dashboard-hero">
+        <div style="display:flex;align-items:center;gap:14px">
+          <button class="mobile-menu-btn no-print" onclick="toggleSidebar()">☰</button>
+          <div>
+            <h1>🏗️ GU Sanierungsbetrieb</h1>
+            <p id="dash-greeting">Willkommen zurück!</p>
+            <div class="hero-sub" id="dash-date"></div>
+          </div>
         </div>
       </div>
-      <div class="header-actions no-print">
-        <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
-        <button class="btn btn-warning" onclick="exportJSON()">📤 Exportieren</button>
-        <button class="btn btn-warning" onclick="importClick()">📥 Importieren</button>
-        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-        <button class="btn btn-success" onclick="window.print()">🖨️ Drucken / PDF</button>
-        <button class="btn btn-danger" onclick="allesZuruecksetzen()">🗑️ Zurücksetzen</button>
+
+      <div class="dashboard-stats" id="dash-stats">
+        <!-- filled by renderDashboard() -->
       </div>
-    </div>
-  </div>
-</header>
 
-<!-- Tools-Leiste -->
-<div class="tools-banner no-print">
-  <span class="tl-label">🛠️ Tools:</span>
-  <button class="btn btn-teal" onclick="schnellKalkulationModal()">🏠 Schnellkalkulation</button>
-  <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
-  <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
-  <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
-  <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundriss-Editor</button>
-</div>
+      <div class="dash-quick-btns no-print">
+        <button class="btn btn-success" onclick="neueKalkulation()">📋 Neue Kalkulation</button>
+        <button class="btn btn-teal" onclick="showPage('kalkulation'); setTimeout(()=>schnellKalkulationModal(),200)">⚡ Schnellkalkulation</button>
+        <button class="btn btn-info" onclick="showPage('projekte')">📁 Projekte ansehen</button>
+        <button class="btn btn-orange" onclick="showPage('kalkulation'); setTimeout(()=>heizlastModal(),200)">🌡️ Heizlastberechnung</button>
+        <a href="app.html" target="_blank"><button class="btn btn-primary" style="background:#8e44ad;color:#fff">📱 Mitarbeiter-App öffnen</button></a>
+      </div>
 
-<div class="container">
+      <div class="dashboard-grid">
+        <div class="dash-widget">
+          <div class="dash-widget-title">📝 Letzte Angebote</div>
+          <div id="dash-latest-angebote"><p style="color:#999;font-size:12px">Noch keine Angebote gespeichert.</p></div>
+        </div>
+        <div class="dash-widget">
+          <div class="dash-widget-title">📁 Aktive Projekte</div>
+          <div id="dash-latest-projekte"><p style="color:#999;font-size:12px">Noch keine Projekte vorhanden.</p></div>
+        </div>
+        <div class="dash-widget">
+          <div class="dash-widget-title">➕ Offene Nachträge</div>
+          <div id="dash-nachtraege"><p style="color:#999;font-size:12px">Keine offenen Nachträge.</p></div>
+        </div>
+        <div class="dash-widget">
+          <div class="dash-widget-title">📊 Monatsumsatz</div>
+          <div id="dash-umsatz"><p style="color:#999;font-size:12px">Keine abgeschlossenen Angebote.</p></div>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
 
-  <!-- Projektdaten -->
-  <div class="projekt-card" id="projektCard">
-    <h2>📋 Projektdaten</h2>
-    <div class="field">
-      <label>Angebotsnummer</label>
-      <input type="text" id="angebotsNr" placeholder="z.B. 2026-001" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>Datum</label>
-      <input type="date" id="datum" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>Projektname</label>
-      <input type="text" id="projektName" placeholder="z.B. Sanierung Musterstraße 1" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>Kunde / Auftraggeber</label>
-      <input type="text" id="kunde" placeholder="Name oder Firma" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>Adresse / Objekt</label>
-      <input type="text" id="adresse" placeholder="Straße, PLZ Ort" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>Bearbeiter</label>
-      <input type="text" id="bearbeiter" placeholder="Name" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>Standard-Stundensatz (€/h)</label>
-      <input type="number" id="defaultStundensatz" placeholder="z.B. 65" min="0" step="0.01" oninput="autoSave()">
-    </div>
-    <div class="field">
-      <label>MwSt. (%)</label>
-      <input type="number" id="mwstSatz" value="19" min="0" max="100" step="0.01" oninput="refreshZusammenfassung(); autoSave()">
-    </div>
-  </div>
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: KALKULATION
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-kalkulation">
+      <header>
+        <div style="display:flex;flex-direction:column;width:100%">
+          <div class="header-main">
+            <div class="header-left">
+              <button class="mobile-menu-btn no-print" onclick="toggleSidebar()" style="margin-right:10px">☰</button>
+              <span class="logo">🏗️</span>
+              <div>
+                <h1>Kalkulation &amp; Angebote</h1>
+                <div class="header-subtitle">GU Sanierungsbetrieb – Alle Gewerke</div>
+              </div>
+            </div>
+            <div class="header-actions no-print">
+              <button class="btn btn-primary" onclick="speichern()">💾 Speichern</button>
+              <button class="btn btn-success" onclick="angebotAlsDraftSpeichern()">📋 Als Angebot speichern</button>
+              <button class="btn btn-teal" onclick="angebotFreigeben()">✅ Freigeben → Projekt</button>
+              <button class="btn btn-warning" onclick="exportJSON()">📤 Exportieren</button>
+              <button class="btn btn-warning" onclick="importClick()">📥 Importieren</button>
+              <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+              <button class="btn btn-success" onclick="window.print()">🖨️ Drucken / PDF</button>
+              <button class="btn btn-danger" onclick="allesZuruecksetzen()">🗑️ Zurücksetzen</button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-  <!-- Tabs -->
-  <div class="tabs-wrapper">
-    <div class="tab-nav" id="tabNav"></div>
-    <div id="tabContents"></div>
-  </div>
-</div>
+      <!-- Tools-Leiste -->
+      <div class="tools-banner no-print">
+        <span class="tl-label">🛠️ Tools:</span>
+        <button class="btn btn-teal" onclick="schnellKalkulationModal()">🏠 Schnellkalkulation</button>
+        <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
+        <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
+        <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
+        <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundriss-Editor</button>
+      </div>
+
+      <div class="container">
+        <!-- Projektdaten -->
+        <div class="projekt-card" id="projektCard">
+          <h2>📋 Projektdaten</h2>
+          <div class="field">
+            <label>Angebotsnummer</label>
+            <input type="text" id="angebotsNr" placeholder="z.B. 2026-001" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>Datum</label>
+            <input type="date" id="datum" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>Projektname</label>
+            <input type="text" id="projektName" placeholder="z.B. Sanierung Musterstraße 1" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>Kunde / Auftraggeber</label>
+            <input type="text" id="kunde" placeholder="Name oder Firma" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>Adresse / Objekt</label>
+            <input type="text" id="adresse" placeholder="Straße, PLZ Ort" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>Bearbeiter</label>
+            <input type="text" id="bearbeiter" placeholder="Name" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>Standard-Stundensatz (€/h)</label>
+            <input type="number" id="defaultStundensatz" placeholder="z.B. 65" min="0" step="0.01" oninput="autoSave()">
+          </div>
+          <div class="field">
+            <label>MwSt. (%)</label>
+            <input type="number" id="mwstSatz" value="19" min="0" max="100" step="0.01" oninput="refreshZusammenfassung(); autoSave()">
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-wrapper">
+          <div class="tab-nav" id="tabNav"></div>
+          <div id="tabContents"></div>
+        </div>
+      </div>
+    </div><!-- /kalkulation -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: ANGEBOTE IN BEARBEITUNG
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-angebote-draft">
+      <div class="page-topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="mobile-menu-btn no-print" onclick="toggleSidebar()">☰</button>
+          <h2>📝 Angebote – In Bearbeitung</h2>
+        </div>
+        <div class="page-topbar-actions no-print">
+          <button class="btn btn-success btn-sm" onclick="neueKalkulation()">+ Neues Angebot</button>
+        </div>
+      </div>
+      <div class="page-container">
+        <div class="list-filters">
+          <input type="text" id="filter-draft" placeholder="🔍 Suchen…" oninput="renderAngeboteListe('draft')" style="min-width:220px">
+          <select onchange="renderAngeboteListe('draft')" id="sort-draft">
+            <option value="datum-desc">Neueste zuerst</option>
+            <option value="datum-asc">Älteste zuerst</option>
+            <option value="betrag-desc">Betrag ↓</option>
+            <option value="betrag-asc">Betrag ↑</option>
+          </select>
+        </div>
+        <div id="list-angebote-draft">
+          <div class="empty-state"><span class="es-icon">📝</span><p>Noch keine Angebote in Bearbeitung.</p></div>
+        </div>
+      </div>
+    </div><!-- /angebote-draft -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: FERTIGE ANGEBOTE
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-angebote-done">
+      <div class="page-topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="mobile-menu-btn no-print" onclick="toggleSidebar()">☰</button>
+          <h2>✅ Fertige Angebote & Rechnungen</h2>
+        </div>
+        <div class="page-topbar-actions no-print">
+          <select onchange="renderAngeboteListe('done')" id="filter-year-done">
+            <option value="">Alle Jahre</option>
+          </select>
+          <input type="text" id="filter-done" placeholder="🔍 Suchen…" oninput="renderAngeboteListe('done')" style="min-width:200px">
+        </div>
+      </div>
+      <div class="page-container">
+        <div id="list-angebote-done">
+          <div class="empty-state"><span class="es-icon">✅</span><p>Noch keine freigegebenen Angebote.</p></div>
+        </div>
+      </div>
+    </div><!-- /angebote-done -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: RECHNUNGEN
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-rechnungen">
+      <div class="page-topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="mobile-menu-btn no-print" onclick="toggleSidebar()">☰</button>
+          <h2>🧾 Rechnungen</h2>
+        </div>
+        <div class="page-topbar-actions no-print">
+          <button class="btn btn-success btn-sm" onclick="rechnungErstellen()">+ Rechnung erstellen</button>
+        </div>
+      </div>
+      <div class="page-container">
+        <div id="list-rechnungen">
+          <div class="empty-state"><span class="es-icon">🧾</span><p>Noch keine Rechnungen vorhanden. Rechnungen werden aus freigegebenen Angeboten erstellt.</p></div>
+        </div>
+      </div>
+    </div><!-- /rechnungen -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: PROJEKTE
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-projekte">
+      <div class="page-topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="mobile-menu-btn no-print" onclick="toggleSidebar()">☰</button>
+          <h2 id="projekte-page-title">📁 Alle Projekte</h2>
+        </div>
+        <div class="page-topbar-actions no-print" id="projekte-topbar-actions">
+          <input type="text" id="filter-projekte" placeholder="🔍 Suchen…" oninput="renderProjekteListe()" style="min-width:200px;padding:5px 10px;border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.15);color:#fff">
+        </div>
+      </div>
+      <div class="page-container" id="projekte-list-view">
+        <!-- Projekte-Liste -->
+        <div id="list-projekte">
+          <div class="empty-state"><span class="es-icon">📁</span><p>Noch keine Projekte. Ein Projekt wird automatisch erstellt, wenn ein Angebot freigegeben wird.</p></div>
+        </div>
+      </div>
+      <!-- Projekt-Detail (dynamisch eingeblendet) -->
+      <div id="projekt-detail-view" style="display:none"></div>
+    </div><!-- /projekte -->
+
+    <!-- ════════════════════════════════════════════════════════════
+         PAGE: NACHTRÄGE
+    ════════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-nachtraege">
+      <div class="page-topbar">
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="mobile-menu-btn no-print" onclick="toggleSidebar()">☰</button>
+          <h2>➕ Nachträge</h2>
+        </div>
+        <div class="page-topbar-actions no-print">
+          <button class="btn btn-success btn-sm" onclick="neuerNachtrag('kunde')">+ Kunden-Nachtrag</button>
+          <button class="btn btn-warning btn-sm" onclick="neuerNachtrag('mitarbeiter')">+ Mitarbeiter-Nachtrag</button>
+        </div>
+      </div>
+      <div class="page-container">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <h3 style="font-size:13px;font-weight:800;color:#1a3a5c;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">📋 Kunden-Nachträge (direkt beauftragt)</h3>
+            <div id="list-nachtrag-kunde">
+              <div class="empty-state" style="padding:30px"><span class="es-icon" style="font-size:2rem">📋</span><p>Keine Kunden-Nachträge.</p></div>
+            </div>
+          </div>
+          <div>
+            <h3 style="font-size:13px;font-weight:800;color:#856404;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">⏳ Mitarbeiter-Nachträge (Freigabe nötig)</h3>
+            <div id="list-nachtrag-mitarbeiter">
+              <div class="empty-state" style="padding:30px"><span class="es-icon" style="font-size:2rem">⏳</span><p>Keine Mitarbeiter-Nachträge.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /nachtraege -->
+
+  </main><!-- /main-content -->
+</div><!-- /app-shell -->
 
 <div id="toast">✅ Gespeichert</div>
 
@@ -2655,6 +3137,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   renderTabs();
   laden();
+  initApp();
 });
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4076,6 +4559,1098 @@ document.addEventListener('keydown', e => {
     grRender();
   }
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   APP NAVIGATION – Sidebar + Multi-Page Routing
+═══════════════════════════════════════════════════════════════ */
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  document.querySelectorAll(`.nav-item[data-page="${id}"]`).forEach(n => n.classList.add('active'));
+
+  // Lazy-render pages
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'angebote-draft') renderAngeboteListe('draft');
+  if (id === 'angebote-done') { populateYearFilter(); renderAngeboteListe('done'); }
+  if (id === 'rechnungen') renderRechnungen();
+  if (id === 'projekte') renderProjekteListe();
+  if (id === 'nachtraege') renderNachtraege();
+
+  // Close mobile sidebar
+  const sb = document.getElementById('sidebar');
+  if (sb && sb.classList.contains('mobile-open')) toggleSidebar();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  if (!sb) return;
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    sb.classList.toggle('mobile-open');
+    if (ov) ov.classList.toggle('show');
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA LAYER – Angebote, Projekte, Nachträge
+═══════════════════════════════════════════════════════════════ */
+
+function getAngebote() { return JSON.parse(localStorage.getItem('app_angebote') || '[]'); }
+function saveAngebote(arr) { localStorage.setItem('app_angebote', JSON.stringify(arr)); updateBadges(); }
+
+function getProjekte() { return JSON.parse(localStorage.getItem('app_projekte') || '[]'); }
+function saveProjekte(arr) { localStorage.setItem('app_projekte', JSON.stringify(arr)); updateBadges(); }
+
+function getNachtraege() { return JSON.parse(localStorage.getItem('app_nachtraege') || '[]'); }
+function saveNachtraege(arr) { localStorage.setItem('app_nachtraege', JSON.stringify(arr)); updateBadges(); }
+
+function getRechnungen() { return JSON.parse(localStorage.getItem('app_rechnungen') || '[]'); }
+function saveRechnungen(arr) { localStorage.setItem('app_rechnungen', JSON.stringify(arr)); updateBadges(); }
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function updateBadges() {
+  const angebote = getAngebote();
+  const projekte = getProjekte();
+  const nachtraege = getNachtraege();
+  const rechnungen = getRechnungen();
+  const drafts = angebote.filter(a => a.status === 'draft');
+  const done = angebote.filter(a => a.status === 'done');
+  const pending = nachtraege.filter(n => n.status === 'pending');
+  const el = id => document.getElementById(id);
+  const set = (id, n) => { const e = el(id); if (e) { e.textContent = n; e.style.display = n > 0 ? '' : 'none'; } };
+  set('badge-draft', drafts.length);
+  set('badge-done', done.length);
+  set('badge-projekte', projekte.length);
+  set('badge-nachtraege', pending.length);
+  set('badge-rech', rechnungen.length);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANGEBOTE – Speichern / Laden
+═══════════════════════════════════════════════════════════════ */
+
+function getCurrentProjektdaten() {
+  return {
+    angebotsNr: v('angebotsNr'), datum: v('datum'),
+    projektName: v('projektName'), kunde: v('kunde'),
+    adresse: v('adresse'), bearbeiter: v('bearbeiter'),
+    defaultStundensatz: v('defaultStundensatz'), mwstSatz: v('mwstSatz'),
+  };
+}
+
+function calcAngebotsGesamtbrutto() {
+  const mwst = parseFloat(v('mwstSatz')) || 19;
+  const netto = GEWERKE.filter(g => !g.spezial).reduce((s, g) => {
+    return s + (daten.positionen[g.id] || []).reduce((ss, p) => ss + calcGesamtpreis(p), 0);
+  }, 0);
+  return netto * (1 + mwst / 100);
+}
+
+function angebotAlsDraftSpeichern() {
+  const pd = getCurrentProjektdaten();
+  if (!pd.projektName && !pd.kunde) {
+    alert('Bitte mindestens Projektname oder Kunde eingeben.');
+    return;
+  }
+  const angebote = getAngebote();
+  // Check if we have an existing draft with same angebotsNr
+  const existingIdx = pd.angebotsNr ? angebote.findIndex(a => a.projekt.angebotsNr === pd.angebotsNr && a.status === 'draft') : -1;
+
+  const entry = {
+    id: existingIdx >= 0 ? angebote[existingIdx].id : genId(),
+    status: 'draft',
+    projekt: pd,
+    daten: JSON.parse(JSON.stringify(daten)),
+    gesamtBrutto: calcAngebotsGesamtbrutto(),
+    gespeichertAm: new Date().toISOString(),
+    erstelltAm: existingIdx >= 0 ? angebote[existingIdx].erstelltAm : new Date().toISOString(),
+  };
+
+  if (existingIdx >= 0) angebote[existingIdx] = entry;
+  else angebote.unshift(entry);
+  saveAngebote(angebote);
+  speichern();
+  showToast('📋 Als Angebot (In Bearbeitung) gespeichert');
+}
+
+function angebotFreigeben() {
+  const pd = getCurrentProjektdaten();
+  if (!pd.projektName) { alert('Bitte Projektname eingeben.'); return; }
+  if (!confirm(`Angebot "${pd.projektName}" freigeben und als Projekt anlegen?`)) return;
+
+  const angebote = getAngebote();
+  // Remove existing drafts with same nr
+  const filtered = pd.angebotsNr ? angebote.filter(a => !(a.projekt.angebotsNr === pd.angebotsNr && a.status === 'draft')) : [...angebote];
+
+  const angebotsId = genId();
+  const datenSnap = JSON.parse(JSON.stringify(daten));
+  const entry = {
+    id: angebotsId, status: 'done',
+    projekt: pd,
+    daten: datenSnap,
+    gesamtBrutto: calcAngebotsGesamtbrutto(),
+    freigegebenAm: new Date().toISOString(),
+    erstelltAm: new Date().toISOString(),
+  };
+  filtered.unshift(entry);
+  saveAngebote(filtered);
+
+  // Create project
+  const proj = erstelleProjektAusAngebot(entry);
+  const projekte = getProjekte();
+  projekte.unshift(proj);
+  saveProjekte(projekte);
+
+  speichern();
+  showToast(`✅ Freigegeben! Projekt "${pd.projektName}" wurde erstellt.`);
+  showPage('projekte');
+  setTimeout(() => openProjektDetail(proj.id), 300);
+}
+
+function loadAngebotInKalkulation(id) {
+  const angebote = getAngebote();
+  const a = angebote.find(x => x.id === id);
+  if (!a) return;
+  // Set project fields
+  Object.keys(a.projekt).forEach(k => { const el = document.getElementById(k); if (el) el.value = a.projekt[k] || ''; });
+  // Load positions
+  if (a.daten?.positionen) {
+    Object.keys(a.daten.positionen).forEach(k => {
+      if (daten.positionen[k] !== undefined) {
+        daten.positionen[k] = a.daten.positionen[k];
+        daten.positionen[k].forEach(p => { if (p.id > posIdCounter) posIdCounter = p.id; });
+      }
+    });
+  }
+  if (a.daten?.notizen) daten.notizen = { ...daten.notizen, ...a.daten.notizen };
+  GEWERKE.filter(g => !g.spezial).forEach(g => {
+    renderPositionen(g.id);
+    const notizEl = document.getElementById('notiz-' + g.id);
+    if (notizEl) notizEl.value = daten.notizen[g.id] || '';
+  });
+  refreshZusammenfassung();
+  speichern();
+  showPage('kalkulation');
+  showToast('📥 Angebot geladen');
+}
+
+function deleteAngebot(id) {
+  if (!confirm('Angebot löschen?')) return;
+  const arr = getAngebote().filter(a => a.id !== id);
+  saveAngebote(arr);
+  renderAngeboteListe('draft');
+  renderAngeboteListe('done');
+  renderDashboard();
+  showToast('🗑️ Angebot gelöscht');
+}
+
+function neueKalkulation() {
+  if (!confirm('Neue Kalkulation starten? Aktuelle nicht gespeicherte Daten gehen verloren.')) return;
+  // Clear all positions
+  GEWERKE.filter(g => !g.spezial).forEach(g => { daten.positionen[g.id] = []; });
+  daten.notizen = {};
+  ['angebotsNr','datum','projektName','kunde','adresse','bearbeiter'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('datum').value = new Date().toISOString().split('T')[0];
+  document.getElementById('defaultStundensatz').value = 65;
+  document.getElementById('mwstSatz').value = 19;
+  GEWERKE.filter(g => !g.spezial).forEach(g => renderPositionen(g.id));
+  refreshZusammenfassung();
+  showPage('kalkulation');
+  showToast('📋 Neue Kalkulation gestartet');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANGEBOTE – Liste rendern
+═══════════════════════════════════════════════════════════════ */
+
+function renderAngeboteListe(type) {
+  const containerId = type === 'draft' ? 'list-angebote-draft' : 'list-angebote-done';
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  let arr = getAngebote().filter(a => a.status === (type === 'draft' ? 'draft' : 'done'));
+
+  // Filter
+  const searchId = type === 'draft' ? 'filter-draft' : 'filter-done';
+  const q = (document.getElementById(searchId)?.value || '').toLowerCase();
+  if (q) arr = arr.filter(a =>
+    (a.projekt.projektName || '').toLowerCase().includes(q) ||
+    (a.projekt.kunde || '').toLowerCase().includes(q) ||
+    (a.projekt.angebotsNr || '').toLowerCase().includes(q)
+  );
+
+  // Year filter
+  if (type === 'done') {
+    const yr = document.getElementById('filter-year-done')?.value;
+    if (yr) arr = arr.filter(a => (a.freigegebenAm || a.erstelltAm || '').startsWith(yr));
+  }
+
+  // Sort
+  const sortId = type === 'draft' ? 'sort-draft' : null;
+  const sort = sortId ? (document.getElementById(sortId)?.value || 'datum-desc') : 'datum-desc';
+  arr.sort((a, b) => {
+    const da = new Date(a.gespeichertAm || a.erstelltAm || 0);
+    const db = new Date(b.gespeichertAm || b.erstelltAm || 0);
+    if (sort === 'datum-desc') return db - da;
+    if (sort === 'datum-asc')  return da - db;
+    if (sort === 'betrag-desc') return (b.gesamtBrutto || 0) - (a.gesamtBrutto || 0);
+    if (sort === 'betrag-asc')  return (a.gesamtBrutto || 0) - (b.gesamtBrutto || 0);
+    return db - da;
+  });
+
+  if (!arr.length) {
+    container.innerHTML = `<div class="empty-state"><span class="es-icon">${type==='draft'?'📝':'✅'}</span><p>${type==='draft'?'Keine Angebote in Bearbeitung.':'Keine freigegebenen Angebote.'}</p></div>`;
+    return;
+  }
+
+  // Group done-angebote by year
+  if (type === 'done') {
+    const byYear = {};
+    arr.forEach(a => {
+      const yr = (a.freigegebenAm || a.erstelltAm || '').slice(0, 4) || 'Unbekannt';
+      if (!byYear[yr]) byYear[yr] = [];
+      byYear[yr].push(a);
+    });
+    let html = '';
+    Object.keys(byYear).sort((a,b) => b-a).forEach(yr => {
+      const total = byYear[yr].reduce((s, a) => s + (a.gesamtBrutto || 0), 0);
+      html += `<div style="margin-bottom:18px">
+        <div style="font-size:11.5px;font-weight:800;color:#1a3a5c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;padding:5px 10px;background:#eef2fa;border-radius:6px;display:flex;justify-content:space-between">
+          <span>📅 ${yr}</span><span>Gesamt: ${total.toLocaleString('de-DE',{maximumFractionDigits:0})} € brutto</span>
+        </div>`;
+      byYear[yr].forEach(a => { html += angebotCardHtml(a, type); });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  } else {
+    container.innerHTML = arr.map(a => angebotCardHtml(a, type)).join('');
+  }
+}
+
+function angebotCardHtml(a, type) {
+  const datum = a.freigegebenAm || a.gespeichertAm || a.erstelltAm || '';
+  const dateStr = datum ? new Date(datum).toLocaleDateString('de-DE') : '–';
+  const betrag = (a.gesamtBrutto || 0).toLocaleString('de-DE', { maximumFractionDigits: 0 });
+  return `<div class="list-card">
+    <div class="list-card-main">
+      <div class="list-card-title">${esc(a.projekt.projektName || 'Unbenanntes Angebot')}</div>
+      <div class="list-card-sub">${esc(a.projekt.kunde || '')} · ${esc(a.projekt.adresse || '')}</div>
+      <div class="list-card-meta">
+        <span class="list-card-badge ${type==='draft'?'badge-draft':'badge-done'}">${type==='draft'?'In Bearbeitung':'Freigegeben'}</span>
+        <span style="font-size:11px;color:#888">${a.projekt.angebotsNr ? '#'+a.projekt.angebotsNr : ''}</span>
+        <span style="font-size:11px;color:#888">📅 ${dateStr}</span>
+      </div>
+    </div>
+    <div class="list-card-actions">
+      <span class="list-card-betrag">${betrag} €</span>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-primary btn-sm" onclick="loadAngebotInKalkulation('${a.id}')">✏️ Bearbeiten</button>
+        ${type === 'draft' ? `<button class="btn btn-success btn-sm" onclick="angebotFreigebenById('${a.id}')">✅ Freigeben</button>` : ''}
+        ${type === 'done' ? `<button class="btn btn-info btn-sm" onclick="rechnungAusAngebot('${a.id}')">🧾 Rechnung</button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteAngebot('${a.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function angebotFreigebenById(id) {
+  const angebote = getAngebote();
+  const a = angebote.find(x => x.id === id);
+  if (!a) return;
+  if (!confirm(`Angebot "${a.projekt.projektName}" freigeben und Projekt erstellen?`)) return;
+  a.status = 'done';
+  a.freigegebenAm = new Date().toISOString();
+  saveAngebote(angebote);
+  const proj = erstelleProjektAusAngebot(a);
+  const projekte = getProjekte();
+  projekte.unshift(proj);
+  saveProjekte(projekte);
+  renderAngeboteListe('draft');
+  renderAngeboteListe('done');
+  renderDashboard();
+  showToast(`✅ Freigegeben! Projekt "${a.projekt.projektName}" erstellt.`);
+}
+
+function populateYearFilter() {
+  const sel = document.getElementById('filter-year-done');
+  if (!sel) return;
+  const arr = getAngebote().filter(a => a.status === 'done');
+  const years = [...new Set(arr.map(a => (a.freigegebenAm || a.erstelltAm || '').slice(0,4)).filter(Boolean))].sort((a,b) => b-a);
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Alle Jahre</option>' + years.map(y => `<option value="${y}" ${y===current?'selected':''}>${y}</option>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJEKTE – Erstellen aus Angebot
+═══════════════════════════════════════════════════════════════ */
+
+function erstelleProjektAusAngebot(angebot) {
+  const gewerke = {};
+  GEWERKE.filter(g => !g.spezial).forEach(g => {
+    const positionen = (angebot.daten?.positionen?.[g.id] || []).map(p => ({
+      ...p,
+      erledigt: false,
+      erledigtMenge: 0,
+      erledigtAm: null,
+      erledigtVon: '',
+    }));
+    if (positionen.length > 0) {
+      gewerke[g.id] = {
+        label: g.label,
+        positionen,
+        fortschritt: 0,
+      };
+    }
+  });
+
+  const gesamtPositionen = Object.values(gewerke).reduce((s, g) => s + g.positionen.length, 0);
+
+  return {
+    id: genId(),
+    angebotsId: angebot.id,
+    name: angebot.projekt.projektName || 'Projekt',
+    kunde: angebot.projekt.kunde || '',
+    adresse: angebot.projekt.adresse || '',
+    angebotsNr: angebot.projekt.angebotsNr || '',
+    erstelltAm: new Date().toISOString(),
+    status: 'aktiv',
+    gewerke,
+    gesamtPositionen,
+    gesamtFortschritt: 0,
+    notizen: [],
+    nachtraege: [],
+    bilder: [],
+  };
+}
+
+function calcProjektFortschritt(proj) {
+  let total = 0, done = 0;
+  Object.values(proj.gewerke || {}).forEach(g => {
+    g.positionen.forEach(p => {
+      total++;
+      if (p.erledigt) done++;
+    });
+  });
+  proj.gesamtFortschritt = total > 0 ? Math.round(done / total * 100) : 0;
+  Object.values(proj.gewerke || {}).forEach(g => {
+    let gt = g.positionen.length, gd = g.positionen.filter(p => p.erledigt).length;
+    g.fortschritt = gt > 0 ? Math.round(gd / gt * 100) : 0;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJEKTE – Liste rendern
+═══════════════════════════════════════════════════════════════ */
+
+function renderProjekteListe() {
+  const container = document.getElementById('list-projekte');
+  if (!container) return;
+  document.getElementById('projekt-detail-view').style.display = 'none';
+  document.getElementById('projekte-list-view').style.display = 'block';
+  document.getElementById('projekte-page-title').textContent = '📁 Alle Projekte';
+  document.getElementById('projekte-topbar-actions').innerHTML = `
+    <input type="text" id="filter-projekte" placeholder="🔍 Suchen…"
+      oninput="renderProjekteListe()"
+      style="min-width:200px;padding:5px 10px;border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.15);color:#fff">`;
+
+  let arr = getProjekte();
+  const q = (document.getElementById('filter-projekte')?.value || '').toLowerCase();
+  if (q) arr = arr.filter(p => (p.name||'').toLowerCase().includes(q) || (p.kunde||'').toLowerCase().includes(q));
+
+  if (!arr.length) {
+    container.innerHTML = `<div class="empty-state"><span class="es-icon">📁</span><p>Noch keine Projekte. Gib ein Angebot frei, um automatisch ein Projekt zu erstellen.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = arr.map(proj => {
+    calcProjektFortschritt(proj);
+    const pct = proj.gesamtFortschritt || 0;
+    const barColor = pct >= 100 ? '#27ae60' : pct >= 50 ? '#2e6da4' : '#e67e22';
+    const datum = proj.erstelltAm ? new Date(proj.erstelltAm).toLocaleDateString('de-DE') : '';
+    const statusBadge = `<span class="list-card-badge badge-${proj.status}">${proj.status}</span>`;
+    const gewerkCount = Object.keys(proj.gewerke || {}).length;
+    return `<div class="list-card">
+      <div class="list-card-main">
+        <div class="list-card-title">${esc(proj.name)}</div>
+        <div class="list-card-sub">${esc(proj.kunde)} · ${esc(proj.adresse)}</div>
+        <div class="list-card-meta">
+          ${statusBadge}
+          <span style="font-size:11px;color:#888">📅 ${datum}</span>
+          <span style="font-size:11px;color:#888">${gewerkCount} Gewerke · ${proj.gesamtPositionen || 0} Pos.</span>
+        </div>
+        <div style="margin-top:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:3px">
+            <span>Fortschritt gesamt</span><span><b>${pct}%</b></span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar ${pct>=100?'done':pct>=50?'':''}" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+        </div>
+      </div>
+      <div class="list-card-actions">
+        <button class="btn btn-primary btn-sm" onclick="openProjektDetail('${proj.id}')">📂 Öffnen</button>
+        <button class="btn btn-warning btn-sm" onclick="projektStatusToggle('${proj.id}')">⏸️ Pausieren</button>
+        <button class="btn btn-success btn-sm" onclick="exportProjektJSON('${proj.id}')">📤 Export</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Save updated fortschritt back
+  saveProjekte(arr);
+}
+
+function projektStatusToggle(id) {
+  const arr = getProjekte();
+  const p = arr.find(x => x.id === id);
+  if (!p) return;
+  const statuses = ['aktiv', 'pausiert', 'abgeschlossen'];
+  p.status = statuses[(statuses.indexOf(p.status) + 1) % statuses.length];
+  saveProjekte(arr);
+  renderProjekteListe();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJEKT DETAIL
+═══════════════════════════════════════════════════════════════ */
+
+function openProjektDetail(id) {
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === id);
+  if (!proj) return;
+  calcProjektFortschritt(proj);
+  saveProjekte(arr);
+
+  document.getElementById('projekte-list-view').style.display = 'none';
+  document.getElementById('projekt-detail-view').style.display = 'block';
+  document.getElementById('projekte-page-title').textContent = '📂 ' + proj.name;
+  document.getElementById('projekte-topbar-actions').innerHTML = `
+    <button class="btn btn-primary btn-sm" onclick="renderProjekteListe()">← Zurück</button>
+    <button class="btn btn-warning btn-sm" onclick="exportProjektJSON('${proj.id}')">📤 Export</button>
+    <button class="btn btn-success btn-sm" onclick="exportMaterialliste('${proj.id}')">📦 Materialliste</button>
+    <button class="btn btn-teal btn-sm" onclick="openProjektNotizModal('${proj.id}')">📝 Notiz</button>
+  `;
+
+  const pct = proj.gesamtFortschritt || 0;
+  const pctStyle = `--pct:${pct}%`;
+
+  const gewerkeHtml = Object.entries(proj.gewerke || {}).map(([gId, g]) => {
+    const gPct = g.fortschritt || 0;
+    const posHtml = g.positionen.map(pos => {
+      const menge = pos.menge ? `${pos.menge} ${pos.einheit}` : '';
+      return `<div class="pos-row" id="posrow-${proj.id}-${gId}-${pos.id}">
+        <input type="checkbox" class="pos-row-check"
+          ${pos.erledigt ? 'checked' : ''}
+          onchange="togglePosErledigt('${proj.id}','${gId}',${pos.id},this.checked)">
+        <span class="pos-row-desc ${pos.erledigt ? 'pos-row-done' : ''}">${esc(pos.pos ? pos.pos+' · ' : '')}${esc(pos.beschreibung || '')}</span>
+        <span class="pos-row-qty">${menge}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="gewerk-progress-card">
+      <div class="gpc-header" onclick="this.nextElementSibling.nextElementSibling.classList.toggle('open')">
+        <div class="gpc-title">${esc(g.label)} <span style="font-weight:400;font-size:11px;color:#aaa">(${g.positionen.filter(p=>p.erledigt).length}/${g.positionen.length})</span></div>
+        <div class="gpc-pct">${gPct}% ▾</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar ${gPct>=100?'done':''}" style="width:${gPct}%"></div>
+      </div>
+      <div class="gpc-positions">${posHtml}</div>
+    </div>`;
+  }).join('');
+
+  const notizenHtml = (proj.notizen || []).length
+    ? (proj.notizen || []).map((n, i) => `
+        <div style="padding:7px 10px;background:#f7f9fc;border-radius:6px;margin-bottom:6px;font-size:12.5px;display:flex;gap:8px;align-items:flex-start">
+          <div style="flex:1"><span style="font-size:10px;color:#aaa">${new Date(n.datum).toLocaleDateString('de-DE')}</span><br>${esc(n.text)}</div>
+          <button class="btn btn-danger btn-sm" onclick="deleteNotizProjekt('${proj.id}',${i})">🗑️</button>
+        </div>`).join('')
+    : '<p style="color:#aaa;font-size:12px">Keine Notizen.</p>';
+
+  document.getElementById('projekt-detail-view').innerHTML = `
+    <div class="projekt-detail-header">
+      <h2>${esc(proj.name)}</h2>
+      <div class="pdh-meta">
+        👤 ${esc(proj.kunde)} · 📍 ${esc(proj.adresse)}
+        ${proj.angebotsNr ? ' · Angebots-Nr.: ' + esc(proj.angebotsNr) : ''}
+        · Erstellt: ${new Date(proj.erstelltAm).toLocaleDateString('de-DE')}
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;margin-top:16px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div class="gesamtfortschritt-ring" style="${pctStyle}">
+            <span class="gesamtfortschritt-pct">${pct}%</span>
+          </div>
+          <div style="font-size:11px;margin-top:6px;opacity:.8">Gesamtfortschritt</div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          ${Object.entries(proj.gewerke || {}).map(([gId, g]) => `
+            <div style="margin-bottom:7px">
+              <div style="display:flex;justify-content:space-between;font-size:11.5px;color:rgba(255,255,255,.8);margin-bottom:2px">
+                <span>${esc(g.label)}</span><span>${g.fortschritt||0}%</span>
+              </div>
+              <div class="progress-bar-wrap" style="background:rgba(255,255,255,.2)">
+                <div class="progress-bar ${(g.fortschritt||0)>=100?'done':''}" style="width:${g.fortschritt||0}%"></div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="page-container">
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start">
+        <div>
+          <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#1a3a5c;margin-bottom:10px">⚙️ Fortschritt nach Gewerk</div>
+          ${gewerkeHtml}
+        </div>
+        <div>
+          <div style="background:#fff;border-radius:10px;padding:14px 18px;box-shadow:0 1px 5px rgba(0,0,0,.1);margin-bottom:12px">
+            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#1a3a5c;margin-bottom:10px">📝 Notizen & Hinweise</div>
+            <div id="projekt-notizen-${proj.id}">${notizenHtml}</div>
+            <div style="display:flex;gap:6px;margin-top:10px">
+              <textarea id="notiz-input-${proj.id}" placeholder="Neue Notiz…" rows="2"
+                style="flex:1;padding:7px 10px;border:1.5px solid #d0d7e2;border-radius:7px;font-size:13px;resize:none"></textarea>
+              <button class="btn btn-success btn-sm" onclick="addNotizProjekt('${proj.id}')">+</button>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:10px;padding:14px 18px;box-shadow:0 1px 5px rgba(0,0,0,.1)">
+            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#1a3a5c;margin-bottom:10px">➕ Nachträge zum Projekt</div>
+            <div id="projekt-nachtraege-${proj.id}">
+              ${(proj.nachtraege||[]).length ? proj.nachtraege.map((n,i)=>`
+                <div class="nachtrag-card ${n.status}" style="margin-bottom:6px">
+                  <div class="nachtrag-title">${esc(n.titel)}</div>
+                  <div class="nachtrag-meta">${n.quelle==='kunde'?'📋 Kunde':'👷 Mitarbeiter'} · ${n.status} · ${esc(n.betrag?n.betrag+' €':'')}</div>
+                </div>`).join('')
+              : '<p style="color:#aaa;font-size:12px">Keine Projekt-Nachträge.</p>'}
+            </div>
+            <button class="btn btn-warning btn-sm" style="margin-top:8px" onclick="neuerNachtragFuerProjekt('${proj.id}')">+ Nachtrag hinzufügen</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function togglePosErledigt(projektId, gewerkId, posId, erledigt) {
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj) return;
+  const pos = proj.gewerke[gewerkId]?.positionen.find(p => p.id == posId);
+  if (!pos) return;
+  pos.erledigt = erledigt;
+  pos.erledigtAm = erledigt ? new Date().toISOString() : null;
+  calcProjektFortschritt(proj);
+  saveProjekte(arr);
+  // Update the row visually
+  const row = document.getElementById(`posrow-${projektId}-${gewerkId}-${posId}`);
+  if (row) {
+    const desc = row.querySelector('.pos-row-desc');
+    if (desc) desc.classList.toggle('pos-row-done', erledigt);
+  }
+  // Update header % display
+  openProjektDetail(projektId);
+}
+
+function addNotizProjekt(projektId) {
+  const inp = document.getElementById('notiz-input-' + projektId);
+  if (!inp || !inp.value.trim()) return;
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj) return;
+  proj.notizen = proj.notizen || [];
+  proj.notizen.push({ text: inp.value.trim(), datum: new Date().toISOString() });
+  saveProjekte(arr);
+  inp.value = '';
+  openProjektDetail(projektId);
+  showToast('📝 Notiz gespeichert');
+}
+
+function deleteNotizProjekt(projektId, idx) {
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj || !proj.notizen) return;
+  proj.notizen.splice(idx, 1);
+  saveProjekte(arr);
+  openProjektDetail(projektId);
+}
+
+function neuerNachtragFuerProjekt(projektId) {
+  const titel = prompt('Nachtrag-Bezeichnung:');
+  if (!titel) return;
+  const quelle = confirm('Vom Kunden direkt beauftragt? (OK=Kunde, Abbrechen=Mitarbeiter)') ? 'kunde' : 'mitarbeiter';
+  const betrag = prompt('Betrag (netto, ohne €):') || '';
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj) return;
+  proj.nachtraege = proj.nachtraege || [];
+  proj.nachtraege.push({
+    id: genId(), titel, quelle,
+    betrag: parseFloat(betrag) || 0,
+    status: quelle === 'kunde' ? 'approved' : 'pending',
+    datum: new Date().toISOString(),
+  });
+  saveProjekte(arr);
+  openProjektDetail(projektId);
+  showToast('➕ Nachtrag hinzugefügt');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MATERIALLISTE
+═══════════════════════════════════════════════════════════════ */
+
+function exportMaterialliste(projektId) {
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj) return;
+
+  let html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
+    <title>Materialliste – ${esc(proj.name)}</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 12px; color: #222; padding: 20px; }
+      h1 { font-size: 16px; color: #1a3a5c; border-bottom: 2px solid #2e6da4; padding-bottom: 6px; }
+      h2 { font-size: 13px; color: #2e6da4; margin: 16px 0 6px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+      th { background: #1a3a5c; color: #fff; padding: 6px 8px; text-align: left; font-size: 11px; }
+      td { padding: 5px 8px; border-bottom: 1px solid #e0e6f0; }
+      tr:nth-child(even) td { background: #f7f9fc; }
+      .total { font-weight: 700; color: #1a3a5c; }
+      @media print { body { padding: 0; } button { display: none; } }
+    </style>
+  </head><body>
+  <button onclick="window.print()" style="margin-bottom:14px;padding:7px 16px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">🖨️ Drucken</button>
+  <h1>📦 Materialliste – ${esc(proj.name)}</h1>
+  <p style="color:#666;font-size:11px">Kunde: ${esc(proj.kunde)} · ${esc(proj.adresse)} · Erstellt: ${new Date().toLocaleDateString('de-DE')}</p>`;
+
+  let grandTotal = 0;
+  Object.entries(proj.gewerke || {}).forEach(([gId, g]) => {
+    if (!g.positionen.length) return;
+    const subtotal = g.positionen.reduce((s, p) => s + (p.menge||0)*(p.materialpreis||0), 0);
+    grandTotal += subtotal;
+    html += `<h2>${esc(g.label)}</h2>
+    <table>
+      <tr><th>Pos.</th><th>Beschreibung</th><th>Menge</th><th>Einheit</th><th>Mat.-Preis €</th><th>Gesamt €</th><th>✓</th></tr>
+      ${g.positionen.map(p => `<tr>
+        <td>${esc(p.pos||'')}</td>
+        <td>${esc(p.beschreibung||'')}</td>
+        <td>${p.menge||''}</td>
+        <td>${esc(p.einheit||'')}</td>
+        <td>${(p.materialpreis||0).toLocaleString('de-DE',{minimumFractionDigits:2})}</td>
+        <td>${((p.menge||0)*(p.materialpreis||0)).toLocaleString('de-DE',{minimumFractionDigits:2})}</td>
+        <td style="text-align:center">${p.erledigt?'✅':''}</td>
+      </tr>`).join('')}
+      <tr><td colspan="5" style="text-align:right;font-weight:700">Summe ${esc(g.label)}:</td>
+        <td class="total">${subtotal.toLocaleString('de-DE',{minimumFractionDigits:2})} €</td><td></td></tr>
+    </table>`;
+  });
+
+  html += `<div style="margin-top:16px;padding:12px 18px;background:#1a3a5c;color:#fff;border-radius:8px;font-size:14px;font-weight:700">
+    Materialkosten gesamt (netto): ${grandTotal.toLocaleString('de-DE',{minimumFractionDigits:2})} €
+  </div></body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+function exportProjektJSON(projektId) {
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj) return;
+  const blob = new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Projekt_${proj.name.replace(/[^\w]/g,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NACHTRÄGE
+═══════════════════════════════════════════════════════════════ */
+
+function renderNachtraege() {
+  const arr = getNachtraege();
+  const kundeArr = arr.filter(n => n.quelle === 'kunde');
+  const mitarb = arr.filter(n => n.quelle === 'mitarbeiter');
+
+  const renderList = (list, containerId) => {
+    const c = document.getElementById(containerId);
+    if (!c) return;
+    if (!list.length) {
+      c.innerHTML = `<div class="empty-state" style="padding:24px"><span class="es-icon" style="font-size:1.8rem">${containerId.includes('kunde')?'📋':'⏳'}</span><p>Keine Einträge.</p></div>`;
+      return;
+    }
+    c.innerHTML = list.map(n => {
+      const statusColor = n.status === 'approved' ? '#27ae60' : n.status === 'rejected' ? '#e74c3c' : '#f39c12';
+      const statusLabel = n.status === 'approved' ? '✅ Genehmigt' : n.status === 'rejected' ? '❌ Abgelehnt' : '⏳ Offen';
+      return `<div class="nachtrag-card ${n.status}">
+        <div class="nachtrag-header">
+          <div>
+            <div class="nachtrag-title">${esc(n.titel)}</div>
+            <div class="nachtrag-meta">
+              ${esc(n.projektName||'–')} · ${new Date(n.datum).toLocaleDateString('de-DE')}
+              · ${n.betrag ? n.betrag.toLocaleString('de-DE',{minimumFractionDigits:2})+' €' : 'kein Betrag'}
+            </div>
+            ${n.beschreibung ? `<div style="font-size:11.5px;color:#444;margin-top:4px">${esc(n.beschreibung)}</div>` : ''}
+          </div>
+          <div class="nachtrag-actions">
+            <span style="font-size:11px;font-weight:700;color:${statusColor};white-space:nowrap">${statusLabel}</span>
+            ${n.status === 'pending' ? `
+              <button class="btn btn-success btn-sm" onclick="nachtragGenehmigen('${n.id}')">✅</button>
+              <button class="btn btn-danger btn-sm" onclick="nachtragAblehnen('${n.id}')">❌</button>` : ''}
+            <button class="btn btn-primary btn-sm" onclick="nachtragInKalkulation('${n.id}')">📋 Kalk.</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteNachtrag('${n.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  renderList(kundeArr, 'list-nachtrag-kunde');
+  renderList(mitarb, 'list-nachtrag-mitarbeiter');
+}
+
+function neuerNachtrag(quelle) {
+  const projekte = getProjekte();
+  const projOpts = projekte.length
+    ? projekte.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')
+    : '<option value="">Kein Projekt</option>';
+
+  const m = document.createElement('div');
+  m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-header">
+        <h3>${quelle==='kunde'?'📋 Kunden-Nachtrag':'⏳ Mitarbeiter-Nachtrag'}</h3>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wiz-field" style="margin-bottom:12px">
+          <label>Projekt zuordnen</label>
+          <select id="nt-projekt">${projOpts}</select>
+        </div>
+        <div class="wiz-field" style="margin-bottom:12px">
+          <label>Bezeichnung *</label>
+          <input type="text" id="nt-titel" placeholder="z.B. Zusätzliche Steckdose WZ">
+        </div>
+        <div class="wiz-field" style="margin-bottom:12px">
+          <label>Beschreibung</label>
+          <textarea id="nt-beschreibung" rows="3" style="width:100%;padding:7px 10px;border:1.5px solid #d0d7e2;border-radius:7px;font-size:13px;resize:none" placeholder="Details…"></textarea>
+        </div>
+        <div class="wiz-grid" style="grid-template-columns:1fr 1fr">
+          <div class="wiz-field">
+            <label>Gewerk</label>
+            <select id="nt-gewerk">
+              ${GEWERKE.filter(g=>!g.spezial).map(g=>`<option value="${g.id}">${g.label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="wiz-field">
+            <label>Betrag netto (€)</label>
+            <input type="number" id="nt-betrag" placeholder="0.00" step="0.01">
+          </div>
+        </div>
+        ${quelle === 'mitarbeiter' ? `<div class="wiz-info" style="margin-top:12px">⏳ Mitarbeiter-Nachträge müssen erst genehmigt werden.</div>` : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" onclick="this.closest('.modal-overlay').remove()">Abbrechen</button>
+        <button class="btn btn-success btn-sm" onclick="speicherNachtrag('${quelle}',this)">Speichern</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+}
+
+function speicherNachtrag(quelle, btn) {
+  const titel = document.getElementById('nt-titel').value.trim();
+  if (!titel) { alert('Bitte Bezeichnung eingeben.'); return; }
+  const projektId = document.getElementById('nt-projekt').value;
+  const projekte = getProjekte();
+  const proj = projekte.find(p => p.id === projektId);
+  const arr = getNachtraege();
+  arr.unshift({
+    id: genId(),
+    quelle,
+    titel,
+    beschreibung: document.getElementById('nt-beschreibung').value.trim(),
+    gewerk: document.getElementById('nt-gewerk').value,
+    betrag: parseFloat(document.getElementById('nt-betrag').value) || 0,
+    projektId,
+    projektName: proj?.name || '',
+    status: quelle === 'kunde' ? 'approved' : 'pending',
+    datum: new Date().toISOString(),
+  });
+  saveNachtraege(arr);
+  btn.closest('.modal-overlay').remove();
+  renderNachtraege();
+  showToast('➕ Nachtrag gespeichert');
+}
+
+function nachtragGenehmigen(id) {
+  const arr = getNachtraege();
+  const n = arr.find(x => x.id === id);
+  if (!n) return;
+  n.status = 'approved';
+  saveNachtraege(arr);
+  renderNachtraege();
+  showToast('✅ Nachtrag genehmigt');
+}
+
+function nachtragAblehnen(id) {
+  const arr = getNachtraege();
+  const n = arr.find(x => x.id === id);
+  if (!n) return;
+  n.status = 'rejected';
+  saveNachtraege(arr);
+  renderNachtraege();
+  showToast('❌ Nachtrag abgelehnt');
+}
+
+function nachtragInKalkulation(id) {
+  const arr = getNachtraege();
+  const n = arr.find(x => x.id === id);
+  if (!n) return;
+  const gId = n.gewerk || 'elektro';
+  if (!daten.positionen[gId]) { alert('Gewerk nicht gefunden.'); return; }
+  daten.positionen[gId].push({
+    id: ++posIdCounter,
+    pos: 'NT', beschreibung: `[Nachtrag] ${n.titel}${n.beschreibung?' – '+n.beschreibung:''}`,
+    einheit: 'Pauschal', menge: 1,
+    materialpreis: n.betrag || 0,
+    stundensatz: 65, stunden: 0,
+  });
+  renderPositionen(gId);
+  autoSave();
+  showPage('kalkulation');
+  showToast('📋 Nachtrag in Kalkulation übernommen');
+}
+
+function deleteNachtrag(id) {
+  if (!confirm('Nachtrag löschen?')) return;
+  saveNachtraege(getNachtraege().filter(n => n.id !== id));
+  renderNachtraege();
+  showToast('🗑️ Nachtrag gelöscht');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RECHNUNGEN
+═══════════════════════════════════════════════════════════════ */
+
+function rechnungAusAngebot(angebotId) {
+  const angebote = getAngebote();
+  const a = angebote.find(x => x.id === angebotId);
+  if (!a) return;
+  const rechnungen = getRechnungen();
+  const nr = 'RE-' + new Date().getFullYear() + '-' + String(rechnungen.length + 1).padStart(3, '0');
+  const rechnung = {
+    id: genId(),
+    nr,
+    angebotsId: angebotId,
+    projekt: a.projekt,
+    daten: a.daten,
+    gesamtBrutto: a.gesamtBrutto,
+    erstelltAm: new Date().toISOString(),
+    status: 'offen',
+  };
+  rechnungen.unshift(rechnung);
+  saveRechnungen(rechnungen);
+  showToast(`🧾 Rechnung ${nr} erstellt`);
+  showPage('rechnungen');
+}
+
+function rechnungErstellen() {
+  const pd = getCurrentProjektdaten();
+  if (!pd.projektName) { alert('Bitte erst ein Angebot laden oder Projektdaten eingeben.'); return; }
+  rechnungAusAngebot(genId()); // simplified
+}
+
+function renderRechnungen() {
+  const container = document.getElementById('list-rechnungen');
+  if (!container) return;
+  const arr = getRechnungen();
+  if (!arr.length) {
+    container.innerHTML = `<div class="empty-state"><span class="es-icon">🧾</span><p>Noch keine Rechnungen. Rechnungen werden aus freigegebenen Angeboten erstellt.</p></div>`;
+    return;
+  }
+  container.innerHTML = arr.map(r => `
+    <div class="list-card">
+      <div class="list-card-main">
+        <div class="list-card-title">${esc(r.nr)} – ${esc(r.projekt?.projektName||'')}</div>
+        <div class="list-card-sub">${esc(r.projekt?.kunde||'')} · ${esc(r.projekt?.adresse||'')}</div>
+        <div class="list-card-meta">
+          <span class="list-card-badge ${r.status==='bezahlt'?'badge-done':'badge-draft'}">${r.status==='bezahlt'?'✅ Bezahlt':'📄 Offen'}</span>
+          <span style="font-size:11px;color:#888">📅 ${new Date(r.erstelltAm).toLocaleDateString('de-DE')}</span>
+        </div>
+      </div>
+      <div class="list-card-actions">
+        <span class="list-card-betrag">${(r.gesamtBrutto||0).toLocaleString('de-DE',{maximumFractionDigits:0})} €</span>
+        <div style="display:flex;gap:5px">
+          ${r.status!=='bezahlt' ? `<button class="btn btn-success btn-sm" onclick="rechnungAlsBezahlt('${r.id}')">✅ Bezahlt</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteRechnung('${r.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function rechnungAlsBezahlt(id) {
+  const arr = getRechnungen();
+  const r = arr.find(x => x.id === id);
+  if (!r) return;
+  r.status = 'bezahlt';
+  r.bezahltAm = new Date().toISOString();
+  saveRechnungen(arr);
+  renderRechnungen();
+  showToast('✅ Rechnung als bezahlt markiert');
+}
+
+function deleteRechnung(id) {
+  if (!confirm('Rechnung löschen?')) return;
+  saveRechnungen(getRechnungen().filter(r => r.id !== id));
+  renderRechnungen();
+  showToast('🗑️ Rechnung gelöscht');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════════ */
+
+function renderDashboard() {
+  const angebote = getAngebote();
+  const projekte = getProjekte();
+  const nachtraege = getNachtraege();
+  const rechnungen = getRechnungen();
+
+  const drafts = angebote.filter(a => a.status === 'draft');
+  const done = angebote.filter(a => a.status === 'done');
+  const aktiveProjekte = projekte.filter(p => p.status === 'aktiv');
+  const offeneNachtraege = nachtraege.filter(n => n.status === 'pending');
+  const offeneRechnungen = rechnungen.filter(r => r.status !== 'bezahlt');
+  const umsatzGesamt = done.reduce((s, a) => s + (a.gesamtBrutto || 0), 0);
+
+  // Date display
+  const now = new Date();
+  const dateEl = document.getElementById('dash-date');
+  if (dateEl) dateEl.textContent = now.toLocaleDateString('de-DE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const greetEl = document.getElementById('dash-greeting');
+  const h = now.getHours();
+  if (greetEl) greetEl.textContent = h < 12 ? 'Guten Morgen!' : h < 17 ? 'Guten Tag!' : 'Guten Abend!';
+
+  // Stats
+  const statsEl = document.getElementById('dash-stats');
+  if (statsEl) statsEl.innerHTML = `
+    <div class="stat-card" onclick="showPage('angebote-draft')" style="cursor:pointer">
+      <span class="sc-icon">📝</span>
+      <div class="sc-value">${drafts.length}</div>
+      <div class="sc-label">Angebote in Bearb.</div>
+    </div>
+    <div class="stat-card green" onclick="showPage('angebote-done')" style="cursor:pointer">
+      <span class="sc-icon">✅</span>
+      <div class="sc-value">${done.length}</div>
+      <div class="sc-label">Fertige Angebote</div>
+    </div>
+    <div class="stat-card" onclick="showPage('projekte')" style="cursor:pointer">
+      <span class="sc-icon">📁</span>
+      <div class="sc-value">${aktiveProjekte.length}</div>
+      <div class="sc-label">Aktive Projekte</div>
+    </div>
+    <div class="stat-card orange" onclick="showPage('nachtraege')" style="cursor:pointer">
+      <span class="sc-icon">➕</span>
+      <div class="sc-value">${offeneNachtraege.length}</div>
+      <div class="sc-label">Offene Nachträge</div>
+    </div>
+    <div class="stat-card purple" onclick="showPage('rechnungen')" style="cursor:pointer">
+      <span class="sc-icon">🧾</span>
+      <div class="sc-value">${offeneRechnungen.length}</div>
+      <div class="sc-label">Offene Rechnungen</div>
+    </div>
+    <div class="stat-card green">
+      <span class="sc-icon">💰</span>
+      <div class="sc-value" style="font-size:1.3rem">${(umsatzGesamt/1000).toFixed(0)}k</div>
+      <div class="sc-label">Gesamtumsatz (brutto)</div>
+    </div>`;
+
+  // Recent angebote
+  const angEl = document.getElementById('dash-latest-angebote');
+  if (angEl) {
+    const recent = [...angebote].sort((a,b) => new Date(b.gespeichertAm||b.erstelltAm||0)-new Date(a.gespeichertAm||a.erstelltAm||0)).slice(0,4);
+    angEl.innerHTML = recent.length ? recent.map(a => `
+      <div class="dash-list-item" style="cursor:pointer" onclick="loadAngebotInKalkulation('${a.id}')">
+        <div>
+          <div style="font-weight:600;font-size:13px">${esc(a.projekt.projektName||'–')}</div>
+          <div style="font-size:11px;color:#aaa">${esc(a.projekt.kunde||'')}</div>
+        </div>
+        <div style="text-align:right">
+          <span class="list-card-badge ${a.status==='draft'?'badge-draft':'badge-done'}">${a.status==='draft'?'Entwurf':'Freigeg.'}</span>
+          <div style="font-size:11.5px;font-weight:700;color:#1a3a5c;margin-top:3px">${(a.gesamtBrutto||0).toLocaleString('de-DE',{maximumFractionDigits:0})} €</div>
+        </div>
+      </div>`).join('') : '<p style="color:#aaa;font-size:12px">Keine Angebote.</p>';
+  }
+
+  // Active projects
+  const projEl = document.getElementById('dash-latest-projekte');
+  if (projEl) {
+    projEl.innerHTML = aktiveProjekte.slice(0,4).map(p => {
+      calcProjektFortschritt(p);
+      return `<div class="dash-list-item" style="cursor:pointer" onclick="showPage('projekte'); setTimeout(()=>openProjektDetail('${p.id}'),200)">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</div>
+          <div class="progress-bar-wrap" style="margin-top:4px"><div class="progress-bar" style="width:${p.gesamtFortschritt}%"></div></div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#2e6da4;margin-left:10px;flex-shrink:0">${p.gesamtFortschritt}%</div>
+      </div>`;
+    }).join('') || '<p style="color:#aaa;font-size:12px">Keine aktiven Projekte.</p>';
+    saveProjekte(getProjekte()); // save updated fortschritt
+  }
+
+  // Nachtraege widget
+  const ntEl = document.getElementById('dash-nachtraege');
+  if (ntEl) {
+    ntEl.innerHTML = offeneNachtraege.slice(0,3).map(n => `
+      <div class="dash-list-item">
+        <div>
+          <div style="font-weight:600;font-size:13px">${esc(n.titel)}</div>
+          <div style="font-size:11px;color:#aaa">${esc(n.projektName||'–')} · ${n.quelle==='mitarbeiter'?'👷 Mitarbeiter':'📋 Kunde'}</div>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-success btn-sm" onclick="nachtragGenehmigen('${n.id}'); renderDashboard()">✅</button>
+          <button class="btn btn-danger btn-sm" onclick="nachtragAblehnen('${n.id}'); renderDashboard()">❌</button>
+        </div>
+      </div>`).join('') || '<p style="color:#aaa;font-size:12px">Keine offenen Nachträge.</p>';
+  }
+
+  // Umsatz widget
+  const uEl = document.getElementById('dash-umsatz');
+  if (uEl) {
+    const byMonth = {};
+    done.forEach(a => {
+      const k = (a.freigegebenAm || a.erstelltAm || '').slice(0, 7);
+      if (k) { byMonth[k] = (byMonth[k] || 0) + (a.gesamtBrutto || 0); }
+    });
+    const months = Object.keys(byMonth).sort((a,b) => b.localeCompare(a)).slice(0, 5);
+    uEl.innerHTML = months.length ? months.map(k => {
+      const [yr, mo] = k.split('-');
+      const moName = new Date(+yr, +mo-1).toLocaleDateString('de-DE', { month:'long', year:'numeric' });
+      return `<div class="dash-list-item">
+        <span style="font-size:12.5px">${moName}</span>
+        <span style="font-weight:700;color:#27ae60">${byMonth[k].toLocaleString('de-DE',{maximumFractionDigits:0})} €</span>
+      </div>`;
+    }).join('') : '<p style="color:#aaa;font-size:12px">Noch kein Umsatz vorhanden.</p>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP INIT
+═══════════════════════════════════════════════════════════════ */
+
+function initApp() {
+  updateBadges();
+  renderDashboard();
+  // Show dashboard by default (already set via HTML active class)
+}
 </script>
 </body>
 </html>
