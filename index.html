@@ -476,71 +476,227 @@
     }
     @media print { .vert-modal-box { display: none !important; } }
 
-    /* ── Grundriss-Editor ────────────────────────────────────────── */
+    /* ── Grundriss-Editor  ── PROFESSIONAL UI REDESIGN ─────────── */
     .gr-modal-box {
-      background: #fff; border-radius: 12px;
-      width: 98vw; max-width: 1320px;
-      height: 92vh;
+      background: #f0f2f5; border-radius: 14px;
+      width: 99vw; max-width: 1520px;
+      height: 95vh;
       display: flex; flex-direction: column;
-      box-shadow: 0 10px 52px rgba(0,0,0,.48);
+      box-shadow: 0 20px 60px rgba(0,0,0,.55);
       overflow: hidden;
     }
-    .gr-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
-    .gr-lib {
-      width: 190px; min-width: 190px; border-right: 2px solid #e0e6f0;
-      overflow-y: auto; background: #fafbfc; flex-shrink: 0;
+
+    /* ── Header bar ──────────────────────────────────────────────── */
+    .gr-header {
+      background: linear-gradient(135deg, #1a2236 0%, #1e2d47 100%);
+      color: #fff; flex-shrink: 0;
+      display: flex; align-items: center; gap: 0;
+      height: 50px; padding: 0 14px 0 10px;
+      border-radius: 14px 14px 0 0;
     }
-    .gr-lib-section {
-      font-size: 9px; font-weight: 900; color: #a0a8b8;
-      text-transform: uppercase; letter-spacing: .7px;
-      padding: 8px 10px 2px;
+    .gr-header-logo {
+      font-size: 20px; margin-right: 8px; flex-shrink: 0;
     }
-    .gr-lib-item {
-      display: flex; align-items: center; gap: 6px;
-      padding: 4px 7px; cursor: pointer;
-      transition: background .1s; border-radius: 5px;
-      margin: 1px 4px; border-left: 3px solid transparent;
+    .gr-header-title {
+      font-size: 14px; font-weight: 700; letter-spacing: .2px;
+      color: #e8edf5; margin-right: 16px; white-space: nowrap;
     }
-    .gr-lib-item:hover { background: #eef2fa; }
-    .gr-lib-item.active { background: #dce6f5; border-left-color: #2e6da4; }
-    .gr-lib-icon-box {
-      width: 28px; height: 28px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 5px; font-size: 14px;
+    .gr-header-sep {
+      width: 1px; height: 24px; background: rgba(255,255,255,.15);
+      margin: 0 10px; flex-shrink: 0;
     }
-    .gr-lib-label { font-size: 11px; line-height: 1.3; flex: 1; }
+    .gr-header-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 10px; border-radius: 7px; cursor: pointer;
+      font-size: 12px; font-weight: 600; border: none;
+      background: rgba(255,255,255,.09); color: #d4dff0;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .gr-header-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+    .gr-header-btn.active { background: #2e6da4; color: #fff; }
+    .gr-header-btn.danger:hover { background: rgba(231,76,60,.7); color: #fff; }
+    .gr-header-spacer { flex: 1; }
+    .gr-header-close {
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      background: rgba(255,255,255,.09); color: #d4dff0; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .gr-header-close:hover { background: #e74c3c; color: #fff; }
+
+    /* ── Secondary toolbar ───────────────────────────────────────── */
+    .gr-toolbar2 {
+      background: #fff; border-bottom: 1px solid #dde3ed;
+      display: flex; align-items: center; gap: 3px;
+      padding: 5px 12px; flex-shrink: 0; flex-wrap: wrap;
+    }
+    .gr-t2-btn {
+      padding: 4px 10px; border-radius: 6px; cursor: pointer;
+      font-size: 11px; font-weight: 600; border: 1.5px solid #d0d8e8;
+      background: #fff; color: #3a4557; transition: all .15s;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .gr-t2-btn:hover { background: #eef2fb; border-color: #2e6da4; color: #1a3a5c; }
+    .gr-t2-btn.active { background: #e8f0fb; border-color: #2e6da4; color: #1a3a5c; }
+    .gr-t2-sep { width: 1px; height: 18px; background: #dde3ed; margin: 0 4px; flex-shrink: 0; }
+    .gr-zoom-display {
+      font-size: 11px; font-weight: 700; color: #3a4557;
+      min-width: 40px; text-align: center;
+    }
+
+    /* ── Main body ───────────────────────────────────────────────── */
+    .gr-main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+    /* ── Left icon toolbar ───────────────────────────────────────── */
+    .gr-iconbar {
+      width: 60px; min-width: 60px; background: #1e2840;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 0; gap: 2px; flex-shrink: 0; overflow: hidden;
+      border-right: 1px solid #151e2e;
+    }
+    .gr-iconbar-divider {
+      width: 32px; height: 1px; background: rgba(255,255,255,.12); margin: 5px 0;
+    }
+    .gr-ib-btn {
+      width: 44px; height: 44px; border-radius: 10px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 2px; border: none;
+      background: transparent; color: #8fa4c8;
+      transition: all .15s; position: relative;
+    }
+    .gr-ib-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .gr-ib-btn span { font-size: 8px; line-height: 1; letter-spacing: .2px; text-align: center; }
+    .gr-ib-btn:hover { background: rgba(255,255,255,.1); color: #d4e0f5; }
+    .gr-ib-btn.active { background: #2e6da4; color: #fff; }
+    .gr-ib-btn.active-cat { background: rgba(46,109,164,.35); color: #7ec8f0; }
+    /* Tooltip */
+    .gr-ib-btn::after {
+      content: attr(data-tip); position: absolute; left: 52px; top: 50%;
+      transform: translateY(-50%); white-space: nowrap;
+      background: #1a2236; color: #d4e0f5; padding: 4px 9px;
+      border-radius: 6px; font-size: 11px; font-weight: 600;
+      pointer-events: none; opacity: 0; transition: opacity .15s;
+      z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .gr-ib-btn:hover::after { opacity: 1; }
+
+    /* ── Sub-panel (tool library) ────────────────────────────────── */
+    .gr-subpanel {
+      width: 0; min-width: 0; overflow: hidden;
+      background: #28344e; border-right: 1px solid #1a2438;
+      transition: width .2s ease; flex-shrink: 0;
+      display: flex; flex-direction: column;
+    }
+    .gr-subpanel.open { width: 185px; min-width: 185px; }
+    .gr-subpanel-header {
+      padding: 10px 12px 6px;
+      font-size: 9px; font-weight: 900; letter-spacing: .8px;
+      text-transform: uppercase; color: #7ec8f0; flex-shrink: 0;
+    }
+    .gr-subpanel-inner { overflow-y: auto; flex: 1; padding: 2px 6px 8px; }
+    .gr-sp-item {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 8px; cursor: pointer;
+      border-radius: 7px; margin: 1px 0;
+      transition: background .1s; color: #b8c8e0;
+      border-left: 3px solid transparent; font-size: 11px;
+    }
+    .gr-sp-item:hover { background: rgba(255,255,255,.08); color: #d4e5f5; }
+    .gr-sp-item.active { background: rgba(46,109,164,.35); border-left-color: #5ba3d9; color: #7ec8f0; }
+    .gr-sp-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+
+    /* ── Canvas area ──────────────────────────────────────────────── */
+    .gr-canvas-area {
+      flex: 1; display: grid; min-width: 0; min-height: 0;
+      grid-template-columns: 20px 1fr;
+      grid-template-rows: 20px 1fr;
+      overflow: hidden;
+    }
+    .gr-ruler-corner {
+      grid-column: 1; grid-row: 1;
+      background: #e8ecf2; border-right: 1px solid #c8d0de; border-bottom: 1px solid #c8d0de;
+    }
+    .gr-ruler-top {
+      grid-column: 2; grid-row: 1; overflow: hidden;
+      background: #e8ecf2; border-bottom: 1px solid #c8d0de;
+    }
+    .gr-ruler-left {
+      grid-column: 1; grid-row: 2; overflow: hidden;
+      background: #e8ecf2; border-right: 1px solid #c8d0de;
+    }
     .gr-canvas-wrap {
-      flex: 1; overflow: auto; background: #dde4ee;
+      grid-column: 2; grid-row: 2;
+      flex: 1; overflow: auto; background: #d8dfe8;
       position: relative; min-width: 0;
     }
     .gr-canvas-inner {
       display: inline-block; position: relative;
       cursor: crosshair; user-select: none;
     }
-    .gr-right {
-      width: 200px; min-width: 200px; border-left: 2px solid #e0e6f0;
-      overflow-y: auto; background: #fafbfc; flex-shrink: 0;
+
+    /* ── Floating zoom controls ───────────────────────────────────── */
+    .gr-zoom-float {
+      position: absolute; bottom: 14px; right: 14px; z-index: 100;
+      display: flex; align-items: center; gap: 4px;
+      background: rgba(255,255,255,.9); border-radius: 9px;
+      padding: 5px 8px; box-shadow: 0 3px 12px rgba(0,0,0,.18);
+      border: 1px solid #d0d8e8;
     }
-    .gr-right-inner { padding: 8px; }
-    .gr-footer {
-      padding: 8px 14px; border-top: 2px solid #e0e6f0;
-      display: flex; justify-content: space-between; align-items: center;
-      flex-shrink: 0; background: #f7f9fc; gap: 8px; flex-wrap: wrap;
+    .gr-zoom-float button {
+      width: 26px; height: 26px; border: none; border-radius: 6px;
+      background: #f0f2f5; cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .1s; color: #3a4557;
     }
-    .gr-toolbar {
-      display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
-      padding: 6px 10px; border-bottom: 1px solid #e0e6f0; background: #f5f7fb;
+    .gr-zoom-float button:hover { background: #dde3ef; }
+    .gr-zoom-float span { font-size: 11px; font-weight: 700; color: #3a4557; min-width: 38px; text-align: center; }
+
+    /* ── Right properties panel ──────────────────────────────────── */
+    .gr-rightpanel {
+      width: 230px; min-width: 230px; background: #fff;
+      border-left: 1px solid #dde3ed;
+      display: flex; flex-direction: column; overflow: hidden;
       flex-shrink: 0;
     }
-    .gr-tool-btn {
-      padding: 4px 9px; font-size: 11px; font-weight: 700;
-      border: 1.5px solid #c8d4e8; border-radius: 6px; cursor: pointer;
-      background: #fff; color: #333; transition: all .15s;
-      display: flex; align-items: center; gap: 4px;
+    .gr-rp-tabs {
+      display: flex; border-bottom: 1px solid #dde3ed; flex-shrink: 0;
     }
-    .gr-tool-btn:hover { background: #eef2fa; border-color: #2e6da4; }
-    .gr-tool-btn.active { background: #2e6da4; color: #fff; border-color: #2e6da4; }
-    .gr-scale-info { font-size: 10.5px; color: #8a97a8; margin-left: 6px; }
+    .gr-rp-tab {
+      flex: 1; padding: 8px 4px; text-align: center; cursor: pointer;
+      font-size: 10px; font-weight: 700; color: #8a97a8; letter-spacing: .3px;
+      border-bottom: 2px solid transparent; transition: all .15s;
+    }
+    .gr-rp-tab:hover { color: #2e6da4; background: #f5f8fc; }
+    .gr-rp-tab.active { color: #1a3a5c; border-bottom-color: #2e6da4; background: #f5f8fc; }
+    .gr-rp-body { overflow-y: auto; flex: 1; padding: 10px 10px; }
+    .gr-rp-section {
+      font-size: 9px; font-weight: 900; color: #a0a8b8;
+      text-transform: uppercase; letter-spacing: .7px;
+      margin-bottom: 6px; padding-top: 8px; border-top: 1px solid #eef1f6;
+    }
+    .gr-rp-section:first-child { border-top: none; padding-top: 0; }
+    .gr-prop-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 7px; gap: 6px;
+    }
+    .gr-prop-label { font-size: 11px; color: #6a7688; flex-shrink: 0; }
+    .gr-prop-val { font-size: 11px; font-weight: 700; color: #1a3a5c; }
+    .gr-prop-input {
+      font-size: 12px; padding: 5px 8px; border: 1.5px solid #d0d8e8;
+      border-radius: 7px; width: 100%; box-sizing: border-box;
+      outline: none; transition: border-color .15s; color: #1a3a5c;
+    }
+    .gr-prop-input:focus { border-color: #2e6da4; }
+
+    /* ── Status bar ───────────────────────────────────────────────── */
+    .gr-statusbar {
+      background: #1e2840; color: #7a90b0; font-size: 10px;
+      padding: 5px 14px; display: flex; align-items: center;
+      gap: 16px; flex-shrink: 0; border-radius: 0 0 14px 14px;
+    }
+    .gr-statusbar b { color: #a8bcd4; }
+
     @media print { .gr-modal-box { display: none !important; } }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -4060,109 +4216,161 @@ let grState = {
   spaceDown: false,
   // click-vs-drag guard
   _mouseMovedDist: 0,
+  _activeIconCat: null,
 };
 
 const GR_WALL_HEIGHT_M    = 3.5;   // assumed room height in metres for wall area calculation
 const GR_WALL_AREA_FACTOR = 0.8;   // net wall area factor (deducts doors/windows)
 
+/* ── Icon-Toolbar category definitions ───────────────────────── */
+const GR_ICONBAR = [
+  { id:'select',  tip:'Auswählen / Verschieben', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-7 1-4 7z"/></svg>`, label:'Wählen', cat:null },
+  { id:'wall',    tip:'Außenwand zeichnen',       icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="9"  x2="4"  y2="15"/><line x1="20" y1="9" x2="20" y2="15"/></svg>`, label:'Wand', cat:'Bauteile' },
+  { id:'room',    tip:'Raum / Fläche zeichnen',   icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>`, label:'Raum', cat:'Räume & Böden' },
+  { id:'door',    tip:'Tür / Fenster',             icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="18" rx="1"/><path d="M3 12c5 0 7-2 7-5"/></svg>`, label:'Tür', cat:'Bauteile' },
+  { id:'sanitar', tip:'Sanitär-Symbole',           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="7" ry="5"/><path d="M12 9 V4"/><path d="M9 4h6"/></svg>`, label:'Sanitär', cat:'Sanitär' },
+  { id:'elektro', tip:'Elektro-Symbole',           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`, label:'Elektro', cat:'Elektro' },
+  { id:'label',   tip:'Raumbezeichnung',           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`, label:'Label', cat:'Sonstiges' },
+  { id:'eraser',  tip:'Element löschen',           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l12-12 5 5z"/><path d="M6 17L17 6"/></svg>`, label:'Löschen', cat:null },
+];
+
 /* ── Open / Close ────────────────────────────────────────────── */
 function openGrundrissEditor() {
   if (document.getElementById('grModal')) return;
 
-  const cats = [...new Set(GR_LIB.map(b => b.cat))];
-  const libHtml = cats.map(cat => {
-    const items = GR_LIB.filter(b => b.cat === cat);
-    return `<div class="gr-lib-section">${cat}</div>` +
-      items.map(b => `
-        <div class="gr-lib-item" id="grli-${b.type}" onclick="grSelectTool('${b.type}')" title="${b.label}">
-          <span class="gr-lib-icon-box" style="font-size:15px">${b.emoji}</span>
-          <span class="gr-lib-label">${b.label}</span>
-        </div>`).join('');
-  }).join('');
+  const iconbarHtml = GR_ICONBAR.map(b => `
+    <button class="gr-ib-btn" id="grib-${b.id}" data-tip="${b.tip}"
+      onclick="grIconbarClick('${b.id}')" title="">
+      ${b.icon}<span>${b.label}</span>
+    </button>`).join('') +
+    `<div class="gr-iconbar-divider"></div>
+     <button class="gr-ib-btn" id="grib-grid" data-tip="Raster an/aus"
+       onclick="grToggleGrid()" title="">
+       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+       <span>Raster</span>
+     </button>
+     <button class="gr-ib-btn" id="grib-snap" data-tip="Einrasten an/aus"
+       onclick="grToggleSnap()" title="">
+       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+       <span>Snap</span>
+     </button>`;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.id = 'grModal';
   overlay.innerHTML = `
     <div class="gr-modal-box" onclick="event.stopPropagation()">
-      <div class="modal-header" style="border-radius:12px 12px 0 0;flex-shrink:0">
-        <h3>🏠 Grundriss-Editor / Installationsplan</h3>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-success btn-sm" onclick="grExportSVG()">💾 SVG</button>
-          <button class="btn btn-success btn-sm" onclick="grSaveJSON()">📥 JSON</button>
-          <button class="btn btn-info btn-sm" onclick="grLoadJSONClick()">📂 Laden</button>
-          <button class="btn btn-info btn-sm" onclick="grPrintPlan()">🖨️ Drucken</button>
-          <button class="btn btn-warning btn-sm" onclick="grClearAll()">🗑️ Alles löschen</button>
-          <button class="modal-close" onclick="closeGrundrissEditor()">✕</button>
-        </div>
+
+      <!-- ── Header bar ─────────────────────────────────────── -->
+      <div class="gr-header">
+        <span class="gr-header-logo">🏠</span>
+        <span class="gr-header-title">Grundriss-Editor</span>
+        <div class="gr-header-sep"></div>
+        <button class="gr-header-btn" onclick="grUndo()" id="grhdr-undo" title="Rückgängig (Ctrl+Z)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Undo
+        </button>
+        <button class="gr-header-btn" onclick="grRedo()" id="grhdr-redo" title="Wiederholen (Ctrl+Y)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Redo
+        </button>
+        <div class="gr-header-sep"></div>
+        <button class="gr-header-btn" onclick="grExportSVG()" title="Als SVG exportieren">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> SVG
+        </button>
+        <button class="gr-header-btn" onclick="grSaveJSON()" title="Als JSON speichern">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Speichern
+        </button>
+        <button class="gr-header-btn" onclick="grLoadJSONClick()" title="JSON laden">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Laden
+        </button>
+        <button class="gr-header-btn" onclick="grPrintPlan()" title="Plan drucken">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Drucken
+        </button>
+        <button class="gr-header-btn danger" onclick="grClearAll()" title="Alles löschen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Löschen
+        </button>
+        <div class="gr-header-spacer"></div>
+        <button class="gr-header-btn" onclick="grToKalk()" title="In Kalkulation übernehmen" style="background:rgba(39,174,96,.25);color:#7debb5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> In Kalkulation
+        </button>
+        <div class="gr-header-sep"></div>
+        <button class="gr-header-close" onclick="closeGrundrissEditor()" title="Schließen">✕</button>
       </div>
-      <!-- Toolbar -->
-      <div class="gr-toolbar no-print">
-        <button class="gr-tool-btn" id="grtb-grid" onclick="grToggleGrid()" title="Raster an/aus">⊞ Raster</button>
-        <button class="gr-tool-btn" id="grtb-snap" onclick="grToggleSnap()" title="Einrasten auf Gitter">🧲 Gitter</button>
-        <button class="gr-tool-btn" id="grtb-snapp" onclick="grToggleSnapPoints()" title="Einrasten auf Endpunkte">📍 Punkte</button>
-        <div style="width:1px;height:20px;background:#d0d7e2;margin:0 2px"></div>
-        <button class="gr-tool-btn" id="grtb-undo" onclick="grUndo()" title="Rückgängig (Ctrl+Z)">↩ Undo</button>
-        <button class="gr-tool-btn" id="grtb-redo" onclick="grRedo()" title="Wiederholen (Ctrl+Y)">↪ Redo</button>
-        <div style="width:1px;height:20px;background:#d0d7e2;margin:0 2px"></div>
-        <button class="gr-tool-btn" onclick="grZoom(0.25)" title="Vergrößern">🔍+</button>
-        <button class="gr-tool-btn" onclick="grZoom(-0.25)" title="Verkleinern">🔍−</button>
-        <button class="gr-tool-btn" onclick="grZoom(0,'reset')" title="1:1 Zoom">1:1</button>
-        <span class="gr-scale-info">1 Kästchen = 1&nbsp;m &nbsp;|&nbsp; <span id="gr-zoom-label">100%</span></span>
-        <div style="flex:1"></div>
-        <span style="font-size:11px;color:#8a97a8" id="gr-status-hint">Werkzeug wählen →</span>
-      </div>
-      <div class="gr-body">
-        <!-- Library -->
-        <div class="gr-lib">${libHtml}
-          <div style="height:8px"></div>
+
+      <!-- ── Main area ──────────────────────────────────────── -->
+      <div class="gr-main">
+
+        <!-- Left icon toolbar -->
+        <div class="gr-iconbar">${iconbarHtml}</div>
+
+        <!-- Expandable sub-panel -->
+        <div class="gr-subpanel" id="gr-subpanel">
+          <div class="gr-subpanel-header" id="gr-subpanel-title">Werkzeuge</div>
+          <div class="gr-subpanel-inner" id="gr-subpanel-inner"></div>
         </div>
-        <!-- Canvas -->
-        <div class="gr-canvas-wrap" id="gr-canvas-wrap">
-          <div class="gr-canvas-inner" id="gr-canvas-inner">
-            <svg id="gr-svg"
-              width="${GR_W * GR_GRID}" height="${GR_H * GR_GRID}"
-              xmlns="http://www.w3.org/2000/svg"
-              style="display:block"
-              onmousedown="grMouseDown(event)"
-              onmousemove="grMouseMove(event)"
-              onmouseup="grMouseUp(event)"
-              onclick="grClick(event)"
-              oncontextmenu="grContextMenu(event)">
-            </svg>
-            <input type="file" id="gr-json-input" accept=".json" style="display:none" onchange="grLoadJSON(event)">
+
+        <!-- Canvas area with rulers -->
+        <div class="gr-canvas-area" style="position:relative">
+          <div class="gr-ruler-corner"></div>
+          <canvas class="gr-ruler-top" id="gr-ruler-h" height="20"></canvas>
+          <canvas class="gr-ruler-left" id="gr-ruler-v" width="20"></canvas>
+          <div class="gr-canvas-wrap" id="gr-canvas-wrap">
+            <div class="gr-canvas-inner" id="gr-canvas-inner">
+              <svg id="gr-svg"
+                width="${GR_W * GR_GRID}" height="${GR_H * GR_GRID}"
+                xmlns="http://www.w3.org/2000/svg"
+                style="display:block"
+                onmousedown="grMouseDown(event)"
+                onmousemove="grMouseMove(event)"
+                onmouseup="grMouseUp(event)"
+                onclick="grClick(event)"
+                oncontextmenu="grContextMenu(event)">
+              </svg>
+              <input type="file" id="gr-json-input" accept=".json" style="display:none" onchange="grLoadJSON(event)">
+            </div>
+            <!-- Floating zoom controls -->
+            <div class="gr-zoom-float">
+              <button onclick="grZoom(-0.25)" title="Verkleinern">−</button>
+              <span id="gr-zoom-label">100%</span>
+              <button onclick="grZoom(0.25)" title="Vergrößern">+</button>
+              <button onclick="grZoom(0,'reset')" title="1:1" style="font-size:10px;width:auto;padding:0 6px">1:1</button>
+            </div>
           </div>
         </div>
-        <!-- Right panel -->
-        <div class="gr-right">
-          <div class="gr-lib-section">Eigenschaften</div>
-          <div class="gr-right-inner" id="gr-props-body">
-            <span style="color:#aaa;font-size:12px">Kein Element gewählt.</span>
+
+        <!-- Right properties panel -->
+        <div class="gr-rightpanel">
+          <div class="gr-rp-tabs">
+            <div class="gr-rp-tab active" id="grrt-props" onclick="grRpTab('props')">EIGENSCHAFTEN</div>
+            <div class="gr-rp-tab" id="grrt-stats" onclick="grRpTab('stats')">STATISTIK</div>
           </div>
-          <div style="height:1px;background:#e0e6f0;margin:8px 0"></div>
-          <div class="gr-lib-section">Statistik</div>
-          <div class="gr-right-inner" id="gr-stats" style="font-size:11px;line-height:1.9;color:#444"></div>
-        </div>
-      </div>
-      <div class="gr-footer">
-        <div style="font-size:10px;color:#8a97a8" id="gr-coord-display">x: —, y: —
-            <span style="margin-left:8px;color:#b0bbc8;font-size:9px">ESC=Abbrechen · Del=Löschen · Ctrl+Z=Undo · Rechtsklick=Drehen · Mittelmaustaste=Pan</span>
+          <div class="gr-rp-body" id="gr-props-body">
+            <div style="color:#aaa;font-size:11px;padding-top:8px">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8d0de" stroke-width="1.5" style="display:block;margin:0 auto 8px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Kein Element gewählt.<br><small style="color:#c8d0de">Werkzeug wählen oder Element anklicken</small>
+            </div>
           </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-teal btn-sm" onclick="grToKalk()" title="Flächen u. Symbole in die Kalkulation übernehmen">📋 In Kalkulation übernehmen</button>
-          <button class="btn btn-primary btn-sm" onclick="closeGrundrissEditor()">Schließen</button>
+          <div class="gr-rp-body" id="gr-stats-body" style="display:none;font-size:11px;line-height:2;color:#4a5568"></div>
         </div>
+
       </div>
+
+      <!-- ── Status bar ─────────────────────────────────────── -->
+      <div class="gr-statusbar">
+        <span id="gr-coord-display"><b>x:</b> — <b>y:</b> —</span>
+        <span id="gr-status-hint" style="color:#5a7a9e">Werkzeug aus der linken Leiste wählen</span>
+        <span style="margin-left:auto;color:#5a7a9e">1 Kästchen = 1 m &nbsp;·&nbsp; ESC = Abbrechen &nbsp;·&nbsp; Del = Löschen &nbsp;·&nbsp; Rechtsklick = Drehen</span>
+      </div>
+
     </div>`;
   document.body.appendChild(overlay);
-  // Middle-mouse-button pan on canvas wrap
+  // Middle-mouse-button pan + wheel zoom on canvas wrap
   const wrap = overlay.querySelector('.gr-canvas-wrap');
   if (wrap) {
     wrap.addEventListener('mousedown', grWrapMouseDown, { passive: false });
     wrap.addEventListener('wheel', e => { e.preventDefault(); grZoom(e.deltaY < 0 ? 0.1 : -0.1); }, { passive: false });
+    wrap.addEventListener('scroll', () => grDrawRulers());
   }
-  grSnapshot(); // initial snapshot
-  // Restore from localStorage if available
+  grSnapshot();
   try {
     const saved = localStorage.getItem('grPlan');
     if (saved && (grState.items.length + grState.walls.length + grState.rooms.length) === 0) {
@@ -4171,6 +4379,7 @@ function openGrundrissEditor() {
   } catch(e) {}
   grRender();
   grUpdateToolbar();
+  grDrawRulers();
 }
 
 function closeGrundrissEditor() {
@@ -4179,30 +4388,131 @@ function closeGrundrissEditor() {
 }
 
 /* ── Tool selection ──────────────────────────────────────────── */
+function grIconbarClick(ibId) {
+  // Special tools: select and eraser map directly
+  const directMap = { select: null, eraser: 'eraser', label: 'label' };
+  if (ibId in directMap) {
+    grSelectTool(directMap[ibId]);
+    // Close subpanel
+    const sp = document.getElementById('gr-subpanel');
+    if (sp) sp.classList.remove('open');
+    grState._activeIconCat = null;
+    document.querySelectorAll('.gr-ib-btn').forEach(b => b.classList.remove('active','active-cat'));
+    const btn = document.getElementById('grib-' + ibId);
+    if (btn) btn.classList.add('active');
+    return;
+  }
+  // Category buttons: toggle subpanel
+  const ibDef = GR_ICONBAR.find(b => b.id === ibId);
+  if (!ibDef || !ibDef.cat) return;
+  const sp = document.getElementById('gr-subpanel');
+  const sameCat = grState._activeIconCat === ibId;
+  grState._activeIconCat = sameCat ? null : ibId;
+  document.querySelectorAll('.gr-ib-btn').forEach(b => b.classList.remove('active','active-cat'));
+  if (!sameCat) {
+    if (sp) sp.classList.add('open');
+    const btn = document.getElementById('grib-' + ibId);
+    if (btn) btn.classList.add('active-cat');
+    grPopulateSubpanel(ibDef.cat);
+  } else {
+    if (sp) sp.classList.remove('open');
+    grSelectTool(null);
+  }
+}
+
+function grPopulateSubpanel(cat) {
+  const titleEl = document.getElementById('gr-subpanel-title');
+  const innerEl = document.getElementById('gr-subpanel-inner');
+  if (!titleEl || !innerEl) return;
+  titleEl.textContent = cat;
+  const items = GR_LIB.filter(b => b.cat === cat);
+  innerEl.innerHTML = items.map(b => `
+    <div class="gr-sp-item" id="grli-${b.type}" onclick="grSelectTool('${b.type}')">
+      <span class="gr-sp-icon">${b.emoji}</span>
+      <span>${b.label}</span>
+    </div>`).join('');
+}
+
 function grSelectTool(type) {
   grState.tool = type;
   grState.drawStart = null;
   grState.selectedId = null;
-  document.querySelectorAll('.gr-lib-item').forEach(el => el.classList.remove('active'));
-  const el = document.getElementById('grli-' + type);
-  if (el) el.classList.add('active');
-
+  grState._previewEnd = null;
+  document.querySelectorAll('.gr-sp-item').forEach(el => el.classList.remove('active'));
+  if (type) {
+    const el = document.getElementById('grli-' + type);
+    if (el) el.classList.add('active');
+  }
   const tool = GR_LIB.find(t => t.type === type);
   const hint = document.getElementById('gr-status-hint');
-  if (hint && tool) {
-    if (tool.snap === 'line') hint.textContent = '✏️ Klicken=Startpunkt → nochmal klicken=Ende (Wand/Fenster)';
-    else if (tool.snap === 'rect') hint.textContent = '⬜ Klicken=Start → ziehen → loslassen (Rechteck)';
-    else if (type === 'eraser') hint.textContent = '🧹 Element anklicken zum Löschen';
-    else hint.textContent = '🖱️ Klicken zum Platzieren';
+  if (hint) {
+    if (!type)                   hint.textContent = 'Werkzeug wählen oder Element anklicken';
+    else if (type === 'eraser')  hint.textContent = '🧹 Element anklicken zum Löschen';
+    else if (tool?.snap === 'line') hint.textContent = '✏️ Klick = Startpunkt → nochmal Klick = Ende';
+    else if (tool?.snap === 'rect') hint.textContent = '⬜ Ziehen zum Zeichnen';
+    else                         hint.textContent = `${tool?.emoji || ''} Klicken zum Platzieren`;
   }
   grUpdateProps();
   grRender();
 }
 
+/* ── Right panel tab switch ──────────────────────────────────── */
+function grRpTab(tab) {
+  document.getElementById('gr-props-body').style.display = tab === 'props' ? '' : 'none';
+  document.getElementById('gr-stats-body').style.display = tab === 'stats' ? '' : 'none';
+  document.getElementById('grrt-props').classList.toggle('active', tab === 'props');
+  document.getElementById('grrt-stats').classList.toggle('active', tab === 'stats');
+}
+
+/* ── Rulers ──────────────────────────────────────────────────── */
+function grDrawRulers() {
+  const wrap = document.getElementById('gr-canvas-wrap');
+  const hc = document.getElementById('gr-ruler-h');
+  const vc = document.getElementById('gr-ruler-v');
+  if (!wrap || !hc || !vc) return;
+  const W = wrap.clientWidth;
+  const H = wrap.clientHeight;
+  const z = grState.zoom;
+  const sl = wrap.scrollLeft, st = wrap.scrollTop;
+
+  // Horizontal ruler
+  hc.width = W;
+  const hx = hc.getContext('2d');
+  hx.clearRect(0, 0, W, 20);
+  hx.fillStyle = '#e8ecf2';
+  hx.fillRect(0, 0, W, 20);
+  hx.strokeStyle = '#c8d0de'; hx.lineWidth = 0.5;
+  hx.strokeRect(0, 0, W, 20);
+  hx.fillStyle = '#8a97a8'; hx.font = '8px monospace';
+  for (let m = 0; m <= GR_W; m++) {
+    const px = m * GR_GRID * z - sl;
+    if (px < 0 || px > W) continue;
+    hx.beginPath(); hx.moveTo(px, m % 5 === 0 ? 0 : 12); hx.lineTo(px, 20); hx.strokeStyle = '#b0b8c8'; hx.stroke();
+    if (m % 5 === 0) { hx.fillText(m + 'm', px + 2, 11); }
+  }
+
+  // Vertical ruler
+  vc.height = H;
+  const vx = vc.getContext('2d');
+  vx.clearRect(0, 0, 20, H);
+  vx.fillStyle = '#e8ecf2'; vx.fillRect(0, 0, 20, H);
+  vx.strokeStyle = '#c8d0de'; vx.lineWidth = 0.5; vx.strokeRect(0, 0, 20, H);
+  vx.fillStyle = '#8a97a8'; vx.font = '8px monospace';
+  for (let m = 0; m <= GR_H; m++) {
+    const py = m * GR_GRID * z - st;
+    if (py < 0 || py > H) continue;
+    vx.beginPath(); vx.moveTo(m % 5 === 0 ? 0 : 12, py); vx.lineTo(20, py); vx.strokeStyle = '#b0b8c8'; vx.stroke();
+    if (m % 5 === 0) {
+      vx.save(); vx.translate(10, py + 2); vx.rotate(-Math.PI / 2);
+      vx.fillText(m + 'm', 0, 0); vx.restore();
+    }
+  }
+}
+
 /* ── Zoom ────────────────────────────────────────────────────── */
 function grZoom(delta, mode) {
   if (mode === 'reset') grState.zoom = 1.0;
-  else grState.zoom = Math.max(0.3, Math.min(3.0, grState.zoom + delta));
+  else grState.zoom = Math.max(0.25, Math.min(4.0, grState.zoom + delta));
   const svg = document.getElementById('gr-svg');
   if (svg) {
     svg.setAttribute('width', GR_W * GR_GRID * grState.zoom);
@@ -4212,6 +4522,7 @@ function grZoom(delta, mode) {
   const lbl = document.getElementById('gr-zoom-label');
   if (lbl) lbl.textContent = Math.round(grState.zoom * 100) + '%';
   grRender();
+  grDrawRulers();
 }
 
 /* ── Toggles ─────────────────────────────────────────────────── */
@@ -4229,16 +4540,14 @@ function grToggleSnapPoints() {
   grUpdateToolbar();
 }
 function grUpdateToolbar() {
-  const gBtn = document.getElementById('grtb-grid');
+  const gBtn = document.getElementById('grib-grid');
   if (gBtn) gBtn.classList.toggle('active', grState.showGrid);
-  const sBtn = document.getElementById('grtb-snap');
+  const sBtn = document.getElementById('grib-snap');
   if (sBtn) sBtn.classList.toggle('active', grState.snapEnabled);
-  const spBtn = document.getElementById('grtb-snapp');
-  if (spBtn) spBtn.classList.toggle('active', grState.snapToPoints);
-  const uBtn = document.getElementById('grtb-undo');
-  if (uBtn) uBtn.disabled = grState.historyIdx <= 0;
-  const rBtn = document.getElementById('grtb-redo');
-  if (rBtn) rBtn.disabled = grState.historyIdx >= grState.history.length - 1;
+  const uBtn = document.getElementById('grhdr-undo');
+  if (uBtn) uBtn.style.opacity = grState.historyIdx <= 0 ? '.4' : '1';
+  const rBtn = document.getElementById('grhdr-redo');
+  if (rBtn) rBtn.style.opacity = grState.historyIdx >= grState.history.length - 1 ? '.4' : '1';
 }
 
 /* ── Pan via wrap mousedown (middle button or space+left) ────── */
@@ -4401,7 +4710,7 @@ function grMouseMove(e) {
   const c = grSvgCoords(e);
   const coord = document.getElementById('gr-coord-display');
   if (coord) {
-    coord.textContent = `x: ${(grSnap(c.x)/GR_GRID).toFixed(1)}m, y: ${(grSnap(c.y)/GR_GRID).toFixed(1)}m`;
+    coord.innerHTML = `<b>x:</b> ${(grSnap(c.x)/GR_GRID).toFixed(1)}m &nbsp;<b>y:</b> ${(grSnap(c.y)/GR_GRID).toFixed(1)}m`;
   }
 
   // Track movement distance to distinguish click from drag
@@ -4609,98 +4918,126 @@ function grRender() {
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   let s = '<defs>';
-  s += `<pattern id="parkett-pat" x="0" y="0" width="${GR_GRID}" height="${GR_GRID/5}" patternUnits="userSpaceOnUse">
-    <rect width="${GR_GRID}" height="${GR_GRID/5}" fill="#f5deb3"/>
-    <line x1="0" y1="${GR_GRID/10}" x2="${GR_GRID}" y2="${GR_GRID/10}" stroke="#c4a068" stroke-width="0.8"/>
-  </pattern>`;
-  s += `<pattern id="fliese-pat" x="0" y="0" width="${GR_GRID/2}" height="${GR_GRID/2}" patternUnits="userSpaceOnUse">
-    <rect width="${GR_GRID/2}" height="${GR_GRID/2}" fill="#e8f0fb" stroke="#a0b4d0" stroke-width="1"/>
-  </pattern>`;
-  s += `<pattern id="teppich-pat" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-    <rect width="8" height="8" fill="#d9b896"/>
-    <circle cx="4" cy="4" r="1.5" fill="#b58765" opacity=".5"/>
-  </pattern>`;
-  s += `<pattern id="room-pat" x="0" y="0" width="${GR_GRID}" height="${GR_GRID}" patternUnits="userSpaceOnUse">
-    <rect width="${GR_GRID}" height="${GR_GRID}" fill="#fff"/>
-  </pattern>`;
-  // Drop shadow filter for selected elements
-  s += `<filter id="sel-glow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#f39c12" flood-opacity=".8"/></filter>`;
+  s += `<filter id="sel-glow"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#e67e22" flood-opacity=".6"/></filter>`;
   s += '</defs>';
 
-  // Background
-  s += `<rect width="${W}" height="${H}" fill="#f8f9fb"/>`;
+  // Background - clean white canvas
+  s += `<rect width="${W}" height="${H}" fill="#ffffff"/>`;
 
   // Grid
   if (grState.showGrid) {
     for (let x = 0; x <= W; x += GR_GRID) {
-      s += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${x % (GR_GRID*5) === 0 ? '#ccd4e0' : '#e2e8f0'}" stroke-width="${x % (GR_GRID*5) === 0 ? 1 : 0.5}"/>`;
+      const isMajor = x % (GR_GRID*5) === 0;
+      s += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${isMajor ? '#d0d8e8' : '#eaecf2'}" stroke-width="${isMajor ? 0.8 : 0.5}"/>`;
     }
     for (let y = 0; y <= H; y += GR_GRID) {
-      s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${y % (GR_GRID*5) === 0 ? '#ccd4e0' : '#e2e8f0'}" stroke-width="${y % (GR_GRID*5) === 0 ? 1 : 0.5}"/>`;
+      const isMajor = y % (GR_GRID*5) === 0;
+      s += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${isMajor ? '#d0d8e8' : '#eaecf2'}" stroke-width="${isMajor ? 0.8 : 0.5}"/>`;
     }
+    // Major labels
     for (let x = 0; x <= W; x += GR_GRID * 5) {
-      s += `<text x="${x+2}" y="10" font-size="7" fill="#bbc5d4" font-family="monospace">${x/GR_GRID}m</text>`;
+      s += `<text x="${x+2}" y="10" font-size="7" fill="#c0c8d8" font-family="monospace">${x/GR_GRID}m</text>`;
     }
     for (let y = GR_GRID*5; y <= H; y += GR_GRID * 5) {
-      s += `<text x="2" y="${y-2}" font-size="7" fill="#bbc5d4" font-family="monospace">${y/GR_GRID}m</text>`;
+      s += `<text x="2" y="${y-2}" font-size="7" fill="#c0c8d8" font-family="monospace">${y/GR_GRID}m</text>`;
     }
   }
 
-  // Rooms (floor fills)
+  // Rooms (floor fills) – professional pastel colors
   for (const r of grState.rooms) {
     const isSel = r.id === grState.selectedId;
-    const patMap = { room:'room-pat', parkett:'parkett-pat', fliese:'fliese-pat', teppich:'teppich-pat' };
-    const pat = patMap[r.type] || 'room-pat';
-    const strokeC = isSel ? '#f39c12' : (r.type === 'room' ? '#7fa8c8' : '#8a9ab0');
+    const roomStyles = {
+      room:    { fill:'#f8f9ff', stroke:'#4a6fa5', lc:'#1a3a5c' },
+      parkett: { fill:'#fdf5e4', stroke:'#9b6c2a', lc:'#5c3a00' },
+      fliese:  { fill:'#e8f2fb', stroke:'#2e7ab8', lc:'#1a3a5c' },
+      teppich: { fill:'#f5ede0', stroke:'#8b5e3c', lc:'#4a2800' },
+    };
+    const rs = roomStyles[r.type] || roomStyles.room;
+    const strokeColor = isSel ? '#e67e22' : rs.stroke;
+
     s += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}"
-      fill="url(#${pat})" stroke="${strokeC}" stroke-width="${isSel ? 2.5 : 1.5}"
+      fill="${rs.fill}" stroke="${strokeColor}" stroke-width="${isSel ? 2.5 : 1.8}"
       stroke-dasharray="${isSel ? '6,3' : 'none'}" rx="2"
       onclick="grSelectItem(event,'room',${r.id})" style="cursor:${grState.tool?'crosshair':'move'}"/>`;
+
+    // Floor texture overlays
+    if (r.type === 'parkett') {
+      const pw = GR_GRID, ph = GR_GRID / 5;
+      for (let fy = r.y; fy < r.y + r.h; fy += ph) {
+        const offset = Math.floor((fy - r.y) / ph) % 2 === 0 ? 0 : pw / 2;
+        for (let fx = r.x + offset; fx < r.x + r.w; fx += pw) {
+          s += `<rect x="${fx}" y="${fy}" width="${Math.min(pw, r.x+r.w-fx)}" height="${Math.min(ph, r.y+r.h-fy)}"
+            fill="none" stroke="#d4a865" stroke-width="0.5" opacity=".65"/>`;
+        }
+      }
+    } else if (r.type === 'fliese') {
+      const ts = GR_GRID / 2;
+      for (let fy = r.y; fy < r.y + r.h; fy += ts) {
+        for (let fx = r.x; fx < r.x + r.w; fx += ts) {
+          s += `<rect x="${fx+1}" y="${fy+1}" width="${Math.min(ts-2, r.x+r.w-fx-1)}" height="${Math.min(ts-2, r.y+r.h-fy-1)}"
+            fill="rgba(46,122,184,.04)" stroke="#88aec8" stroke-width="0.6" opacity=".7"/>`;
+        }
+      }
+    } else if (r.type === 'teppich') {
+      for (let fy = r.y + 5; fy < r.y + r.h - 2; fy += 9) {
+        for (let fx = r.x + 5; fx < r.x + r.w - 2; fx += 9) {
+          s += `<circle cx="${fx}" cy="${fy}" r="1.8" fill="#c49a6c" opacity=".35"/>`;
+        }
+      }
+    }
+
+    // Room name label
+    const lc = isSel ? '#e67e22' : rs.lc;
     if (r.label) {
       s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2 - 6}" text-anchor="middle"
-        dominant-baseline="middle" font-size="11" font-weight="700"
-        fill="#4a5568" font-family="sans-serif">${esc(r.label)}</text>`;
+        dominant-baseline="middle" font-size="12" font-weight="700"
+        fill="${lc}" font-family="sans-serif" pointer-events="none">${esc(r.label)}</text>`;
     }
     const wm = (r.w / GR_GRID).toFixed(1), hm = (r.h / GR_GRID).toFixed(1);
     const am = (r.w * r.h / (GR_GRID * GR_GRID)).toFixed(1);
-    s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2 + 7}" text-anchor="middle"
-      font-size="8" fill="#7a8898" font-family="monospace">${wm}×${hm}m = ${am}m²</text>`;
+    s += `<text x="${r.x + r.w/2}" y="${r.y + r.h/2 + (r.label ? 9 : 1)}" text-anchor="middle"
+      font-size="8.5" fill="${lc}" opacity=".65" font-family="monospace" pointer-events="none">${wm}×${hm}m = ${am}m²</text>`;
 
     // Resize handles (only for selected room)
     if (isSel) {
       for (const [name, hx, hy] of grResizeHandles(r)) {
         s += `<rect x="${hx-5}" y="${hy-5}" width="10" height="10"
-          fill="#fff" stroke="#f39c12" stroke-width="2" rx="2"
+          fill="#fff" stroke="#e67e22" stroke-width="2" rx="2"
           style="cursor:${grResizeCursor(name)}" pointer-events="all"
           onmousedown="grStartResizeHandle(event,'${name}',${r.id})"/>`;
       }
-      // Dimension lines
       s += grDimensionLine(r.x, r.y - 18, r.x + r.w, r.y - 18, `${wm}m`);
       s += grDimensionLine(r.x - 22, r.y, r.x - 22, r.y + r.h, `${hm}m`);
     }
   }
 
-  // Walls & Windows (as proper thick lines with correct caps)
+  // Walls & Windows – professional rendering
   for (const w of grState.walls) {
     const isSel = w.id === grState.selectedId;
-    let strokeC, sw, dash, fill;
-    if (w.type === 'wall')     { strokeC = isSel?'#f39c12':'#2c3e50'; sw = 10; dash = 'none'; }
-    else if (w.type === 'wall_int') { strokeC = isSel?'#f39c12':'#5d6d7e'; sw = 6; dash = 'none'; }
-    else if (w.type === 'window')   { strokeC = isSel?'#f39c12':'#2e86c1'; sw = 5; dash = '8,4'; }
-    else { strokeC = isSel?'#f39c12':'#555'; sw = 4; dash = 'none'; }
+    let strokeC, sw, dash;
+    if (w.type === 'wall')          { strokeC = isSel?'#e67e22':'#2d3748'; sw = 12; dash = 'none'; }
+    else if (w.type === 'wall_int') { strokeC = isSel?'#e67e22':'#5a6a7e'; sw = 7; dash = 'none'; }
+    else if (w.type === 'window')   { strokeC = isSel?'#e67e22':'#3498db'; sw = 5; dash = '10,4'; }
+    else                            { strokeC = isSel?'#e67e22':'#666'; sw = 4; dash = 'none'; }
 
     // Hit area
     s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
       stroke="transparent" stroke-width="18" stroke-linecap="round"
       onclick="grSelectItem(event,'wall',${w.id})" style="cursor:${grState.tool?'crosshair':'move'}"/>`;
+    // Core line
     s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
       stroke="${strokeC}" stroke-width="${sw}" stroke-linecap="square"
       stroke-dasharray="${dash}" pointer-events="none"/>`;
+    // Window center line
+    if (w.type === 'window') {
+      s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"
+        stroke="#fff" stroke-width="1.5" stroke-linecap="square" stroke-dasharray="${dash}" opacity=".6" pointer-events="none"/>`;
+    }
 
-    // Endpoint dots
+    // Endpoint dots when selected
     if (isSel) {
-      s += `<circle cx="${w.x1}" cy="${w.y1}" r="5" fill="#f39c12" opacity=".8" pointer-events="none"/>`;
-      s += `<circle cx="${w.x2}" cy="${w.y2}" r="5" fill="#f39c12" opacity=".8" pointer-events="none"/>`;
+      s += `<circle cx="${w.x1}" cy="${w.y1}" r="6" fill="#e67e22" opacity=".9" pointer-events="none"/>`;
+      s += `<circle cx="${w.x2}" cy="${w.y2}" r="6" fill="#e67e22" opacity=".9" pointer-events="none"/>`;
     }
 
     // Length annotation
@@ -4916,26 +5253,28 @@ function grUpdateProps() {
   const body = document.getElementById('gr-props-body');
   if (!body) return;
   if (!grState.selectedId) {
-    body.innerHTML = '<span style="color:#aaa;font-size:12px">Kein Element gewählt.<br><small>Werkzeug abwählen (ESC) um Elemente zu selektieren.</small></span>';
+    body.innerHTML = `<div style="color:#aaa;font-size:11px;padding-top:8px;text-align:center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8d0de" stroke-width="1.5" style="display:block;margin:0 auto 8px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Kein Element gewählt.<br><small style="color:#c8d0de">ESC drücken und Element klicken</small></div>`;
     return;
   }
   const item = [...grState.items, ...grState.walls, ...grState.rooms]
     .find(i => i.id === grState.selectedId);
-  if (!item) { body.innerHTML = '<span style="color:#aaa;font-size:12px">Nicht gefunden.</span>'; return; }
+  if (!item) return;
 
   const isRoom = grState.rooms.includes(item);
   const isWall = grState.walls.includes(item);
+  const toolDef = GR_LIB.find(t => t.type === item.type);
 
-  let html = `<div style="font-size:11.5px;font-weight:700;color:#1a3a5c;margin-bottom:8px">
-    ${isRoom ? '⬜ Raum/Boden' : isWall ? '▬ Wand/Fenster' : '📍 Symbol'} #${item.id}
-  </div>`;
+  let html = `<div class="gr-rp-section" style="border-top:none;padding-top:0">
+    ${toolDef?.emoji || '📐'} ${toolDef?.label || 'Element'}</div>`;
 
+  // Label input
   if (isRoom || !isWall) {
-    html += `<div class="wiz-field" style="margin-bottom:8px">
-      <label>Bezeichnung</label>
-      <input type="text" value="${esc(item.label||'')}" placeholder="z.B. Wohnzimmer"
-        oninput="grUpdateItemProp(${item.id},'label',this.value)"
-        style="font-size:12px;padding:5px 8px;border:1.5px solid #d0d7e2;border-radius:6px;width:100%">
+    html += `<div style="margin-bottom:10px">
+      <div class="gr-prop-label" style="margin-bottom:4px">Bezeichnung</div>
+      <input type="text" class="gr-prop-input" value="${esc(item.label||'')}" placeholder="z.B. Wohnzimmer"
+        oninput="grUpdateItemProp(${item.id},'label',this.value)">
     </div>`;
   }
 
@@ -4943,21 +5282,30 @@ function grUpdateProps() {
     const wm = (item.w / GR_GRID).toFixed(2);
     const hm = (item.h / GR_GRID).toFixed(2);
     const am = (item.w * item.h / (GR_GRID * GR_GRID)).toFixed(2);
-    html += `<div style="font-size:11px;color:#666;line-height:1.9">
-      Breite: <b>${wm} m</b><br>
-      Tiefe: <b>${hm} m</b><br>
-      Fläche: <b>${am} m²</b>
-    </div>`;
+    html += `<div class="gr-rp-section">Abmessungen</div>
+      <div class="gr-prop-row"><span class="gr-prop-label">Breite</span><span class="gr-prop-val">${wm} m</span></div>
+      <div class="gr-prop-row"><span class="gr-prop-label">Tiefe</span><span class="gr-prop-val">${hm} m</span></div>
+      <div class="gr-prop-row"><span class="gr-prop-label">Fläche</span><span class="gr-prop-val" style="color:#16a085">${am} m²</span></div>`;
   } else if (isWall) {
     const len = Math.hypot(item.x2 - item.x1, item.y2 - item.y1);
-    html += `<div style="font-size:11px;color:#666;line-height:1.9">
-      Länge: <b>${(len/GR_GRID).toFixed(2)} m</b><br>
-      Typ: <b>${item.type === 'wall' ? 'Außenwand' : item.type === 'wall_int' ? 'Innenwand' : 'Fenster'}</b>
-    </div>`;
+    const typeLabel = item.type === 'wall' ? 'Außenwand' : item.type === 'wall_int' ? 'Innenwand' : 'Fenster';
+    html += `<div class="gr-rp-section">Maße</div>
+      <div class="gr-prop-row"><span class="gr-prop-label">Länge</span><span class="gr-prop-val">${(len/GR_GRID).toFixed(2)} m</span></div>
+      <div class="gr-prop-row"><span class="gr-prop-label">Typ</span><span class="gr-prop-val">${typeLabel}</span></div>`;
+  } else {
+    const rot = item.rot || 0;
+    html += `<div class="gr-rp-section">Symbol</div>
+      <div class="gr-prop-row"><span class="gr-prop-label">Drehung</span><span class="gr-prop-val">${rot}°</span></div>
+      <div style="font-size:10px;color:#aaa;margin-bottom:6px">Rechtsklick = 90° drehen</div>`;
   }
 
-  html += `<button class="btn btn-danger btn-sm" style="width:100%;margin-top:10px"
-    onclick="grDeleteSelected()">🗑️ Löschen</button>`;
+  html += `<div class="gr-rp-section">Aktionen</div>
+    <button onclick="grDeleteSelected()" style="
+      width:100%;padding:7px;border:1.5px solid #e74c3c;border-radius:8px;
+      background:#fff5f5;color:#e74c3c;cursor:pointer;font-size:12px;font-weight:700;
+      display:flex;align-items:center;justify-content:center;gap:5px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Löschen
+    </button>`;
   body.innerHTML = html;
 }
 
@@ -4982,7 +5330,7 @@ function grDeleteSelected() {
 
 /* ── Statistics ──────────────────────────────────────────────── */
 function grUpdateStats() {
-  const el = document.getElementById('gr-stats');
+  const el = document.getElementById('gr-stats-body');
   if (!el) return;
   const totalArea = grState.rooms
     .filter(r => r.type === 'room')
@@ -4994,20 +5342,27 @@ function grUpdateStats() {
     .filter(w => w.type === 'window')
     .reduce((s, w) => s + Math.hypot(w.x2-w.x1, w.y2-w.y1) / GR_GRID, 0);
   const cnt = t => grState.items.filter(i => i.type === t).length;
+  const statRow = (label, val) =>
+    `<div class="gr-prop-row"><span class="gr-prop-label">${label}</span><span class="gr-prop-val">${val}</span></div>`;
   el.innerHTML = `
-    Räume: <b>${grState.rooms.filter(r=>r.type==='room').length}</b><br>
-    Fläche gesamt: <b>${totalArea.toFixed(1)} m²</b><br>
-    Wände: <b>${wallLen.toFixed(1)} m</b><br>
-    Fenster: <b>${winLen.toFixed(1)} m</b><br>
-    Türen: <b>${cnt('door') + cnt('door180')}</b><br>
-    Steckdosen: <b>${cnt('steckd')}</b><br>
-    Schalter: <b>${cnt('schalter')}</b><br>
-    Leuchten: <b>${cnt('licht')}</b><br>
-    WC: <b>${cnt('wc')}</b><br>
-    Dusche: <b>${cnt('dusche')}</b><br>
-    Badewanne: <b>${cnt('wanne')}</b><br>
-    Waschtisch: <b>${cnt('waschb')}</b><br>
-    Heizkörper: <b>${cnt('heizk')}</b>
+    <div class="gr-rp-section" style="border-top:none;padding-top:0">Flächen</div>
+    ${statRow('Räume', grState.rooms.filter(r=>r.type==='room').length)}
+    ${statRow('Gesamtfläche', totalArea.toFixed(1) + ' m²')}
+    <div class="gr-rp-section">Bauteile</div>
+    ${statRow('Wände', wallLen.toFixed(1) + ' m')}
+    ${statRow('Fenster', winLen.toFixed(1) + ' m')}
+    ${statRow('Türen', cnt('door') + cnt('door180'))}
+    <div class="gr-rp-section">Sanitär</div>
+    ${statRow('WC', cnt('wc'))}
+    ${statRow('Dusche', cnt('dusche'))}
+    ${statRow('Badewanne', cnt('wanne'))}
+    ${statRow('Waschtisch', cnt('waschb'))}
+    ${statRow('Heizkörper', cnt('heizk'))}
+    <div class="gr-rp-section">Elektro</div>
+    ${statRow('Steckdosen', cnt('steckd'))}
+    ${statRow('Schalter', cnt('schalter'))}
+    ${statRow('Leuchten', cnt('licht'))}
+    ${statRow('Rauchmelder', cnt('rauchm'))}
   `;
 }
 
@@ -5333,9 +5688,14 @@ document.addEventListener('keydown', e => {
     grState.selectedId = null;
     grState.dragState = null;
     grState.resizeState = null;
-    document.querySelectorAll('.gr-lib-item').forEach(el => el.classList.remove('active'));
+    grState._activeIconCat = null;
+    // Close sub-panel
+    const sp = document.getElementById('gr-subpanel');
+    if (sp) sp.classList.remove('open');
+    document.querySelectorAll('.gr-ib-btn').forEach(b => b.classList.remove('active','active-cat'));
+    document.querySelectorAll('.gr-sp-item').forEach(b => b.classList.remove('active'));
     const hint = document.getElementById('gr-status-hint');
-    if (hint) hint.textContent = 'Werkzeug wählen →';
+    if (hint) hint.textContent = 'Werkzeug wählen oder Element anklicken';
     const inner = document.getElementById('gr-canvas-inner');
     if (inner) inner.style.cursor = '';
     grUpdateProps();
