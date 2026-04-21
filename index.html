@@ -1282,6 +1282,11 @@ const GEWERKE = [
   { id: 'abbruch',         label: '⛏️ Abbruch',         icon: '⛏️' },
   { id: 'rohbau',          label: '🏗️ Rohbau',          icon: '🏗️' },
   { id: 'bodenplatte',     label: '⬛ Bodenplatte',     icon: '⬛' },
+  { id: 'dachdecker',     label: '🏠 Dachdecker',      icon: '🏠' },
+  { id: 'zimmermann',     label: '🪚 Zimmermann',      icon: '🪚' },
+  { id: 'lueftung',       label: '💨 Lüftung/Klima',   icon: '💨' },
+  { id: 'geruest',        label: '🏗️ Gerüst',           icon: '🏗️' },
+  { id: 'aussenanlagen',  label: '🌿 Außenanlagen',    icon: '🌿' },
 ];
 
 const EINHEITEN = ['m','m²','m³','lfm','Stk','Pauschal','h','kg','t','L','Set','VE'];
@@ -1656,8 +1661,25 @@ const MUSTER = {
     { gruppe:'Armaturen', pos:'S5.01', beschreibung:'Einhebelmischer Waschtisch Aufputz', einheit:'Stk', menge:1, materialpreis:198, stundensatz:70, stunden:0 },
     { gruppe:'Armaturen', pos:'S5.02', beschreibung:'Thermostatbatterie Dusche/Badewanne', einheit:'Stk', menge:1, materialpreis:388, stundensatz:70, stunden:0 },
     { gruppe:'Armaturen', pos:'S5.03', beschreibung:'Einhebelmischer Küche schwenkbar', einheit:'Stk', menge:1, materialpreis:224, stundensatz:70, stunden:0 },
+    // Küche & Sonstiges
+    { gruppe:'Küche & Sonstiges', pos:'S7.01', beschreibung:'Spüle Küche 1-becken Edelstahl inkl. Anschlüsse', einheit:'Stk', menge:1, materialpreis:420, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.02', beschreibung:'Spüle Küche 2-becken Edelstahl inkl. Anschlüsse', einheit:'Stk', menge:1, materialpreis:580, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.03', beschreibung:'Küchenarmatur Einhebelmischer schwenkbar montieren', einheit:'Stk', menge:1, materialpreis:285, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.04', beschreibung:'Waschmaschinenanschluss inkl. Warm-/Kalt- u. Abwasser', einheit:'Stk', menge:1, materialpreis:225, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.05', beschreibung:'Geschirrspüler-Anschluss inkl. Zulauf u. Ablauf', einheit:'Stk', menge:1, materialpreis:185, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.06', beschreibung:'Regendusche Deckenbrause UP 30×30cm inkl. Arm', einheit:'Stk', menge:1, materialpreis:685, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.07', beschreibung:'Bidet wandhängend montieren u. anschließen', einheit:'Stk', menge:1, materialpreis:385, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.08', beschreibung:'Urinal wandhängend inkl. Spülautomat', einheit:'Stk', menge:1, materialpreis:480, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.09', beschreibung:'Druckminderer DN25 einbauen', einheit:'Stk', menge:1, materialpreis:195, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.10', beschreibung:'Außenwasserhahn Frost-sicher mit Rückflussverhinderer', einheit:'Stk', menge:1, materialpreis:185, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.11', beschreibung:'Durchlauferhitzer elektronisch 18kW einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:520, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.12', beschreibung:'Warmwasserspeicher 120L stehend einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:885, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.13', beschreibung:'Gasleitung Stahl DN20 verlegen u. prüfen', einheit:'m', menge:8, materialpreis:65, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.14', beschreibung:'Gasherd-/Gasthermen-Anschluss inkl. Kugelhahn', einheit:'Stk', menge:1, materialpreis:185, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.15', beschreibung:'Wasserweiche / Pufferspeicher 200L einbauen', einheit:'Stk', menge:1, materialpreis:1280, stundensatz:70, stunden:0 },
+    { gruppe:'Küche & Sonstiges', pos:'S7.16', beschreibung:'Druckprüfung Trinkwasser inkl. Protokoll', einheit:'Pauschal', menge:1, materialpreis:185, stundensatz:70, stunden:0 },
     // Stundensatz
-    { gruppe:'Stundensatz', pos:'S6.01', beschreibung:'Stundensatz Sanitärinstallateur', einheit:'h', menge:1, materialpreis:0, stundensatz:70, stunden:1 },
+    { gruppe:'Stundensatz', pos:'S8.01', beschreibung:'Stundensatz Sanitärinstallateur', einheit:'h', menge:1, materialpreis:0, stundensatz:70, stunden:1 },
   ],
 
   /* ── HEIZUNG ──────────────────────────────────────────────────── */
@@ -1709,7 +1731,32 @@ const MUSTER = {
     { gruppe:'Armaturen & Regelung', pos:'H5.01', beschreibung:'Thermostatventil DN15', einheit:'Stk', menge:6, materialpreis:68, stundensatz:65, stunden:0 },
     { gruppe:'Armaturen & Regelung', pos:'H5.02', beschreibung:'Rücklaufverschraubung DN15', einheit:'Stk', menge:6, materialpreis:46, stundensatz:65, stunden:0 },
     { gruppe:'Armaturen & Regelung', pos:'H5.03', beschreibung:'Umwälzpumpe Heizung einbauen', einheit:'Stk', menge:1, materialpreis:485, stundensatz:65, stunden:0 },
-    { gruppe:'Armaturen & Regelung', pos:'H5.04', beschreibung:'Raumthermostat digital', einheit:'Stk', menge:1, materialpreis:128, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.04', beschreibung:'Raumthermostat digital programmierbar einbauen', einheit:'Stk', menge:1, materialpreis:128, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.05', beschreibung:'Smart Thermostat (WLAN, z.B. Nest/Tado) einbauen', einheit:'Stk', menge:1, materialpreis:245, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.06', beschreibung:'Sicherheitsventil 3bar einbauen', einheit:'Stk', menge:1, materialpreis:64, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.07', beschreibung:'Ausdehnungsgefäß 18L einbauen', einheit:'Stk', menge:1, materialpreis:145, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.08', beschreibung:'Absperr-Kugelhahn DN25 einbauen', einheit:'Stk', menge:4, materialpreis:45, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.09', beschreibung:'Hydraulischer Abgleich inkl. Protokoll', einheit:'Pauschal', menge:1, materialpreis:485, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.10', beschreibung:'Druckprüfung Heizungsanlage inkl. Protokoll', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:65, stunden:0 },
+    { gruppe:'Armaturen & Regelung', pos:'H5.11', beschreibung:'Inbetriebnahme Heizungsanlage inkl. Einweisung', einheit:'Pauschal', menge:1, materialpreis:385, stundensatz:65, stunden:0 },
+    // Alternative Energieträger
+    { gruppe:'Alternative Energieträger', pos:'H7.01', beschreibung:'Öl-Brennwertheizung bis 25kW einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:8500, stundensatz:65, stunden:0 },
+    { gruppe:'Alternative Energieträger', pos:'H7.02', beschreibung:'Pelletheizkessel 15kW inkl. Pelletbehälter einbauen', einheit:'Stk', menge:1, materialpreis:14800, stundensatz:65, stunden:0 },
+    { gruppe:'Alternative Energieträger', pos:'H7.03', beschreibung:'Sole-Wasser-Wärmepumpe 10kW einbauen (inkl. Erschließung)', einheit:'Stk', menge:1, materialpreis:22500, stundensatz:65, stunden:0 },
+    { gruppe:'Alternative Energieträger', pos:'H7.04', beschreibung:'Luft-Wasser-Wärmepumpe Split 12kW einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:16500, stundensatz:65, stunden:0 },
+    { gruppe:'Alternative Energieträger', pos:'H7.05', beschreibung:'Fernwärme Hausanschluss-Station einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:5800, stundensatz:65, stunden:0 },
+    { gruppe:'Alternative Energieträger', pos:'H7.06', beschreibung:'Pufferspeicher 500L einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:1850, stundensatz:65, stunden:0 },
+    { gruppe:'Alternative Energieträger', pos:'H7.07', beschreibung:'Pufferspeicher 1000L einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:2850, stundensatz:65, stunden:0 },
+    // Solarthermie
+    { gruppe:'Solarthermie', pos:'H8.01', beschreibung:'Flachkollektor 2,5m² montieren u. anschließen', einheit:'Stk', menge:4, materialpreis:680, stundensatz:65, stunden:0 },
+    { gruppe:'Solarthermie', pos:'H8.02', beschreibung:'Vakuumröhrenkollektor 2,0m² montieren u. anschließen', einheit:'Stk', menge:4, materialpreis:920, stundensatz:65, stunden:0 },
+    { gruppe:'Solarthermie', pos:'H8.03', beschreibung:'Solarspeicher 300L bivalent einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:1650, stundensatz:65, stunden:0 },
+    { gruppe:'Solarthermie', pos:'H8.04', beschreibung:'Solarstation Pumpengruppe inkl. Regelung einbauen', einheit:'Stk', menge:1, materialpreis:685, stundensatz:65, stunden:0 },
+    { gruppe:'Solarthermie', pos:'H8.05', beschreibung:'Solaranlage Inbetriebnahme inkl. Einweisung', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:65, stunden:0 },
+    // Infrarot & Elektroheizung
+    { gruppe:'Elektroheizung & Infrarot', pos:'H9.01', beschreibung:'Infrarotheizpanel 500W einbauen u. anschließen', einheit:'Stk', menge:3, materialpreis:385, stundensatz:65, stunden:0 },
+    { gruppe:'Elektroheizung & Infrarot', pos:'H9.02', beschreibung:'Infrarotheizpanel 1000W einbauen u. anschließen', einheit:'Stk', menge:2, materialpreis:580, stundensatz:65, stunden:0 },
+    { gruppe:'Elektroheizung & Infrarot', pos:'H9.03', beschreibung:'Elektro-Fußbodenheizung Dünnbett 160W/m² verlegen', einheit:'m²', menge:8, materialpreis:68, stundensatz:65, stunden:0 },
     // Stundensatz
     { gruppe:'Stundensatz', pos:'H6.01', beschreibung:'Stundensatz Heizungsinstallateur', einheit:'h', menge:1, materialpreis:0, stundensatz:65, stunden:1 },
   ],
@@ -1737,6 +1784,15 @@ const MUSTER = {
     { gruppe:'Spachtelung & Oberfläche', pos:'T5.02', beschreibung:'Spachtelung GK-Platten Q3', einheit:'m²', menge:60, materialpreis:13.20, stundensatz:55, stunden:0 },
     { gruppe:'Spachtelung & Oberfläche', pos:'T5.03', beschreibung:'Kantenprofile Montagewand, Aluminium', einheit:'m', menge:20, materialpreis:12.80, stundensatz:55, stunden:0 },
     { gruppe:'Spachtelung & Oberfläche', pos:'T5.04', beschreibung:'Schimmelschutzplatte feuchte Zone', einheit:'m²', menge:15, materialpreis:96, stundensatz:55, stunden:0 },
+    // Brandschutz & Sonderkonstruktionen
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.01', beschreibung:'Brandschutzwand F30 GKF doppelt beplankt', einheit:'m²', menge:20, materialpreis:135, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.02', beschreibung:'Brandschutzwand F60 GKF dreifach beplankt', einheit:'m²', menge:15, materialpreis:165, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.03', beschreibung:'Brandschutzklappe Lüftungskanal einbauen DN125', einheit:'Stk', menge:4, materialpreis:285, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.04', beschreibung:'Installationswand WC UP-Element Montagewand', einheit:'Stk', menge:2, materialpreis:248, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.05', beschreibung:'Installationsschacht CW 50mm geschlossen', einheit:'m', menge:6, materialpreis:88, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.06', beschreibung:'Abgehängte Decke GKF F30 Brandschutz', einheit:'m²', menge:20, materialpreis:98, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.07', beschreibung:'Revisionsöffnung 60×60cm in Decke/Wand', einheit:'Stk', menge:3, materialpreis:85, stundensatz:55, stunden:0 },
+    { gruppe:'Brandschutz & Sonderkonstruktionen', pos:'T7.08', beschreibung:'Dampfbremse / Dampfsperre für Bauteil', einheit:'m²', menge:30, materialpreis:12, stundensatz:55, stunden:0 },
     // Stundensatz
     { gruppe:'Stundensatz', pos:'T6.01', beschreibung:'Stundensatz Trockenbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:55, stunden:1 },
   ],
@@ -1778,6 +1834,15 @@ const MUSTER = {
     { gruppe:'Fassade', pos:'M7.04', beschreibung:'Fassadendämmung WDVS EPS 100mm', einheit:'m²', menge:50, materialpreis:98, stundensatz:50, stunden:0 },
     { gruppe:'Fassade', pos:'M7.05', beschreibung:'Fassadendämmung WDVS Mineralwolle 120mm', einheit:'m²', menge:40, materialpreis:118, stundensatz:50, stunden:0 },
     { gruppe:'Fassade', pos:'M7.06', beschreibung:'Fassadenputz Renovierung mineralisch', einheit:'m²', menge:60, materialpreis:38, stundensatz:50, stunden:0 },
+    // Brandschutz & Sonderbeschichtungen
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.01', beschreibung:'Brandschutzanstrich Stahl R30 (Intumeszenzlack)', einheit:'m²', menge:20, materialpreis:68, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.02', beschreibung:'Brandschutzanstrich Holz/GK F30 einlagig', einheit:'m²', menge:30, materialpreis:38, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.03', beschreibung:'Korrosionsschutzanstrich Metall 2-lagig', einheit:'m²', menge:20, materialpreis:42, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.04', beschreibung:'Anti-Graffiti-Beschichtung transparent', einheit:'m²', menge:30, materialpreis:48, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.05', beschreibung:'Holzfenster / Außentür lasieren 1-flügelig', einheit:'Stk', menge:4, materialpreis:145, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.06', beschreibung:'Holzkonstruktion Außen lasieren (Carport, Pergola)', einheit:'m²', menge:20, materialpreis:28, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.07', beschreibung:'Geländer / Treppen Farbbeschichtung 2-lagig', einheit:'m', menge:15, materialpreis:48, stundensatz:50, stunden:0 },
+    { gruppe:'Brandschutz & Sonderbeschichtungen', pos:'M9.08', beschreibung:'Schutzanstrich Beton feuchtigkeitsabweisend', einheit:'m²', menge:40, materialpreis:24, stundensatz:50, stunden:0 },
     // Stundensatz
     { gruppe:'Stundensatz', pos:'M8.01', beschreibung:'Stundensatz Maler/Lackierer', einheit:'h', menge:1, materialpreis:0, stundensatz:50, stunden:1 },
   ],
@@ -1969,6 +2034,203 @@ const MUSTER = {
     { gruppe:'Estrich', pos:'BP5.02', beschreibung:'Fließestrich CAF 35mm', einheit:'m²', menge:40, materialpreis:32, stundensatz:55, stunden:0 },
     // Stundensatz
     { gruppe:'Stundensatz', pos:'BP6.01', beschreibung:'Stundensatz Bodenplatten-/Betonbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:55, stunden:1 },
+  ],
+
+  /* ── DACHDECKER ───────────────────────────────────────────────── */
+  dachdecker: [
+    // Demontage
+    { gruppe:'Demontage', pos:'D1.01', beschreibung:'Dachziegel / Dachsteine entfernen', einheit:'m²', menge:100, materialpreis:14, stundensatz:60, stunden:0 },
+    { gruppe:'Demontage', pos:'D1.02', beschreibung:'Bitumenpappabdichtung entfernen', einheit:'m²', menge:80, materialpreis:18, stundensatz:60, stunden:0 },
+    { gruppe:'Demontage', pos:'D1.03', beschreibung:'Dachdämmung entfernen und entsorgen', einheit:'m²', menge:80, materialpreis:12, stundensatz:60, stunden:0 },
+    { gruppe:'Demontage', pos:'D1.04', beschreibung:'Dachrinne inkl. Halter demontieren', einheit:'m', menge:30, materialpreis:8, stundensatz:60, stunden:0 },
+    { gruppe:'Demontage', pos:'D1.05', beschreibung:'Fallrohr demontieren', einheit:'m', menge:12, materialpreis:7, stundensatz:60, stunden:0 },
+    // Geneigte Dächer – Eindeckung
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.01', beschreibung:'Dachziegel Tonziegel verlegen inkl. Lattung u. Konterlattung', einheit:'m²', menge:120, materialpreis:68, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.02', beschreibung:'Betondachstein verlegen inkl. Lattung u. Konterlattung', einheit:'m²', menge:120, materialpreis:58, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.03', beschreibung:'Schiefer-Eindeckung Naturschiefer verlegen', einheit:'m²', menge:60, materialpreis:145, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.04', beschreibung:'Bitumenwellplatten verlegen inkl. Unterkonstruktion', einheit:'m²', menge:80, materialpreis:42, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.05', beschreibung:'Metalldach Stehfalz Aluminium verlegen', einheit:'m²', menge:80, materialpreis:95, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.06', beschreibung:'Metalldach Stehfalz Zink verlegen', einheit:'m²', menge:80, materialpreis:108, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.07', beschreibung:'Dachpappe (Bitumenbahn V13) verlegen Unterdeckung', einheit:'m²', menge:120, materialpreis:12, stundensatz:60, stunden:0 },
+    { gruppe:'Geneigte Dächer – Eindeckung', pos:'D2.08', beschreibung:'Unterspannbahn diffusionsoffen verlegen', einheit:'m²', menge:120, materialpreis:8.50, stundensatz:60, stunden:0 },
+    // Flachdach
+    { gruppe:'Flachdach', pos:'D3.01', beschreibung:'Dampfsperre (PE-Folie) verlegen', einheit:'m²', menge:80, materialpreis:8.80, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.02', beschreibung:'Gefälledämmung EPS 100–200mm verlegen', einheit:'m²', menge:80, materialpreis:52, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.03', beschreibung:'Gefälledämmung Mineralwolle 80–160mm verlegen', einheit:'m²', menge:60, materialpreis:68, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.04', beschreibung:'Bitumendachbahn einlagig schweißen', einheit:'m²', menge:80, materialpreis:28, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.05', beschreibung:'Bitumendachbahn zweilagig schweißen', einheit:'m²', menge:80, materialpreis:48, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.06', beschreibung:'Kunststoffdachbahn PVC/FPO einlagig verlegen', einheit:'m²', menge:80, materialpreis:52, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.07', beschreibung:'Kiesschüttung 40mm als Schutzlage', einheit:'m²', menge:80, materialpreis:14, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.08', beschreibung:'Terrassenplatten auf Stelzlager (begehbares Dach)', einheit:'m²', menge:40, materialpreis:85, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.09', beschreibung:'Dachgully DN100 mit Notüberlauf einbauen', einheit:'Stk', menge:2, materialpreis:385, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.10', beschreibung:'Attika-Blechverkleidung Aluminium', einheit:'m', menge:30, materialpreis:62, stundensatz:60, stunden:0 },
+    { gruppe:'Flachdach', pos:'D3.11', beschreibung:'Attika-Abschluss Zink gekantet', einheit:'m', menge:30, materialpreis:78, stundensatz:60, stunden:0 },
+    // Dachdämmung (geneigtes Dach)
+    { gruppe:'Dachdämmung (geneigtes Dach)', pos:'D4.01', beschreibung:'Zwischensparrendämmung Mineralwolle 140mm', einheit:'m²', menge:80, materialpreis:42, stundensatz:60, stunden:0 },
+    { gruppe:'Dachdämmung (geneigtes Dach)', pos:'D4.02', beschreibung:'Zwischensparrendämmung Mineralwolle 180mm', einheit:'m²', menge:80, materialpreis:52, stundensatz:60, stunden:0 },
+    { gruppe:'Dachdämmung (geneigtes Dach)', pos:'D4.03', beschreibung:'Aufsparrendämmung PIR 100mm', einheit:'m²', menge:60, materialpreis:85, stundensatz:60, stunden:0 },
+    { gruppe:'Dachdämmung (geneigtes Dach)', pos:'D4.04', beschreibung:'Untersparrendämmung GK 40mm', einheit:'m²', menge:80, materialpreis:32, stundensatz:60, stunden:0 },
+    // Dachentwässerung
+    { gruppe:'Dachentwässerung', pos:'D5.01', beschreibung:'Dachrinne Zink halbrund 100mm inkl. Halter', einheit:'m', menge:25, materialpreis:48, stundensatz:60, stunden:0 },
+    { gruppe:'Dachentwässerung', pos:'D5.02', beschreibung:'Dachrinne Aluminium halbrund 125mm inkl. Halter', einheit:'m', menge:25, materialpreis:52, stundensatz:60, stunden:0 },
+    { gruppe:'Dachentwässerung', pos:'D5.03', beschreibung:'Dachrinne Kupfer halbrund 100mm inkl. Halter', einheit:'m', menge:20, materialpreis:72, stundensatz:60, stunden:0 },
+    { gruppe:'Dachentwässerung', pos:'D5.04', beschreibung:'Fallrohr Zink ∅80mm inkl. Schellen', einheit:'m', menge:12, materialpreis:44, stundensatz:60, stunden:0 },
+    { gruppe:'Dachentwässerung', pos:'D5.05', beschreibung:'Fallrohr Aluminium ∅80mm inkl. Schellen', einheit:'m', menge:12, materialpreis:38, stundensatz:60, stunden:0 },
+    { gruppe:'Dachentwässerung', pos:'D5.06', beschreibung:'Einlauftrichter / Rinnenkasten Zink', einheit:'Stk', menge:2, materialpreis:85, stundensatz:60, stunden:0 },
+    { gruppe:'Dachentwässerung', pos:'D5.07', beschreibung:'Regenwassertonne 300L anschließen', einheit:'Stk', menge:1, materialpreis:185, stundensatz:60, stunden:0 },
+    // Dachgauben & Öffnungen
+    { gruppe:'Dachgauben & Öffnungen', pos:'D6.01', beschreibung:'Dachflächenfenster 78×98cm montieren (z.B. Velux)', einheit:'Stk', menge:2, materialpreis:880, stundensatz:60, stunden:0 },
+    { gruppe:'Dachgauben & Öffnungen', pos:'D6.02', beschreibung:'Dachflächenfenster 114×118cm montieren', einheit:'Stk', menge:1, materialpreis:1280, stundensatz:60, stunden:0 },
+    { gruppe:'Dachgauben & Öffnungen', pos:'D6.03', beschreibung:'Lichtkuppel 60×90cm Flachdach einbauen', einheit:'Stk', menge:1, materialpreis:1450, stundensatz:60, stunden:0 },
+    { gruppe:'Dachgauben & Öffnungen', pos:'D6.04', beschreibung:'Dachdurchdringung Lüftungsrohr abdichten', einheit:'Stk', menge:3, materialpreis:185, stundensatz:60, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'D7.01', beschreibung:'Stundensatz Dachdecker', einheit:'h', menge:1, materialpreis:0, stundensatz:60, stunden:1 },
+  ],
+
+  /* ── ZIMMERMANN / HOLZBAU ─────────────────────────────────────── */
+  zimmermann: [
+    // Demontage
+    { gruppe:'Demontage', pos:'ZI1.01', beschreibung:'Dachstuhl / Holzkonstruktion abbrechen', einheit:'m²', menge:80, materialpreis:38, stundensatz:60, stunden:0 },
+    { gruppe:'Demontage', pos:'ZI1.02', beschreibung:'Holzbalkendecke abbrechen', einheit:'m²', menge:40, materialpreis:45, stundensatz:60, stunden:0 },
+    { gruppe:'Demontage', pos:'ZI1.03', beschreibung:'Holzverkleidung Innen demontieren', einheit:'m²', menge:30, materialpreis:18, stundensatz:60, stunden:0 },
+    // Dachstuhl
+    { gruppe:'Dachstuhl', pos:'ZI2.01', beschreibung:'Dachstuhl Satteldach abbinden u. montieren (Sparren/Pfetten)', einheit:'m²', menge:100, materialpreis:75, stundensatz:60, stunden:0 },
+    { gruppe:'Dachstuhl', pos:'ZI2.02', beschreibung:'Dachstuhl Walmdach abbinden u. montieren', einheit:'m²', menge:80, materialpreis:95, stundensatz:60, stunden:0 },
+    { gruppe:'Dachstuhl', pos:'ZI2.03', beschreibung:'Dachstuhl Mansarddach abbinden u. montieren', einheit:'m²', menge:80, materialpreis:115, stundensatz:60, stunden:0 },
+    { gruppe:'Dachstuhl', pos:'ZI2.04', beschreibung:'Kehlbalken einbauen', einheit:'m', menge:20, materialpreis:28, stundensatz:60, stunden:0 },
+    { gruppe:'Dachstuhl', pos:'ZI2.05', beschreibung:'Pfettenanker / Sparrenanker setzen', einheit:'Stk', menge:20, materialpreis:12, stundensatz:60, stunden:0 },
+    { gruppe:'Dachstuhl', pos:'ZI2.06', beschreibung:'Holzschutzbehandlung Dachstuhl (Imprägnierung)', einheit:'m²', menge:100, materialpreis:8, stundensatz:60, stunden:0 },
+    // Schalung & Lattung
+    { gruppe:'Schalung & Lattung', pos:'ZI3.01', beschreibung:'Rauschalung 22mm Fichte verlegen', einheit:'m²', menge:100, materialpreis:28, stundensatz:60, stunden:0 },
+    { gruppe:'Schalung & Lattung', pos:'ZI3.02', beschreibung:'OSB-Platten 18mm auf Dach verlegen', einheit:'m²', menge:80, materialpreis:32, stundensatz:60, stunden:0 },
+    { gruppe:'Schalung & Lattung', pos:'ZI3.03', beschreibung:'Konterlattung 40×60mm verlegen', einheit:'m', menge:200, materialpreis:3.80, stundensatz:60, stunden:0 },
+    { gruppe:'Schalung & Lattung', pos:'ZI3.04', beschreibung:'Traglattung 30×50mm verlegen', einheit:'m', menge:300, materialpreis:2.60, stundensatz:60, stunden:0 },
+    // Holzbalkendecke
+    { gruppe:'Holzbalkendecke', pos:'ZI4.01', beschreibung:'Holzbalkendecke 140×200mm herstellen', einheit:'m²', menge:50, materialpreis:148, stundensatz:60, stunden:0 },
+    { gruppe:'Holzbalkendecke', pos:'ZI4.02', beschreibung:'Holzbalkendecke 160×220mm herstellen', einheit:'m²', menge:40, materialpreis:168, stundensatz:60, stunden:0 },
+    { gruppe:'Holzbalkendecke', pos:'ZI4.03', beschreibung:'Schalldämmung zwischen Holzbalken 120mm', einheit:'m²', menge:50, materialpreis:28, stundensatz:60, stunden:0 },
+    { gruppe:'Holzbalkendecke', pos:'ZI4.04', beschreibung:'Fußbodendielung auf Balkenlage 28mm', einheit:'m²', menge:50, materialpreis:48, stundensatz:60, stunden:0 },
+    // Balkon & Terrasse (Holz)
+    { gruppe:'Balkon & Terrasse (Holz)', pos:'ZI5.01', beschreibung:'Holzterrasse Lärche 28mm unbehandelt verlegen', einheit:'m²', menge:20, materialpreis:85, stundensatz:60, stunden:0 },
+    { gruppe:'Balkon & Terrasse (Holz)', pos:'ZI5.02', beschreibung:'Holzterrasse Bangkirai 28mm verlegen', einheit:'m²', menge:20, materialpreis:115, stundensatz:60, stunden:0 },
+    { gruppe:'Balkon & Terrasse (Holz)', pos:'ZI5.03', beschreibung:'WPC Terrassendiele verlegen inkl. UK', einheit:'m²', menge:25, materialpreis:125, stundensatz:60, stunden:0 },
+    { gruppe:'Balkon & Terrasse (Holz)', pos:'ZI5.04', beschreibung:'Holzgeländer inkl. Pfosten u. Handlauf', einheit:'m', menge:15, materialpreis:185, stundensatz:60, stunden:0 },
+    // Holzverkleidungen
+    { gruppe:'Holzverkleidungen', pos:'ZI6.01', beschreibung:'Fassadenverkleidung Holz Fichte/Kiefer horizontal', einheit:'m²', menge:40, materialpreis:88, stundensatz:60, stunden:0 },
+    { gruppe:'Holzverkleidungen', pos:'ZI6.02', beschreibung:'Fassadenverkleidung Holz Lärche vertikal', einheit:'m²', menge:40, materialpreis:108, stundensatz:60, stunden:0 },
+    { gruppe:'Holzverkleidungen', pos:'ZI6.03', beschreibung:'Innenverkleidung Sauna / Holzdecke Kiefer', einheit:'m²', menge:20, materialpreis:68, stundensatz:60, stunden:0 },
+    { gruppe:'Holzverkleidungen', pos:'ZI6.04', beschreibung:'Vordach / Überdachung Eingang montieren', einheit:'Stk', menge:1, materialpreis:1850, stundensatz:60, stunden:0 },
+    // Carport & Gartenhaus
+    { gruppe:'Carport & Gartenhaus', pos:'ZI7.01', beschreibung:'Carport Holzkonstruktion 5×6m liefern u. montieren', einheit:'Stk', menge:1, materialpreis:4800, stundensatz:60, stunden:0 },
+    { gruppe:'Carport & Gartenhaus', pos:'ZI7.02', beschreibung:'Pergola Holz 3×4m liefern u. montieren', einheit:'Stk', menge:1, materialpreis:3200, stundensatz:60, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'ZI8.01', beschreibung:'Stundensatz Zimmermann', einheit:'h', menge:1, materialpreis:0, stundensatz:60, stunden:1 },
+  ],
+
+  /* ── LÜFTUNG / KLIMA ──────────────────────────────────────────── */
+  lueftung: [
+    // Demontage
+    { gruppe:'Demontage', pos:'L1.01', beschreibung:'Lüftungsgerät demontieren u. entsorgen', einheit:'Stk', menge:1, materialpreis:95, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'L1.02', beschreibung:'Lüftungskanal / Wickelfalzrohr demontieren', einheit:'m', menge:20, materialpreis:8, stundensatz:65, stunden:0 },
+    { gruppe:'Demontage', pos:'L1.03', beschreibung:'Klimaanlage Split-Gerät demontieren', einheit:'Stk', menge:1, materialpreis:195, stundensatz:65, stunden:0 },
+    // Kanalsystem
+    { gruppe:'Kanalsystem', pos:'L2.01', beschreibung:'Wickelfalzrohr ∅100mm verlegen', einheit:'m', menge:20, materialpreis:12, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.02', beschreibung:'Wickelfalzrohr ∅125mm verlegen', einheit:'m', menge:30, materialpreis:15, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.03', beschreibung:'Wickelfalzrohr ∅160mm verlegen', einheit:'m', menge:20, materialpreis:19, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.04', beschreibung:'Wickelfalzrohr ∅200mm verlegen', einheit:'m', menge:15, materialpreis:24, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.05', beschreibung:'Flexibler Lüftungsschlauch ∅125mm verlegen', einheit:'m', menge:10, materialpreis:8.50, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.06', beschreibung:'Rechteckkanal 200×100mm verlegen', einheit:'m', menge:15, materialpreis:22, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.07', beschreibung:'Rechteckkanal 300×150mm verlegen', einheit:'m', menge:10, materialpreis:35, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.08', beschreibung:'Lüftungskanal isoliert ∅125mm verlegen', einheit:'m', menge:20, materialpreis:22, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.09', beschreibung:'Mauerkasten Außenwand ∅125mm einbauen', einheit:'Stk', menge:4, materialpreis:55, stundensatz:65, stunden:0 },
+    { gruppe:'Kanalsystem', pos:'L2.10', beschreibung:'Brandschutzklappe DN125 einbauen', einheit:'Stk', menge:4, materialpreis:285, stundensatz:65, stunden:0 },
+    // Wohnraumlüftung
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.01', beschreibung:'Zentrales Lüftungsgerät bis 300m³/h mit WRG einbauen', einheit:'Stk', menge:1, materialpreis:3200, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.02', beschreibung:'Zentrales Lüftungsgerät bis 500m³/h mit WRG einbauen', einheit:'Stk', menge:1, materialpreis:4800, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.03', beschreibung:'Dezentrales Lüftungsgerät Einzelraum mit WRG einbauen', einheit:'Stk', menge:4, materialpreis:680, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.04', beschreibung:'Badlüfter UP mit Timer einbauen u. anschließen', einheit:'Stk', menge:3, materialpreis:125, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.05', beschreibung:'Dunstabzugshaube Umluft einbauen u. anschließen', einheit:'Stk', menge:1, materialpreis:385, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.06', beschreibung:'Dunstabzugshaube Abluft inkl. Mauerkasten einbauen', einheit:'Stk', menge:1, materialpreis:480, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.07', beschreibung:'Luftdurchlass Zuluft ∅125mm einbauen', einheit:'Stk', menge:6, materialpreis:45, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.08', beschreibung:'Luftdurchlass Abluft ∅125mm einbauen', einheit:'Stk', menge:6, materialpreis:45, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.09', beschreibung:'Volumenstromregler einbauen u. einstellen', einheit:'Stk', menge:8, materialpreis:68, stundensatz:65, stunden:0 },
+    { gruppe:'Wohnraumlüftung mit WRG', pos:'L3.10', beschreibung:'Lüftungsanlage Inbetriebnahme u. Einregulierung', einheit:'Pauschal', menge:1, materialpreis:385, stundensatz:65, stunden:0 },
+    // Klimaanlagen
+    { gruppe:'Klimaanlage Split', pos:'L4.01', beschreibung:'Klimasplitgerät 2,5kW (Kühlen/Heizen) inkl. Außengerät einbauen', einheit:'Stk', menge:1, materialpreis:1850, stundensatz:65, stunden:0 },
+    { gruppe:'Klimaanlage Split', pos:'L4.02', beschreibung:'Klimasplitgerät 3,5kW inkl. Außengerät einbauen', einheit:'Stk', menge:1, materialpreis:2350, stundensatz:65, stunden:0 },
+    { gruppe:'Klimaanlage Split', pos:'L4.03', beschreibung:'Klimasplitgerät 5,0kW inkl. Außengerät einbauen', einheit:'Stk', menge:1, materialpreis:2980, stundensatz:65, stunden:0 },
+    { gruppe:'Klimaanlage Split', pos:'L4.04', beschreibung:'Multisplit-Außengerät 8kW für 3 Innengeräte einbauen', einheit:'Stk', menge:1, materialpreis:2200, stundensatz:65, stunden:0 },
+    { gruppe:'Klimaanlage Split', pos:'L4.05', beschreibung:'Kältemittelleitung Cu-Rohr ∅6,35/12,7mm verlegen', einheit:'m', menge:8, materialpreis:28, stundensatz:65, stunden:0 },
+    { gruppe:'Klimaanlage Split', pos:'L4.06', beschreibung:'Kältemittelleitung isoliert inkl. Kondensatleitung verlegen', einheit:'m', menge:8, materialpreis:38, stundensatz:65, stunden:0 },
+    { gruppe:'Klimaanlage Split', pos:'L4.07', beschreibung:'Klimaanlage Vakuumieren u. Befüllen', einheit:'Stk', menge:1, materialpreis:185, stundensatz:65, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'L5.01', beschreibung:'Stundensatz Lüftungs-/Klimatechniker', einheit:'h', menge:1, materialpreis:0, stundensatz:65, stunden:1 },
+  ],
+
+  /* ── GERÜST / GERÜSTBAU ───────────────────────────────────────── */
+  geruest: [
+    // Fassadengerüst
+    { gruppe:'Fassadengerüst', pos:'G1.01', beschreibung:'Systemgerüst Fassade bis 8m Höhe, Miete 4 Wochen', einheit:'m²', menge:150, materialpreis:8.50, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.02', beschreibung:'Systemgerüst Fassade bis 12m Höhe, Miete 4 Wochen', einheit:'m²', menge:120, materialpreis:10.50, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.03', beschreibung:'Systemgerüst Fassade bis 16m Höhe, Miete 4 Wochen', einheit:'m²', menge:100, materialpreis:13.50, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.04', beschreibung:'Gerüstzulage je weitere Woche Standzeit', einheit:'m²', menge:150, materialpreis:1.80, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.05', beschreibung:'Gerüstbelag vollflächig verdichtet (für Dämmarbeiten)', einheit:'m²', menge:100, materialpreis:2.80, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.06', beschreibung:'Schutznetz grob gegen Steinfall', einheit:'m²', menge:150, materialpreis:1.20, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.07', beschreibung:'Einhausung mit Plane (Wetterschutz)', einheit:'m²', menge:100, materialpreis:3.50, stundensatz:55, stunden:0 },
+    { gruppe:'Fassadengerüst', pos:'G1.08', beschreibung:'Unterfahrtsbrücke (Fußgänger-/Fahrzeugschutz)', einheit:'m', menge:8, materialpreis:185, stundensatz:55, stunden:0 },
+    // Dachgerüst
+    { gruppe:'Dachgerüst', pos:'G2.01', beschreibung:'Dachfanggerüst montieren (UVV-konform)', einheit:'m', menge:30, materialpreis:38, stundensatz:55, stunden:0 },
+    { gruppe:'Dachgerüst', pos:'G2.02', beschreibung:'Firstgeländer inkl. Seitenschutz', einheit:'m', menge:15, materialpreis:22, stundensatz:55, stunden:0 },
+    { gruppe:'Dachgerüst', pos:'G2.03', beschreibung:'Dachdeckergerüst Satteldach bis 45°', einheit:'m²', menge:80, materialpreis:12, stundensatz:55, stunden:0 },
+    // Innengerüst
+    { gruppe:'Innengerüst', pos:'G3.01', beschreibung:'Treppenhaus-Auslegergerüst bis 8m Höhe', einheit:'m²', menge:40, materialpreis:22, stundensatz:55, stunden:0 },
+    { gruppe:'Innengerüst', pos:'G3.02', beschreibung:'Raumgerüst (Deckenarbeiten) je Raumsätze', einheit:'m²', menge:60, materialpreis:12, stundensatz:55, stunden:0 },
+    { gruppe:'Innengerüst', pos:'G3.03', beschreibung:'Fahrgerüst (Heron) bis 6m Arbeitshöhe', einheit:'Pauschal', menge:1, materialpreis:285, stundensatz:55, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'G4.01', beschreibung:'Stundensatz Gerüstbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:55, stunden:1 },
+  ],
+
+  /* ── AUSSENANLAGEN / PFLASTER / GARTEN ───────────────────────── */
+  aussenanlagen: [
+    // Erdarbeiten & Vorbereitung
+    { gruppe:'Erdarbeiten & Vorbereitung', pos:'AU1.01', beschreibung:'Oberboden abtragen 20cm inkl. Abtransport', einheit:'m²', menge:100, materialpreis:12, stundensatz:50, stunden:0 },
+    { gruppe:'Erdarbeiten & Vorbereitung', pos:'AU1.02', beschreibung:'Aushub Graben DN100 bis 80cm tief', einheit:'m', menge:30, materialpreis:28, stundensatz:50, stunden:0 },
+    { gruppe:'Erdarbeiten & Vorbereitung', pos:'AU1.03', beschreibung:'Planum herstellen, verdichten', einheit:'m²', menge:80, materialpreis:8.50, stundensatz:50, stunden:0 },
+    { gruppe:'Erdarbeiten & Vorbereitung', pos:'AU1.04', beschreibung:'Frostschutzschicht Schotter 20cm', einheit:'m²', menge:80, materialpreis:18, stundensatz:50, stunden:0 },
+    { gruppe:'Erdarbeiten & Vorbereitung', pos:'AU1.05', beschreibung:'Entwässerungsrinne Beton inkl. Gitterrost DN100', einheit:'m', menge:15, materialpreis:68, stundensatz:50, stunden:0 },
+    // Pflaster & Wege
+    { gruppe:'Pflaster & Wege', pos:'AU2.01', beschreibung:'Betonpflaster 10×20cm grau verlegen', einheit:'m²', menge:50, materialpreis:52, stundensatz:50, stunden:0 },
+    { gruppe:'Pflaster & Wege', pos:'AU2.02', beschreibung:'Pflasterklinker Ton / Riemchen verlegen', einheit:'m²', menge:40, materialpreis:78, stundensatz:50, stunden:0 },
+    { gruppe:'Pflaster & Wege', pos:'AU2.03', beschreibung:'Natursteinpflaster Granit 10×10×8cm verlegen', einheit:'m²', menge:30, materialpreis:125, stundensatz:50, stunden:0 },
+    { gruppe:'Pflaster & Wege', pos:'AU2.04', beschreibung:'Kiesweg wassergebundene Decke 10cm', einheit:'m²', menge:40, materialpreis:38, stundensatz:50, stunden:0 },
+    { gruppe:'Pflaster & Wege', pos:'AU2.05', beschreibung:'Asphaltieren (Tragdeckschicht 6cm) Zufahrt', einheit:'m²', menge:50, materialpreis:68, stundensatz:50, stunden:0 },
+    { gruppe:'Pflaster & Wege', pos:'AU2.06', beschreibung:'Bordstein Beton setzen', einheit:'m', menge:30, materialpreis:32, stundensatz:50, stunden:0 },
+    { gruppe:'Pflaster & Wege', pos:'AU2.07', beschreibung:'Palisaden Beton setzen', einheit:'m', menge:20, materialpreis:42, stundensatz:50, stunden:0 },
+    // Terrassenbeläge
+    { gruppe:'Terrassenbeläge', pos:'AU3.01', beschreibung:'Terrassenplatten Beton 50×50cm verlegen', einheit:'m²', menge:30, materialpreis:58, stundensatz:50, stunden:0 },
+    { gruppe:'Terrassenbeläge', pos:'AU3.02', beschreibung:'Terrassenplatten Naturstein Granit verlegen', einheit:'m²', menge:20, materialpreis:125, stundensatz:50, stunden:0 },
+    { gruppe:'Terrassenbeläge', pos:'AU3.03', beschreibung:'Terrassenplatten Stelzlager-System 60×60cm verlegen', einheit:'m²', menge:25, materialpreis:85, stundensatz:50, stunden:0 },
+    // Zäune & Einfriedung
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.01', beschreibung:'Stabmattenzaun verzinkt 1,2m hoch inkl. Pfosten', einheit:'m', menge:30, materialpreis:42, stundensatz:50, stunden:0 },
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.02', beschreibung:'Holzzaun Sichtschutz 1,8m Lärche inkl. Pfosten', einheit:'m', menge:25, materialpreis:78, stundensatz:50, stunden:0 },
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.03', beschreibung:'WPC-Sichtschutzzaun 1,8m verlegen', einheit:'m', menge:25, materialpreis:88, stundensatz:50, stunden:0 },
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.04', beschreibung:'Maschendrahtzaun verzinkt 1,5m inkl. Pfosten', einheit:'m', menge:40, materialpreis:28, stundensatz:50, stunden:0 },
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.05', beschreibung:'Einfahrtstor Stahl einflügelig motorisch', einheit:'Stk', menge:1, materialpreis:3200, stundensatz:50, stunden:0 },
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.06', beschreibung:'Einfahrtstor zweiflügelig motorisch', einheit:'Stk', menge:1, materialpreis:4800, stundensatz:50, stunden:0 },
+    { gruppe:'Zäune & Einfriedung', pos:'AU4.07', beschreibung:'Gartentor Stahl 1×1,2m einbauen', einheit:'Stk', menge:1, materialpreis:680, stundensatz:50, stunden:0 },
+    // Bepflanzung & Rasen
+    { gruppe:'Bepflanzung & Rasen', pos:'AU5.01', beschreibung:'Rasen ansäen inkl. Oberboden 15cm', einheit:'m²', menge:80, materialpreis:14, stundensatz:50, stunden:0 },
+    { gruppe:'Bepflanzung & Rasen', pos:'AU5.02', beschreibung:'Rollrasen liefern u. verlegen', einheit:'m²', menge:60, materialpreis:22, stundensatz:50, stunden:0 },
+    { gruppe:'Bepflanzung & Rasen', pos:'AU5.03', beschreibung:'Hecke Liguster 80-100cm pflanzen', einheit:'Stk', menge:20, materialpreis:18, stundensatz:50, stunden:0 },
+    { gruppe:'Bepflanzung & Rasen', pos:'AU5.04', beschreibung:'Baum mittelgroß 18-20 (Stammumfang) einpflanzen', einheit:'Stk', menge:2, materialpreis:485, stundensatz:50, stunden:0 },
+    { gruppe:'Bepflanzung & Rasen', pos:'AU5.05', beschreibung:'Rindenmulch 10cm Auftrag', einheit:'m²', menge:40, materialpreis:8.50, stundensatz:50, stunden:0 },
+    { gruppe:'Bepflanzung & Rasen', pos:'AU5.06', beschreibung:'Bewässerungsanlage Rasen (Sprinkler) verlegen', einheit:'m²', menge:80, materialpreis:22, stundensatz:50, stunden:0 },
+    // Mauer & Stützmauer
+    { gruppe:'Mauer & Stützmauer', pos:'AU6.01', beschreibung:'Natursteinmauer trocken 80cm hoch', einheit:'m', menge:15, materialpreis:145, stundensatz:50, stunden:0 },
+    { gruppe:'Mauer & Stützmauer', pos:'AU6.02', beschreibung:'Gabionenmauer 100×100cm mit Schotterfüllung', einheit:'m', menge:12, materialpreis:185, stundensatz:50, stunden:0 },
+    { gruppe:'Mauer & Stützmauer', pos:'AU6.03', beschreibung:'Betonmauer Sichtbeton 20cm bewehrt', einheit:'m²', menge:15, materialpreis:195, stundensatz:50, stunden:0 },
+    // Stundensatz
+    { gruppe:'Stundensatz', pos:'AU7.01', beschreibung:'Stundensatz Garten-/Pflasterbauer', einheit:'h', menge:1, materialpreis:0, stundensatz:50, stunden:1 },
   ],
 };
 
