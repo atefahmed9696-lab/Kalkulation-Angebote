@@ -1,0 +1,5 @@
+# PDF-Quelldateien (BKI Baupreise G7)
+*.pdf
+
+# Archiv-Backups werden im Repo behalten (kein Ausschluss)
+# archiv/*.bak
