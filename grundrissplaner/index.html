@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grundrissplaner V2.3</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <h1>Grundrissplaner <span class="version">V2.3</span></h1>
+
+      <section>
+        <h2>Werkzeuge</h2>
+        <div class="tool-grid">
+          <button class="tool-btn active" data-tool="select"      title="S">Auswahl</button>
+          <button class="tool-btn"        data-tool="wall"        title="W">Wand</button>
+          <button class="tool-btn"        data-tool="door"        title="D">Tür</button>
+          <button class="tool-btn"        data-tool="window"      title="F">Fenster</button>
+          <button class="tool-btn"        data-tool="electrical"  title="E">Elektro</button>
+          <button class="tool-btn"        data-tool="sanitary"    title="B">Sanitär</button>
+          <button class="tool-btn"        data-tool="heating"     title="H">Heizung</button>
+          <button class="tool-btn"        data-tool="drywall">Trockenbau</button>
+          <button class="tool-btn"        data-tool="furniture"   title="M">Möbel</button>
+        </div>
+        <p class="hint">Tipp: Wand zeichnen mit <kbd>Shift</kbd> → orthogonal einrasten</p>
+      </section>
+
+      <section>
+        <h2>Layer</h2>
+        <div class="layer-list">
+          <label><input type="checkbox" data-layer="architecture" checked /> Architektur</label>
+          <label><input type="checkbox" data-layer="electrical"   checked /> Elektro</label>
+          <label><input type="checkbox" data-layer="sanitary"     checked /> Sanitär</label>
+          <label><input type="checkbox" data-layer="heating"      checked /> Heizung</label>
+          <label><input type="checkbox" data-layer="drywall"      checked /> Trockenbau</label>
+          <label><input type="checkbox" data-layer="furniture"    checked /> Möbel</label>
+        </div>
+      </section>
+
+      <section id="catalog-section">
+        <h2>Katalog</h2>
+        <select id="catalog-select"><option>Kein Katalog aktiv</option></select>
+      </section>
+
+      <section>
+        <h2>Einstellungen</h2>
+        <label class="stack">
+          Raster einrasten
+          <input type="checkbox" id="snap-toggle" checked />
+        </label>
+        <label class="stack">
+          Rastergröße (m)
+          <input type="number" id="grid-size" min="0.1" max="2" step="0.1" value="0.5" />
+        </label>
+        <label class="stack">
+          Wandstärke (m)
+          <input type="number" id="wall-thickness" min="0.05" max="1" step="0.01" value="0.20" />
+        </label>
+      </section>
+
+      <section>
+        <h2>Bearbeiten</h2>
+        <div class="action-grid">
+          <button id="undo-btn" disabled title="Strg+Z">↩ Rückgängig</button>
+          <button id="redo-btn" disabled title="Strg+Y">↪ Wiederholen</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Aktionen</h2>
+        <div class="action-grid">
+          <button id="save-json">💾 Speichern</button>
+          <button id="load-json">📂 Laden</button>
+          <button id="export-png">🖼 PNG Export</button>
+          <button id="clear-all" class="danger">🗑 Alles löschen</button>
+        </div>
+        <input type="file" id="file-input" accept=".json,application/json" hidden />
+      </section>
+
+      <section>
+        <h2>Eigenschaften</h2>
+        <div id="properties-panel">
+          <div>Kein Objekt ausgewählt.</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Tastenkürzel</h2>
+        <div class="shortcuts">
+          <span><kbd>S</kbd> Auswahl</span>
+          <span><kbd>W</kbd> Wand</span>
+          <span><kbd>D</kbd> Tür</span>
+          <span><kbd>F</kbd> Fenster</span>
+          <span><kbd>E</kbd> Elektro</span>
+          <span><kbd>B</kbd> Sanitär</span>
+          <span><kbd>H</kbd> Heizung</span>
+          <span><kbd>M</kbd> Möbel</span>
+          <span><kbd>Entf</kbd> Löschen</span>
+          <span><kbd>Strg+Z</kbd> Undo</span>
+          <span><kbd>Strg+Y</kbd> Redo</span>
+        </div>
+      </section>
+    </aside>
+
+    <main id="workspace">
+      <div id="topbar">
+        <div id="status-left">Werkzeug: Auswahl</div>
+        <div id="status-center">0.00 m / 0.00 m</div>
+        <div id="status-right">Fläche: 0.00 m²</div>
+      </div>
+      <canvas id="canvas"></canvas>
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
