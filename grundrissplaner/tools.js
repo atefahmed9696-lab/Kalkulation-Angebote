@@ -3,158 +3,156 @@ import { CATALOG } from "./catalog.js";
 
 export class ToolController {
   constructor(model, renderer, ui) {
-    this.model              = model;
-    this.renderer           = renderer;
-    this.ui                 = ui;
-    this.currentTool        = "select";
+    this.model = model;
+    this.renderer = renderer;
+    this.ui = ui;
+    this.currentTool = "select";
     this.currentCatalogItem = null;
-    this.dragState          = null;
-    this.startPoint         = null;
+    this.dragState = null;
+    this.startPoint = null;
   }
 
   setTool(tool) {
     this.currentTool = tool;
     this.ui.setStatusTool(tool);
-    const catalogLayers = ["electrical", "sanitary", "heating", "drywall", "furniture"];
-    if (catalogLayers.includes(tool)) {
-      const items = CATALOG[tool] ?? [];
+    if (["electrical", "sanitary", "heating", "drywall"].includes(tool)) {
+      const items = CATALOG[tool];
       this.currentCatalogItem = items[0] ?? null;
       this.ui.populateCatalog(tool, items, this.currentCatalogItem?.id ?? "");
     } else {
       this.currentCatalogItem = null;
       this.ui.populateCatalog(null, [], "");
     }
-    this.clearPreview();
   }
 
   setCatalogItemById(layer, id) {
-    const item = (CATALOG[layer] ?? []).find(e => e.id === id);
+    const item = (CATALOG[layer] || []).find(entry => entry.id === id);
     this.currentCatalogItem = item ?? null;
   }
 
-  normalizePoint(worldPoint, shiftKey = false) {
-    let p = this.model.snapEnabled ? snapPoint(worldPoint, this.model.gridSize) : worldPoint;
-    if (shiftKey && this.startPoint) {
-      p = orthogonalize(this.startPoint, p);
-    }
-    return p;
+  normalizePoint(worldPoint) {
+    return this.model.snapEnabled ? snapPoint(worldPoint, this.model.gridSize) : worldPoint;
   }
 
-  clearPreview() {
-    this.renderer.preview = null;
-    this.renderer.render();
-  }
-
-  // --- Mausereignisse -------------------------------------------------------
-
-  onMouseDown(worldPoint, shiftKey = false) {
-    const point = this.normalizePoint(worldPoint, shiftKey);
-
-    if (this.currentTool === "wall") {
+  onMouseDown(worldPoint) {
+    const point = this.normalizePoint(worldPoint);
+    if (this.currentTool === "wall" || this.currentTool === "dimension") {
       this.startPoint = point;
       return;
     }
-
     if (this.currentTool === "door" || this.currentTool === "window") {
-      const hit = this.model.findWallNear(point, 0.3);
+      const hit = this.model.findWallNear(point, 0.25);
       if (!hit) return;
-      const width   = this.currentTool === "door" ? 0.9 : 1.2;
+      const width = this.currentTool === "door" ? 0.9 : 1.2;
       const opening = this.model.addOpening(this.currentTool, hit.wall.id, hit.t, width);
       this.model.selected = opening;
       this.renderer.render();
       return;
     }
-
-    const catalogLayers = ["electrical", "sanitary", "heating", "drywall", "furniture"];
-    if (catalogLayers.includes(this.currentTool)) {
+    if (["electrical", "sanitary", "heating", "drywall"].includes(this.currentTool)) {
       if (!this.currentCatalogItem) return;
-      const obj = this.model.addObject(this.currentCatalogItem, point.x, point.y);
+      const obj = this.model.addObject(this.currentTool, this.currentCatalogItem, point.x, point.y);
       this.model.selected = obj;
       this.renderer.render();
       return;
     }
-
     if (this.currentTool === "select") {
-      // Öffnung treffen?
+      const endpointHit = this.model.findWallEndpointAt(point, 0.2);
+      if (endpointHit) {
+        this.model.selected = endpointHit.wall;
+        this.dragState = {
+          type: "wall-endpoint",
+          wallId: endpointHit.wall.id,
+          endpoint: endpointHit.endpoint
+        };
+        this.renderer.render();
+        return;
+      }
+      const object = this.model.findObjectAt(point);
+      if (object) {
+        this.model.selected = object;
+        this.model.saveHistory("dragObject");
+        this.dragState = {
+          type: "object",
+          id: object.id,
+          offsetX: point.x - object.x,
+          offsetY: point.y - object.y
+        };
+        this.renderer.render();
+        return;
+      }
       const opening = this.model.findOpeningAt(point);
       if (opening) {
         this.model.selected = opening;
-        this.dragState = { type: "opening", opening, startPoint: point };
+        const wall = this.model.getWallById(opening.wallId);
+        if (wall) {
+          this.model.saveHistory("dragOpening");
+          this.dragState = {
+            type: "opening",
+            id: opening.id,
+            wallId: wall.id
+          };
+        }
         this.renderer.render();
         return;
       }
-      // Wand (Polygon) treffen?
-      const wall = this.model.findWallByPolygonHit(point);
+      const dim = this.model.findDimensionAt(point, 0.18);
+      if (dim) {
+        this.model.selected = dim;
+        this.model.saveHistory("dragDimension");
+        this.dragState = {
+          type: "dimension",
+          id: dim.id,
+          offsetX: point.x - dim.start.x,
+          offsetY: point.y - dim.start.y,
+          lengthX: dim.end.x - dim.start.x,
+          lengthY: dim.end.y - dim.start.y
+        };
+        this.renderer.render();
+        return;
+      }
+      const wall = this.model.findWallByPolygonHit(point) || this.model.findWallNear(point, 0.2)?.wall;
       if (wall) {
         this.model.selected = wall;
-        this.dragState = {
-          type:       "wall",
-          wall,
-          startPoint: point,
-          origStart:  { ...wall.start },
-          origEnd:    { ...wall.end }
-        };
         this.renderer.render();
         return;
       }
-      // Objekt treffen?
-      const obj = this.model.findObjectAt(point);
-      if (obj) {
-        this.model.selected = obj;
-        this.dragState = {
-          type:      "object",
-          obj,
-          startPoint: point,
-          origX:      obj.x,
-          origY:      obj.y
-        };
-        this.renderer.render();
-        return;
-      }
-      // Nichts getroffen → Auswahl aufheben
       this.model.selected = null;
       this.renderer.render();
     }
   }
 
-  onMouseMove(worldPoint, shiftKey = false) {
-    const point = this.normalizePoint(worldPoint, shiftKey);
-
-    // Wand-Vorschau
+  onMouseMove(worldPoint) {
+    const point = this.normalizePoint(worldPoint);
     if (this.currentTool === "wall" && this.startPoint) {
+      const orthoEnd = orthogonalize(this.startPoint, point);
       this.renderer.preview = {
-        type:      "wall",
-        start:     this.startPoint,
-        end:       point,
+        type: "wall",
+        start: this.startPoint,
+        end: orthoEnd,
         thickness: this.model.wallThickness
       };
       this.renderer.render();
       return;
     }
-
-    // Objekt-Vorschau
-    const catalogLayers = ["electrical", "sanitary", "heating", "drywall", "furniture"];
-    if (catalogLayers.includes(this.currentTool) && this.currentCatalogItem) {
+    if (this.currentTool === "dimension" && this.startPoint) {
+      const orthoEnd = orthogonalize(this.startPoint, point);
       this.renderer.preview = {
-        type:   "object",
-        x:      point.x,
-        y:      point.y,
-        width:  this.currentCatalogItem.width,
-        height: this.currentCatalogItem.height
+        type: "dimension",
+        start: this.startPoint,
+        end: orthoEnd
       };
       this.renderer.render();
       return;
     }
-
-    // Tür/Fenster-Vorschau
     if (this.currentTool === "door" || this.currentTool === "window") {
-      const hit = this.model.findWallNear(point, 0.4);
+      const hit = this.model.findWallNear(point, 0.25);
       if (hit) {
         this.renderer.preview = {
-          type:      "opening",
-          wallId:    hit.wall.id,
+          type: "opening",
+          wallId: hit.wall.id,
           positionT: hit.t,
-          width:     this.currentTool === "door" ? 0.9 : 1.2
+          width: this.currentTool === "door" ? 0.9 : 1.2
         };
       } else {
         this.renderer.preview = null;
@@ -162,87 +160,104 @@ export class ToolController {
       this.renderer.render();
       return;
     }
-
-    // Drag-Operationen
-    if (this.currentTool === "select" && this.dragState) {
-      const dx = point.x - this.dragState.startPoint.x;
-      const dy = point.y - this.dragState.startPoint.y;
-
-      if (this.dragState.type === "wall") {
-        const w = this.dragState.wall;
-        w.start = {
-          x: this.dragState.origStart.x + dx,
-          y: this.dragState.origStart.y + dy
-        };
-        w.end = {
-          x: this.dragState.origEnd.x + dx,
-          y: this.dragState.origEnd.y + dy
-        };
-        this.model.recomputeRooms();
-        this.renderer.render();
-      } else if (this.dragState.type === "object") {
-        this.dragState.obj.x = this.dragState.origX + dx;
-        this.dragState.obj.y = this.dragState.origY + dy;
-        this.renderer.render();
-      } else if (this.dragState.type === "opening") {
-        const wall = this.model.getWallById(this.dragState.opening.wallId);
-        if (wall) {
-          const hit = pointToSegmentDistance(point, wall.start, wall.end);
-          this.dragState.opening.positionT = Math.max(0.05, Math.min(0.95, hit.t));
-          this.renderer.render();
-        }
+    if (["electrical", "sanitary", "heating", "drywall"].includes(this.currentTool) && this.currentCatalogItem) {
+      this.renderer.preview = {
+        type: "object",
+        x: point.x,
+        y: point.y,
+        width: this.currentCatalogItem.width,
+        height: this.currentCatalogItem.height
+      };
+      this.renderer.render();
+      return;
+    }
+    if (this.currentTool === "select" && this.dragState?.type === "object") {
+      const obj = this.model.getObjectById(this.dragState.id);
+      if (!obj) return;
+      this.model.updateObject(
+        obj.id,
+        {
+          x: point.x - this.dragState.offsetX,
+          y: point.y - this.dragState.offsetY
+        },
+        true
+      );
+      this.renderer.render();
+      return;
+    }
+    if (this.currentTool === "select" && this.dragState?.type === "opening") {
+      const opening = this.model.getOpeningById(this.dragState.id);
+      const wall = this.model.getWallById(this.dragState.wallId);
+      if (!opening || !wall) return;
+      const result = pointToSegmentDistance(point, wall.start, wall.end);
+      this.model.updateOpening(
+        opening.id,
+        { positionT: Math.max(0.05, Math.min(0.95, result.t)) },
+        true
+      );
+      this.renderer.render();
+      return;
+    }
+    if (this.currentTool === "select" && this.dragState?.type === "wall-endpoint") {
+      const wall = this.model.getWallById(this.dragState.wallId);
+      if (!wall) return;
+      const otherPoint = this.dragState.endpoint === "start" ? wall.end : wall.start;
+      const adjusted = orthogonalize(otherPoint, point);
+      if (this.dragState.endpoint === "start") {
+        this.model.updateWall(wall.id, { start: adjusted }, true);
+      } else {
+        this.model.updateWall(wall.id, { end: adjusted }, true);
       }
+      this.renderer.render();
+      return;
+    }
+    if (this.currentTool === "select" && this.dragState?.type === "dimension") {
+      const dim = this.model.getDimensionById(this.dragState.id);
+      if (!dim) return;
+      const newStart = {
+        x: point.x - this.dragState.offsetX,
+        y: point.y - this.dragState.offsetY
+      };
+      const newEnd = {
+        x: newStart.x + this.dragState.lengthX,
+        y: newStart.y + this.dragState.lengthY
+      };
+      this.model.updateDimension(
+        dim.id,
+        { start: newStart, end: newEnd },
+        true
+      );
+      this.renderer.render();
     }
   }
 
-  onMouseUp(worldPoint, shiftKey = false) {
+  onMouseUp(worldPoint) {
+    const point = this.normalizePoint(worldPoint);
     if (this.currentTool === "wall" && this.startPoint) {
-      const point = this.normalizePoint(worldPoint, shiftKey);
-      const len   = Math.hypot(point.x - this.startPoint.x, point.y - this.startPoint.y);
-      if (len > 0.1) {
-        const wall = this.model.addWall(this.startPoint, point);
+      const orthoEnd = orthogonalize(this.startPoint, point);
+      if (Math.hypot(orthoEnd.x - this.startPoint.x, orthoEnd.y - this.startPoint.y) > 0.05) {
+        const wall = this.model.addWall(this.startPoint, orthoEnd, this.model.wallThickness, "architecture");
         this.model.selected = wall;
       }
       this.startPoint = null;
       this.renderer.preview = null;
       this.renderer.render();
-      return;
     }
-
-    // Drag beenden – Undo-Snapshot nachholen (Drag ändert ohne pushHistory)
-    if (this.dragState) {
-      // Wir haben während des Drags direkt am Objekt geändert ohne Snapshot.
-      // Snapshot hier für das Ergebnis pushen (revert-fähig).
-      // Tipp: Wir tun dies, indem wir manuell einen früheren Snapshot simulieren.
-      // Einfachste Lösung: push NACH dem drag (next undo wird Zustand VOR drag heilen).
-      // Dafür: snapshot bereits vor dem drag gepusht (onMouseDown löst _pushHistory nicht aus).
-      // → Korrekte Lösung: Wir pushen am Ende des Drags einen Snapshot der alten Werte.
-      // Da wir origStart/origEnd/origX/origY haben, rekonstruieren wir die Vor-Drag-Daten.
-      if (this.dragState.type === "wall") {
-        const wall    = this.dragState.wall;
-        const curr    = this.model._snapshot();
-        // alten Zustand rekonstruieren
-        const oldStart = this.dragState.origStart;
-        const oldEnd   = this.dragState.origEnd;
-        const oldWall  = { ...wall, start: oldStart, end: oldEnd };
-        const tempWalls = this.model.walls.map(w => w.id === wall.id ? oldWall : w);
-        const oldSnap   = JSON.stringify({ walls: tempWalls, openings: this.model.openings, objects: this.model.objects });
-        this.model._history.push(oldSnap);
-        this.model._future  = [];
-        this.model.recomputeRooms();
-      } else if (this.dragState.type === "object") {
-        const obj  = this.dragState.obj;
-        const origObj = { ...obj, x: this.dragState.origX, y: this.dragState.origY };
-        const tempObjs = this.model.objects.map(o => o.id === obj.id ? origObj : o);
-        const oldSnap = JSON.stringify({ walls: this.model.walls, openings: this.model.openings, objects: tempObjs });
-        this.model._history.push(oldSnap);
-        this.model._future  = [];
-      } else if (this.dragState.type === "opening") {
-        this.model._history.push(this.model._snapshot());
-        this.model._future  = [];
+    if (this.currentTool === "dimension" && this.startPoint) {
+      const orthoEnd = orthogonalize(this.startPoint, point);
+      if (Math.hypot(orthoEnd.x - this.startPoint.x, orthoEnd.y - this.startPoint.y) > 0.05) {
+        const dim = this.model.addDimension(this.startPoint, orthoEnd);
+        this.model.selected = dim;
       }
-      this.dragState = null;
+      this.startPoint = null;
+      this.renderer.preview = null;
       this.renderer.render();
     }
+    this.dragState = null;
+  }
+
+  clearPreview() {
+    this.renderer.preview = null;
+    this.renderer.render();
   }
 }

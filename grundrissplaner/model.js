@@ -2,232 +2,466 @@ import {
   buildOrthogonalRoomsFromWalls,
   pointToSegmentDistance,
   wallPolygon,
-  pointInPolygon
+  pointInPolygon,
+  nearlyEqual
 } from "./geometry.js";
 
-let _nextId = 1;
-function uid() {
-  return `id_${_nextId++}`;
+function uid(prefix = "id") {
+  return `${prefix}_${crypto.randomUUID()}`;
 }
 
-const MAX_HISTORY = 50;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
 
 export class FloorPlanModel {
   constructor() {
-    this.scale        = 80;   // Pixel pro Meter
-    this.gridSize     = 0.5;
-    this.snapEnabled  = true;
-    this.wallThickness = 0.20;
-
+    this.scale = 80;
+    this.gridSize = 0.5;
+    this.snapEnabled = true;
+    this.wallThickness = 0.2;
     this.layers = {
       architecture: true,
-      electrical:   true,
-      sanitary:     true,
-      heating:      true,
-      drywall:      true,
-      furniture:    true
+      electrical: true,
+      sanitary: true,
+      heating: true,
+      drywall: true,
+      dimension: true
     };
-
-    this.walls    = [];
-    this.openings = [];
-    this.objects  = [];
-    this.rooms    = [];
+    this.floors = [];
+    this.currentFloorId = null;
     this.selected = null;
-
-    // Undo / Redo
-    this._history = [];   // gespeicherte Snapshots
-    this._future  = [];   // wiederherstellbare Snapshots
+    this.history = [];
+    this.future = [];
+    this.historyLimit = 100;
+    this.createFloor("Etage 1", false);
+    this.saveHistory("Initial");
   }
 
-  // --- Undo / Redo -----------------------------------------------------------
-
-  _snapshot() {
-    return JSON.stringify({
-      walls:    this.walls,
-      openings: this.openings,
-      objects:  this.objects
-    });
+  createEmptyFloor(name) {
+    return {
+      id: uid("floor"),
+      name,
+      walls: [],
+      openings: [],
+      objects: [],
+      dimensions: [],
+      rooms: []
+    };
   }
 
-  _pushHistory() {
-    this._history.push(this._snapshot());
-    if (this._history.length > MAX_HISTORY) this._history.shift();
-    this._future = [];  // Redo-Stack leeren
+  createFloor(name = `Etage ${this.floors.length + 1}`, saveHistory = true) {
+    if (saveHistory) this.saveHistory("createFloor");
+    const floor = this.createEmptyFloor(name);
+    this.floors.push(floor);
+    this.currentFloorId = floor.id;
+    this.selected = null;
+    return floor;
   }
 
-  undo() {
-    if (this._history.length === 0) return false;
-    this._future.push(this._snapshot());
-    const prev = this._history.pop();
-    this._restoreSnapshot(prev);
+  renameCurrentFloor(name) {
+    const floor = this.getCurrentFloor();
+    if (!floor) return;
+    this.saveHistory("renameFloor");
+    floor.name = name || floor.name;
+  }
+
+  deleteCurrentFloor() {
+    if (this.floors.length <= 1) return false;
+    this.saveHistory("deleteFloor");
+    const index = this.floors.findIndex(f => f.id === this.currentFloorId);
+    if (index >= 0) {
+      this.floors.splice(index, 1);
+      this.currentFloorId = this.floors[Math.max(0, index - 1)].id;
+      this.selected = null;
+      this.recomputeRooms();
+      return true;
+    }
+    return false;
+  }
+
+  setCurrentFloor(id) {
+    const floor = this.floors.find(f => f.id === id);
+    if (!floor) return false;
+    this.currentFloorId = id;
+    this.selected = null;
+    this.recomputeRooms();
     return true;
   }
 
-  redo() {
-    if (this._future.length === 0) return false;
-    this._history.push(this._snapshot());
-    const next = this._future.pop();
-    this._restoreSnapshot(next);
-    return true;
+  getCurrentFloor() {
+    return this.floors.find(f => f.id === this.currentFloorId) || null;
   }
 
-  _restoreSnapshot(json) {
-    const data = JSON.parse(json);
-    this.walls    = data.walls    ?? [];
-    this.openings = data.openings ?? [];
-    this.objects  = data.objects  ?? [];
+  get walls() {
+    return this.getCurrentFloor()?.walls ?? [];
+  }
+
+  get openings() {
+    return this.getCurrentFloor()?.openings ?? [];
+  }
+
+  get objects() {
+    return this.getCurrentFloor()?.objects ?? [];
+  }
+
+  get dimensions() {
+    return this.getCurrentFloor()?.dimensions ?? [];
+  }
+
+  get rooms() {
+    return this.getCurrentFloor()?.rooms ?? [];
+  }
+
+  set rooms(value) {
+    const floor = this.getCurrentFloor();
+    if (floor) floor.rooms = value;
+  }
+
+  getSerializableState() {
+    return {
+      scale: this.scale,
+      gridSize: this.gridSize,
+      snapEnabled: this.snapEnabled,
+      wallThickness: this.wallThickness,
+      layers: deepClone(this.layers),
+      floors: deepClone(this.floors),
+      currentFloorId: this.currentFloorId
+    };
+  }
+
+  applyState(state) {
+    this.scale = state.scale ?? 80;
+    this.gridSize = state.gridSize ?? 0.5;
+    this.snapEnabled = state.snapEnabled ?? true;
+    this.wallThickness = state.wallThickness ?? 0.2;
+    this.layers = deepClone(state.layers ?? this.layers);
+    this.floors = deepClone(state.floors ?? []);
+    this.currentFloorId = state.currentFloorId ?? this.floors[0]?.id ?? null;
+    if (!this.floors.length) {
+      const floor = this.createEmptyFloor("Etage 1");
+      this.floors = [floor];
+      this.currentFloorId = floor.id;
+    }
     this.selected = null;
     this.recomputeRooms();
   }
 
-  get canUndo() { return this._history.length > 0; }
-  get canRedo()  { return this._future.length > 0; }
+  saveHistory(_label = "") {
+    this.history.push(this.getSerializableState());
+    if (this.history.length > this.historyLimit) {
+      this.history.shift();
+    }
+    this.future = [];
+  }
 
-  // --- Wände -----------------------------------------------------------------
+  undo() {
+    if (this.history.length <= 1) return false;
+    const current = this.history.pop();
+    this.future.push(current);
+    const previous = this.history[this.history.length - 1];
+    this.applyState(previous);
+    return true;
+  }
 
-  addWall(start, end, layer = "architecture") {
-    this._pushHistory();
+  redo() {
+    if (!this.future.length) return false;
+    const next = this.future.pop();
+    this.history.push(deepClone(next));
+    this.applyState(next);
+    return true;
+  }
+
+  addWall(start, end, thickness = this.wallThickness, layer = "architecture") {
+    this.saveHistory("addWall");
     const wall = {
-      type:      "wall",
-      id:        uid(),
+      id: uid("wall"),
+      type: "wall",
       layer,
-      start:     { ...start },
-      end:       { ...end },
-      thickness: this.wallThickness
+      start: { ...start },
+      end: { ...end },
+      thickness
     };
     this.walls.push(wall);
     this.recomputeRooms();
     return wall;
   }
 
-  updateWall(id, props) {
-    const wall = this.getWallById(id);
-    if (!wall) return;
-    this._pushHistory();
-    Object.assign(wall, props);
-    this.recomputeRooms();
-  }
-
-  // --- Öffnungen (Türen / Fenster) ------------------------------------------
-
-  addOpening(type, wallId, positionT, width = 0.9) {
-    this._pushHistory();
+  addOpening(kind, wallId, positionT, width, sillHeight = 0, height = 2.1) {
+    const wall = this.getWallById(wallId);
+    if (!wall) return null;
+    this.saveHistory("addOpening");
     const opening = {
-      type,
-      id:         uid(),
+      id: uid(kind),
+      type: kind,
+      layer: "architecture",
       wallId,
-      positionT:  Math.max(0.05, Math.min(0.95, positionT)),
+      positionT: clamp(positionT, 0.08, 0.92),
       width,
-      height:     type === "door" ? 2.0 : 1.2,
-      sillHeight: type === "door" ? 0.0 : 0.9
+      sillHeight,
+      height
     };
     this.openings.push(opening);
     return opening;
   }
 
-  updateOpening(id, props) {
-    const opening = this.openings.find(o => o.id === id);
-    if (!opening) return;
-    this._pushHistory();
-    Object.assign(opening, props);
-    if (opening.positionT !== undefined) {
-      opening.positionT = Math.max(0.05, Math.min(0.95, opening.positionT));
-    }
-  }
-
-  // --- Objekte ---------------------------------------------------------------
-
-  addObject(catalogItem, x, y) {
-    this._pushHistory();
-    const obj = {
-      type:     "object",
-      id:       uid(),
-      layer:    catalogItem.id === "drywall" || catalogItem.id === "shaftwall"
-                  ? "drywall" : catalogItem.id === "radiator" || catalogItem.id === "boiler"
-                  ? "heating" : catalogItem.id === "wc" || catalogItem.id === "sink" ||
-                    catalogItem.id === "shower" || catalogItem.id === "bathtub"
-                  ? "sanitary" : catalogItem.id === "socket" || catalogItem.id === "switch" ||
-                    catalogItem.id === "lamp"
-                  ? "electrical" : "furniture",
-      name:     catalogItem.name,
-      symbol:   catalogItem.symbol,
-      color:    catalogItem.color,
+  addObject(layer, catalogItem, x, y) {
+    this.saveHistory("addObject");
+    const object = {
+      id: uid(layer),
+      type: "object",
+      layer,
+      catalogId: catalogItem.id,
+      name: catalogItem.name,
+      symbol: catalogItem.symbol,
+      color: catalogItem.color,
       x,
       y,
-      width:    catalogItem.width,
-      height:   catalogItem.height,
+      width: catalogItem.width,
+      height: catalogItem.height,
       rotation: 0
     };
-    this.objects.push(obj);
-    return obj;
+    this.objects.push(object);
+    return object;
   }
 
-  updateObject(id, props) {
-    const obj = this.objects.find(o => o.id === id);
-    if (!obj) return;
-    this._pushHistory();
-    Object.assign(obj, props);
+  addDimension(start, end) {
+    this.saveHistory("addDimension");
+    const dim = {
+      id: uid("dim"),
+      type: "dimension",
+      layer: "dimension",
+      start: { ...start },
+      end: { ...end },
+      offset: 0.25
+    };
+    this.dimensions.push(dim);
+    return dim;
   }
-
-  // --- Löschen ---------------------------------------------------------------
-
-  deleteSelected() {
-    if (!this.selected) return false;
-    this._pushHistory();
-    const { type, id } = this.selected;
-    if (type === "wall") {
-      this.walls    = this.walls.filter(w => w.id !== id);
-      this.openings = this.openings.filter(o => o.wallId !== id);
-      this.recomputeRooms();
-    } else if (type === "door" || type === "window") {
-      this.openings = this.openings.filter(o => o.id !== id);
-    } else if (type === "object") {
-      this.objects = this.objects.filter(o => o.id !== id);
-    }
-    this.selected = null;
-    return true;
-  }
-
-  // --- Alles löschen ---------------------------------------------------------
-
-  clear() {
-    this._pushHistory();
-    this.walls    = [];
-    this.openings = [];
-    this.objects  = [];
-    this.rooms    = [];
-    this.selected = null;
-  }
-
-  // --- Hilfsmethoden ---------------------------------------------------------
 
   getWallById(id) {
-    return this.walls.find(w => w.id === id) ?? null;
+    return this.walls.find(w => w.id === id);
+  }
+
+  getOpeningById(id) {
+    return this.openings.find(o => o.id === id);
+  }
+
+  getObjectById(id) {
+    return this.objects.find(o => o.id === id);
+  }
+
+  getDimensionById(id) {
+    return this.dimensions.find(d => d.id === id);
   }
 
   recomputeRooms() {
-    this.rooms = buildOrthogonalRoomsFromWalls(this.walls);
+    this.rooms = buildOrthogonalRoomsFromWalls(this.walls).map((room, index) => ({
+      ...room,
+      name: room.name || `Raum ${index + 1}`
+    }));
   }
 
-  findWallNear(point, tolerance = 0.3) {
+  renameRoom(id, name) {
+    const room = this.rooms.find(r => r.id === id);
+    if (!room) return;
+    this.saveHistory("renameRoom");
+    room.name = name || room.name;
+  }
+
+  updateWall(id, patch, skipHistory = false) {
+    const wall = this.getWallById(id);
+    if (!wall) return null;
+    if (!skipHistory) this.saveHistory("updateWall");
+    if (patch.start) wall.start = { ...wall.start, ...patch.start };
+    if (patch.end) wall.end = { ...wall.end, ...patch.end };
+    if (patch.thickness != null) wall.thickness = Math.max(0.05, Number(patch.thickness) || wall.thickness);
+    if (!nearlyEqual(wall.start.x, wall.end.x) && !nearlyEqual(wall.start.y, wall.end.y)) {
+      if (Math.abs(wall.end.x - wall.start.x) >= Math.abs(wall.end.y - wall.start.y)) {
+        wall.end.y = wall.start.y;
+      } else {
+        wall.end.x = wall.start.x;
+      }
+    }
+    this.recomputeRooms();
+    return wall;
+  }
+
+  updateObject(id, patch, skipHistory = false) {
+    const obj = this.getObjectById(id);
+    if (!obj) return null;
+    if (!skipHistory) this.saveHistory("updateObject");
+    if (patch.x != null) obj.x = Number(patch.x);
+    if (patch.y != null) obj.y = Number(patch.y);
+    if (patch.width != null) obj.width = Math.max(0.05, Number(patch.width));
+    if (patch.height != null) obj.height = Math.max(0.05, Number(patch.height));
+    if (patch.rotation != null) obj.rotation = Number(patch.rotation);
+    if (patch.name != null) obj.name = String(patch.name);
+    return obj;
+  }
+
+  updateOpening(id, patch, skipHistory = false) {
+    const opening = this.getOpeningById(id);
+    if (!opening) return null;
+    if (!skipHistory) this.saveHistory("updateOpening");
+    if (patch.positionT != null) opening.positionT = clamp(Number(patch.positionT), 0.05, 0.95);
+    if (patch.width != null) opening.width = Math.max(0.2, Number(patch.width));
+    if (patch.height != null) opening.height = Math.max(0.2, Number(patch.height));
+    if (patch.sillHeight != null) opening.sillHeight = Math.max(0, Number(patch.sillHeight));
+    if (patch.wallId) {
+      const wall = this.getWallById(patch.wallId);
+      if (wall) opening.wallId = wall.id;
+    }
+    return opening;
+  }
+
+  updateDimension(id, patch, skipHistory = false) {
+    const dim = this.getDimensionById(id);
+    if (!dim) return null;
+    if (!skipHistory) this.saveHistory("updateDimension");
+    if (patch.start) dim.start = { ...dim.start, ...patch.start };
+    if (patch.end) dim.end = { ...dim.end, ...patch.end };
+    if (patch.offset != null) dim.offset = Number(patch.offset);
+    return dim;
+  }
+
+  duplicateSelected() {
+    if (!this.selected) return null;
+    this.saveHistory("duplicate");
+    if (this.selected.type === "object") {
+      const src = this.selected;
+      const duplicated = {
+        ...deepClone(src),
+        id: uid(src.layer),
+        x: src.x + 0.5,
+        y: src.y + 0.5
+      };
+      this.objects.push(duplicated);
+      this.selected = duplicated;
+      return duplicated;
+    }
+    if (this.selected.type === "wall") {
+      const src = this.selected;
+      const duplicated = {
+        ...deepClone(src),
+        id: uid("wall"),
+        start: { x: src.start.x + 0.5, y: src.start.y + 0.5 },
+        end: { x: src.end.x + 0.5, y: src.end.y + 0.5 }
+      };
+      this.walls.push(duplicated);
+      this.recomputeRooms();
+      this.selected = duplicated;
+      return duplicated;
+    }
+    if (this.selected.type === "door" || this.selected.type === "window") {
+      const src = this.selected;
+      const duplicated = {
+        ...deepClone(src),
+        id: uid(src.type),
+        positionT: clamp(src.positionT + 0.08, 0.05, 0.95)
+      };
+      this.openings.push(duplicated);
+      this.selected = duplicated;
+      return duplicated;
+    }
+    if (this.selected.type === "dimension") {
+      const src = this.selected;
+      const duplicated = {
+        ...deepClone(src),
+        id: uid("dim"),
+        start: { x: src.start.x + 0.25, y: src.start.y + 0.25 },
+        end: { x: src.end.x + 0.25, y: src.end.y + 0.25 }
+      };
+      this.dimensions.push(duplicated);
+      this.selected = duplicated;
+      return duplicated;
+    }
+    return null;
+  }
+
+  rotateSelected(deltaRadians = Math.PI / 12) {
+    if (!this.selected || this.selected.type !== "object") return false;
+    this.saveHistory("rotateSelected");
+    this.selected.rotation = Number(this.selected.rotation || 0) + deltaRadians;
+    return true;
+  }
+
+  deleteSelected() {
+    if (!this.selected) return false;
+    const selected = this.selected;
+    this.saveHistory("deleteSelected");
+    if (selected.type === "wall") {
+      const removedWallId = selected.id;
+      this.walls.splice(this.walls.findIndex(w => w.id === removedWallId), 1);
+      const filtered = this.openings.filter(o => o.wallId !== removedWallId);
+      this.getCurrentFloor().openings = filtered;
+      this.selected = null;
+      this.recomputeRooms();
+      return true;
+    }
+    if (selected.type === "object") {
+      this.getCurrentFloor().objects = this.objects.filter(o => o.id !== selected.id);
+      this.selected = null;
+      return true;
+    }
+    if (selected.type === "door" || selected.type === "window") {
+      this.getCurrentFloor().openings = this.openings.filter(o => o.id !== selected.id);
+      this.selected = null;
+      return true;
+    }
+    if (selected.type === "dimension") {
+      this.getCurrentFloor().dimensions = this.dimensions.filter(d => d.id !== selected.id);
+      this.selected = null;
+      return true;
+    }
+    return false;
+  }
+
+  findWallNear(point, tolerance = 0.2) {
     let best = null;
     for (const wall of this.walls) {
       const result = pointToSegmentDistance(point, wall.start, wall.end);
       const hitTolerance = Math.max(tolerance, wall.thickness / 2 + 0.05);
       if (result.distance <= hitTolerance) {
         if (!best || result.distance < best.distance) {
-          best = { wall, distance: result.distance, point: result.point, t: result.t };
+          best = {
+            wall,
+            distance: result.distance,
+            point: result.point,
+            t: result.t
+          };
         }
       }
     }
     return best;
   }
 
+  findWallEndpointAt(point, tolerance = 0.2) {
+    for (let i = this.walls.length - 1; i >= 0; i--) {
+      const wall = this.walls[i];
+      const ds = Math.hypot(point.x - wall.start.x, point.y - wall.start.y);
+      if (ds <= tolerance) {
+        return { wall, endpoint: "start" };
+      }
+      const de = Math.hypot(point.x - wall.end.x, point.y - wall.end.y);
+      if (de <= tolerance) {
+        return { wall, endpoint: "end" };
+      }
+    }
+    return null;
+  }
+
   findWallByPolygonHit(point) {
     for (let i = this.walls.length - 1; i >= 0; i--) {
       const wall = this.walls[i];
       const poly = wallPolygon(wall.start, wall.end, wall.thickness);
-      if (pointInPolygon(point, poly)) return wall;
+      if (pointInPolygon(point, poly)) {
+        return wall;
+      }
     }
     return null;
   }
@@ -235,9 +469,9 @@ export class FloorPlanModel {
   findObjectAt(point) {
     for (let i = this.objects.length - 1; i >= 0; i--) {
       const obj = this.objects[i];
-      const left   = obj.x - obj.width / 2;
-      const right  = obj.x + obj.width / 2;
-      const top    = obj.y - obj.height / 2;
+      const left = obj.x - obj.width / 2;
+      const right = obj.x + obj.width / 2;
+      const top = obj.y - obj.height / 2;
       const bottom = obj.y + obj.height / 2;
       if (point.x >= left && point.x <= right && point.y >= top && point.y <= bottom) {
         return obj;
@@ -262,34 +496,35 @@ export class FloorPlanModel {
     return null;
   }
 
-  // --- Serialisierung --------------------------------------------------------
+  findDimensionAt(point, tolerance = 0.2) {
+    for (let i = this.dimensions.length - 1; i >= 0; i--) {
+      const dim = this.dimensions[i];
+      const result = pointToSegmentDistance(point, dim.start, dim.end);
+      if (result.distance <= tolerance) return dim;
+    }
+    return null;
+  }
+
+  clear() {
+    this.saveHistory("clear");
+    const floor = this.getCurrentFloor();
+    if (!floor) return;
+    floor.walls = [];
+    floor.openings = [];
+    floor.objects = [];
+    floor.dimensions = [];
+    floor.rooms = [];
+    this.selected = null;
+  }
 
   toJSON() {
-    return JSON.stringify({
-      scale:         this.scale,
-      gridSize:      this.gridSize,
-      snapEnabled:   this.snapEnabled,
-      wallThickness: this.wallThickness,
-      layers:        this.layers,
-      walls:         this.walls,
-      openings:      this.openings,
-      objects:       this.objects
-    }, null, 2);
+    return JSON.stringify(this.getSerializableState(), null, 2);
   }
 
   loadFromJSON(json) {
     const data = JSON.parse(json);
-    this.scale         = data.scale         ?? 80;
-    this.gridSize      = data.gridSize      ?? 0.5;
-    this.snapEnabled   = data.snapEnabled   ?? true;
-    this.wallThickness = data.wallThickness ?? 0.20;
-    this.layers        = data.layers        ?? this.layers;
-    this.walls         = data.walls         ?? [];
-    this.openings      = data.openings      ?? [];
-    this.objects       = data.objects       ?? [];
-    this.selected      = null;
-    this._history      = [];
-    this._future       = [];
-    this.recomputeRooms();
+    this.applyState(data);
+    this.history = [this.getSerializableState()];
+    this.future = [];
   }
 }
