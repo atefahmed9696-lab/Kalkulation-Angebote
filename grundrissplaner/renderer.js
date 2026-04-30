@@ -4,49 +4,58 @@ import {
   wallPolygon,
   distance
 } from "./geometry.js";
-
+import {
+  drawPlanFrame,
+  fillTitleBlock
+} from "./layout.js";
 export class Renderer {
   constructor(canvas, model) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.model = model;
     this.preview = null;
+    this.showFrame = true;
   }
-
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
     this.render();
   }
-
   render() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.drawPaperBackground();
     this.drawGrid();
     this.drawRooms();
     this.drawWalls();
     this.drawObjects();
     this.drawOpenings();
     this.drawDimensions();
+    this.drawWallNodes();
     this.drawPreview();
     this.drawSelection();
+    this.drawFrame();
   }
-
   worldToScreen(point) {
     return {
       x: point.x * this.model.scale,
       y: point.y * this.model.scale
     };
   }
-
   screenToWorld(point) {
     return {
       x: point.x / this.model.scale,
       y: point.y / this.model.scale
     };
   }
-
+  drawPaperBackground() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.restore();
+  }
   drawGrid() {
     const ctx = this.ctx;
     const step = metersToPixels(this.model.gridSize, this.model.scale);
@@ -67,7 +76,6 @@ export class Renderer {
     }
     ctx.restore();
   }
-
   drawRooms() {
     const ctx = this.ctx;
     ctx.save();
@@ -94,7 +102,6 @@ export class Renderer {
     }
     ctx.restore();
   }
-
   drawWalls() {
     const ctx = this.ctx;
     ctx.save();
@@ -114,6 +121,10 @@ export class Renderer {
       ctx.stroke();
       const a = this.worldToScreen(wall.start);
       const b = this.worldToScreen(wall.end);
+      const m = this.worldToScreen({
+        x: (wall.start.x + wall.end.x) / 2,
+        y: (wall.start.y + wall.end.y) / 2
+      });
       ctx.fillStyle = "#f59e0b";
       ctx.beginPath();
       ctx.arc(a.x, a.y, 4, 0, Math.PI * 2);
@@ -121,10 +132,25 @@ export class Renderer {
       ctx.beginPath();
       ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = "#94a3b8";
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 3, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
   }
-
+  drawWallNodes() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.fillStyle = "#ef4444";
+    for (const node of this.model.wallNodes || []) {
+      const p = this.worldToScreen(node);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
   drawOpenings() {
     const ctx = this.ctx;
     ctx.save();
@@ -134,7 +160,10 @@ export class Renderer {
       if (!wall) continue;
       const x = wall.start.x + (wall.end.x - wall.start.x) * opening.positionT;
       const y = wall.start.y + (wall.end.y - wall.start.y) * opening.positionT;
-      const center = this.worldToScreen({ x, y });
+      const center = this.worldToScreen({
+        x,
+        y
+      });
       const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x);
       const widthPx = metersToPixels(opening.width, this.model.scale);
       const wallPx = metersToPixels(wall.thickness, this.model.scale);
@@ -170,13 +199,15 @@ export class Renderer {
     }
     ctx.restore();
   }
-
   drawObjects() {
     const ctx = this.ctx;
     ctx.save();
     for (const obj of this.model.objects) {
       if (!this.model.layers[obj.layer]) continue;
-      const center = this.worldToScreen({ x: obj.x, y: obj.y });
+      const center = this.worldToScreen({
+        x: obj.x,
+        y: obj.y
+      });
       const w = metersToPixels(obj.width, this.model.scale);
       const h = metersToPixels(obj.height, this.model.scale);
       ctx.translate(center.x, center.y);
@@ -237,7 +268,6 @@ export class Renderer {
     }
     ctx.restore();
   }
-
   drawDimensions() {
     if (!this.model.layers.dimension) return;
     const ctx = this.ctx;
@@ -257,8 +287,14 @@ export class Renderer {
       const nx = -dy / len;
       const ny = dx / len;
       const offsetPx = metersToPixels(dim.offset ?? 0.25, this.model.scale);
-      const a2 = { x: a.x + nx * offsetPx, y: a.y + ny * offsetPx };
-      const b2 = { x: b.x + nx * offsetPx, y: b.y + ny * offsetPx };
+      const a2 = {
+        x: a.x + nx * offsetPx,
+        y: a.y + ny * offsetPx
+      };
+      const b2 = {
+        x: b.x + nx * offsetPx,
+        y: b.y + ny * offsetPx
+      };
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(a2.x, a2.y);
@@ -281,34 +317,22 @@ export class Renderer {
     }
     ctx.restore();
   }
-
   drawArrow(ctx, from, to) {
     const angle = Math.atan2(to.y - from.y, to.x - from.x);
     const size = 8;
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
-    ctx.lineTo(
-      from.x + Math.cos(angle + Math.PI / 6) * size,
-      from.y + Math.sin(angle + Math.PI / 6) * size
-    );
+    ctx.lineTo(from.x + Math.cos(angle + Math.PI / 6) * size, from.y + Math.sin(angle + Math.PI / 6) * size);
     ctx.moveTo(from.x, from.y);
-    ctx.lineTo(
-      from.x + Math.cos(angle - Math.PI / 6) * size,
-      from.y + Math.sin(angle - Math.PI / 6) * size
-    );
+    ctx.lineTo(from.x + Math.cos(angle - Math.PI / 6) * size, from.y + Math.sin(angle - Math.PI / 6) * size);
     ctx.stroke();
   }
-
   drawPreview() {
     if (!this.preview) return;
     const ctx = this.ctx;
     ctx.save();
     if (this.preview.type === "wall") {
-      const poly = wallPolygon(
-        this.preview.start,
-        this.preview.end,
-        this.preview.thickness
-      ).map(p => this.worldToScreen(p));
+      const poly = wallPolygon(this.preview.start, this.preview.end, this.preview.thickness).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
@@ -322,7 +346,10 @@ export class Renderer {
       ctx.stroke();
     }
     if (this.preview.type === "object") {
-      const c = this.worldToScreen({ x: this.preview.x, y: this.preview.y });
+      const c = this.worldToScreen({
+        x: this.preview.x,
+        y: this.preview.y
+      });
       const w = metersToPixels(this.preview.width, this.model.scale);
       const h = metersToPixels(this.preview.height, this.model.scale);
       ctx.fillStyle = "rgba(37,99,235,0.35)";
@@ -335,7 +362,10 @@ export class Renderer {
       if (wall) {
         const x = wall.start.x + (wall.end.x - wall.start.x) * this.preview.positionT;
         const y = wall.start.y + (wall.end.y - wall.start.y) * this.preview.positionT;
-        const center = this.worldToScreen({ x, y });
+        const center = this.worldToScreen({
+          x,
+          y
+        });
         const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x);
         const widthPx = metersToPixels(this.preview.width, this.model.scale);
         const wallPx = metersToPixels(wall.thickness, this.model.scale);
@@ -353,14 +383,15 @@ export class Renderer {
       const b = this.worldToScreen(this.preview.end);
       ctx.strokeStyle = "#2563eb";
       ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
       ctx.beginPath();
       ctx.moveTo(a.x, a.y);
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
+      ctx.setLineDash([]);
     }
     ctx.restore();
   }
-
   drawSelection() {
     const selected = this.model.selected;
     if (!selected) return;
@@ -379,7 +410,10 @@ export class Renderer {
       ctx.closePath();
       ctx.stroke();
     } else if (selected.type === "object") {
-      const c = this.worldToScreen({ x: selected.x, y: selected.y });
+      const c = this.worldToScreen({
+        x: selected.x,
+        y: selected.y
+      });
       const w = metersToPixels(selected.width, this.model.scale);
       const h = metersToPixels(selected.height, this.model.scale);
       ctx.strokeRect(c.x - w / 2, c.y - h / 2, w, h);
@@ -388,7 +422,10 @@ export class Renderer {
       if (wall) {
         const x = wall.start.x + (wall.end.x - wall.start.x) * selected.positionT;
         const y = wall.start.y + (wall.end.y - wall.start.y) * selected.positionT;
-        const c = this.worldToScreen({ x, y });
+        const c = this.worldToScreen({
+          x,
+          y
+        });
         ctx.beginPath();
         ctx.arc(c.x, c.y, 14, 0, Math.PI * 2);
         ctx.stroke();
@@ -402,6 +439,20 @@ export class Renderer {
       ctx.stroke();
     }
     ctx.restore();
+  }
+  drawFrame() {
+    if (!this.showFrame) return;
+    const floor = this.model.getCurrentFloor();
+    drawPlanFrame(this.ctx, this.canvas.width, this.canvas.height, {});
+    fillTitleBlock(this.ctx, this.canvas.width, this.canvas.height, {
+      projectName: this.model.projectMeta.projectName,
+      scaleLabel: this.model.projectMeta.scaleLabel,
+      drawingTitle: this.model.projectMeta.drawingTitle,
+      paperFormat: this.model.projectMeta.paperFormat,
+      versionLabel: this.model.projectMeta.versionLabel,
+      floorName: floor?.name || "-",
+      dateLabel: new Date().toLocaleDateString("de-DE")
+    });
   }
 }
 

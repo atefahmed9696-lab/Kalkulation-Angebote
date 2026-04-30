@@ -1,6 +1,12 @@
-import { snapPoint, orthogonalize, pointToSegmentDistance } from "./geometry.js";
-import { CATALOG } from "./catalog.js";
-
+import {
+  snapPoint,
+  projectPointToWall,
+  smartOrthoSnap,
+  smartSnapPoint
+} from "./geometry.js";
+import {
+  CATALOG
+} from "./catalog.js";
 export class ToolController {
   constructor(model, renderer, ui) {
     this.model = model;
@@ -11,7 +17,6 @@ export class ToolController {
     this.dragState = null;
     this.startPoint = null;
   }
-
   setTool(tool) {
     this.currentTool = tool;
     this.ui.setStatusTool(tool);
@@ -24,16 +29,14 @@ export class ToolController {
       this.ui.populateCatalog(null, [], "");
     }
   }
-
   setCatalogItemById(layer, id) {
     const item = (CATALOG[layer] || []).find(entry => entry.id === id);
     this.currentCatalogItem = item ?? null;
   }
-
-  normalizePoint(worldPoint) {
-    return this.model.snapEnabled ? snapPoint(worldPoint, this.model.gridSize) : worldPoint;
+  normalizePoint(worldPoint, reference = null) {
+    if (!this.model.snapEnabled) return worldPoint;
+    return smartSnapPoint(worldPoint, this.model.walls, this.model.gridSize, true, reference);
   }
-
   onMouseDown(worldPoint) {
     const point = this.normalizePoint(worldPoint);
     if (this.currentTool === "wall" || this.currentTool === "dimension") {
@@ -41,7 +44,7 @@ export class ToolController {
       return;
     }
     if (this.currentTool === "door" || this.currentTool === "window") {
-      const hit = this.model.findWallNear(point, 0.25);
+      const hit = this.model.findWallNear(point, 0.3);
       if (!hit) return;
       const width = this.currentTool === "door" ? 0.9 : 1.2;
       const opening = this.model.addOpening(this.currentTool, hit.wall.id, hit.t, width);
@@ -57,9 +60,10 @@ export class ToolController {
       return;
     }
     if (this.currentTool === "select") {
-      const endpointHit = this.model.findWallEndpointAt(point, 0.2);
+      const endpointHit = this.model.findWallEndpointAt(point, 0.22);
       if (endpointHit) {
         this.model.selected = endpointHit.wall;
+        this.model.saveHistory("dragWallEndpoint");
         this.dragState = {
           type: "wall-endpoint",
           wallId: endpointHit.wall.id,
@@ -111,7 +115,7 @@ export class ToolController {
         this.renderer.render();
         return;
       }
-      const wall = this.model.findWallByPolygonHit(point) || this.model.findWallNear(point, 0.2)?.wall;
+      const wall = this.model.findWallByPolygonHit(point) || this.model.findWallNear(point, 0.22)?.wall;
       if (wall) {
         this.model.selected = wall;
         this.renderer.render();
@@ -121,32 +125,31 @@ export class ToolController {
       this.renderer.render();
     }
   }
-
   onMouseMove(worldPoint) {
     const point = this.normalizePoint(worldPoint);
     if (this.currentTool === "wall" && this.startPoint) {
-      const orthoEnd = orthogonalize(this.startPoint, point);
+      const end = smartOrthoSnap(this.startPoint, worldPoint, this.model.walls, this.model.gridSize, this.model.snapEnabled);
       this.renderer.preview = {
         type: "wall",
         start: this.startPoint,
-        end: orthoEnd,
+        end,
         thickness: this.model.wallThickness
       };
       this.renderer.render();
       return;
     }
     if (this.currentTool === "dimension" && this.startPoint) {
-      const orthoEnd = orthogonalize(this.startPoint, point);
+      const end = smartOrthoSnap(this.startPoint, worldPoint, [], this.model.gridSize, this.model.snapEnabled);
       this.renderer.preview = {
         type: "dimension",
         start: this.startPoint,
-        end: orthoEnd
+        end
       };
       this.renderer.render();
       return;
     }
     if (this.currentTool === "door" || this.currentTool === "window") {
-      const hit = this.model.findWallNear(point, 0.25);
+      const hit = this.model.findWallNear(point, 0.3);
       if (hit) {
         this.renderer.preview = {
           type: "opening",
@@ -174,14 +177,17 @@ export class ToolController {
     if (this.currentTool === "select" && this.dragState?.type === "object") {
       const obj = this.model.getObjectById(this.dragState.id);
       if (!obj) return;
-      this.model.updateObject(
-        obj.id,
-        {
-          x: point.x - this.dragState.offsetX,
-          y: point.y - this.dragState.offsetY
-        },
-        true
-      );
+      const newPoint = this.normalizePoint({
+        x: point.x - this.dragState.offsetX,
+        y: point.y - this.dragState.offsetY
+      }, {
+        x: obj.x,
+        y: obj.y
+      });
+      this.model.updateObject(obj.id, {
+        x: newPoint.x,
+        y: newPoint.y
+      }, true);
       this.renderer.render();
       return;
     }
@@ -189,12 +195,11 @@ export class ToolController {
       const opening = this.model.getOpeningById(this.dragState.id);
       const wall = this.model.getWallById(this.dragState.wallId);
       if (!opening || !wall) return;
-      const result = pointToSegmentDistance(point, wall.start, wall.end);
-      this.model.updateOpening(
-        opening.id,
-        { positionT: Math.max(0.05, Math.min(0.95, result.t)) },
-        true
-      );
+      const result = projectPointToWall(point, wall);
+      this.model.updateOpening(opening.id, {
+        positionT: Math.max(0.05, Math.min(0.95, result.t)),
+        wallId: wall.id
+      }, true);
       this.renderer.render();
       return;
     }
@@ -202,11 +207,15 @@ export class ToolController {
       const wall = this.model.getWallById(this.dragState.wallId);
       if (!wall) return;
       const otherPoint = this.dragState.endpoint === "start" ? wall.end : wall.start;
-      const adjusted = orthogonalize(otherPoint, point);
+      const adjusted = smartOrthoSnap(otherPoint, worldPoint, this.model.walls.filter(w => w.id !== wall.id), this.model.gridSize, this.model.snapEnabled);
       if (this.dragState.endpoint === "start") {
-        this.model.updateWall(wall.id, { start: adjusted }, true);
+        this.model.updateWall(wall.id, {
+          start: adjusted
+        }, true);
       } else {
-        this.model.updateWall(wall.id, { end: adjusted }, true);
+        this.model.updateWall(wall.id, {
+          end: adjusted
+        }, true);
       }
       this.renderer.render();
       return;
@@ -222,21 +231,18 @@ export class ToolController {
         x: newStart.x + this.dragState.lengthX,
         y: newStart.y + this.dragState.lengthY
       };
-      this.model.updateDimension(
-        dim.id,
-        { start: newStart, end: newEnd },
-        true
-      );
+      this.model.updateDimension(dim.id, {
+        start: newStart,
+        end: newEnd
+      }, true);
       this.renderer.render();
     }
   }
-
   onMouseUp(worldPoint) {
-    const point = this.normalizePoint(worldPoint);
     if (this.currentTool === "wall" && this.startPoint) {
-      const orthoEnd = orthogonalize(this.startPoint, point);
-      if (Math.hypot(orthoEnd.x - this.startPoint.x, orthoEnd.y - this.startPoint.y) > 0.05) {
-        const wall = this.model.addWall(this.startPoint, orthoEnd, this.model.wallThickness, "architecture");
+      const end = smartOrthoSnap(this.startPoint, worldPoint, this.model.walls, this.model.gridSize, this.model.snapEnabled);
+      if (Math.hypot(end.x - this.startPoint.x, end.y - this.startPoint.y) > 0.05) {
+        const wall = this.model.addWall(this.startPoint, end, this.model.wallThickness, "architecture");
         this.model.selected = wall;
       }
       this.startPoint = null;
@@ -244,9 +250,9 @@ export class ToolController {
       this.renderer.render();
     }
     if (this.currentTool === "dimension" && this.startPoint) {
-      const orthoEnd = orthogonalize(this.startPoint, point);
-      if (Math.hypot(orthoEnd.x - this.startPoint.x, orthoEnd.y - this.startPoint.y) > 0.05) {
-        const dim = this.model.addDimension(this.startPoint, orthoEnd);
+      const end = smartOrthoSnap(this.startPoint, worldPoint, [], this.model.gridSize, this.model.snapEnabled);
+      if (Math.hypot(end.x - this.startPoint.x, end.y - this.startPoint.y) > 0.05) {
+        const dim = this.model.addDimension(this.startPoint, end);
         this.model.selected = dim;
       }
       this.startPoint = null;
@@ -255,7 +261,6 @@ export class ToolController {
     }
     this.dragState = null;
   }
-
   clearPreview() {
     this.renderer.preview = null;
     this.renderer.render();
