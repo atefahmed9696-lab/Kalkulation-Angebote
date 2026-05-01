@@ -8,7 +8,8 @@ import {
   ToolController
 } from "./tools.js";
 import {
-  exportCanvasToPDF
+  exportCanvasToPDF,
+  exportCanvasToPNG
 } from "./pdf-export.js";
 const canvas = document.getElementById("canvas");
 const model = new FloorPlanModel();
@@ -254,15 +255,13 @@ document.getElementById("file-input").addEventListener("change", async (event) =
 });
 document.getElementById("export-png").addEventListener("click", () => {
   renderer.render();
-  const url = canvas.toDataURL("image/png");
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${model.getCurrentFloor()?.name || "grundriss"}.png`;
-  a.click();
+  const paperRect = renderer.showFrame ? renderer.getPaperRect() : null;
+  exportCanvasToPNG(canvas, `${model.getCurrentFloor()?.name || "grundriss"}.png`, paperRect);
 });
 document.getElementById("export-pdf").addEventListener("click", () => {
   renderer.render();
-  exportCanvasToPDF(canvas, `${model.getCurrentFloor()?.name || "grundriss"}.pdf`);
+  const paperRect = renderer.showFrame ? renderer.getPaperRect() : null;
+  exportCanvasToPDF(canvas, `${model.getCurrentFloor()?.name || "grundriss"}.pdf`, paperRect);
 });
 
 function getWorldPointFromEvent(event) {

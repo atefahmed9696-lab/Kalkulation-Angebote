@@ -35,7 +35,7 @@ export class ToolController {
   }
   normalizePoint(worldPoint, reference = null) {
     if (!this.model.snapEnabled) return worldPoint;
-    return smartSnapPoint(worldPoint, this.model.walls, this.model.gridSize, true, reference);
+    return smartSnapPoint(worldPoint, this.model.walls, this.model.gridSize, true, reference, this.model.objects);
   }
   onMouseDown(worldPoint) {
     const point = this.normalizePoint(worldPoint);

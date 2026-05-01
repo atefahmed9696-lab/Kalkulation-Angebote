@@ -2,11 +2,14 @@ import {
   metersToPixels,
   polygonCentroid,
   wallPolygon,
+  wallJointPolygon,
   distance
 } from "./geometry.js";
 import {
   drawPlanFrame,
-  fillTitleBlock
+  drawPaperShadow,
+  fillTitleBlock,
+  computePaperRect
 } from "./layout.js";
 export class Renderer {
   constructor(canvas, model) {
@@ -25,7 +28,11 @@ export class Renderer {
   render() {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.drawPaperBackground();
+    if (this.showFrame) {
+      drawPaperShadow(ctx, computePaperRect(this.canvas.width, this.canvas.height, this.model.projectMeta.paperFormat));
+    } else {
+      this.drawPaperBackground();
+    }
     this.drawGrid();
     this.drawRooms();
     this.drawWalls();
@@ -107,7 +114,7 @@ export class Renderer {
     ctx.save();
     for (const wall of this.model.walls) {
       if (!this.model.layers[wall.layer]) continue;
-      const poly = wallPolygon(wall.start, wall.end, wall.thickness).map(p => this.worldToScreen(p));
+      const poly = wallJointPolygon(wall, this.model.walls).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
@@ -119,19 +126,10 @@ export class Renderer {
       ctx.strokeStyle = wall.layer === "drywall" ? "#7c3aed" : "#000000";
       ctx.lineWidth = 1;
       ctx.stroke();
-      const a = this.worldToScreen(wall.start);
-      const b = this.worldToScreen(wall.end);
       const m = this.worldToScreen({
         x: (wall.start.x + wall.end.x) / 2,
         y: (wall.start.y + wall.end.y) / 2
       });
-      ctx.fillStyle = "#f59e0b";
-      ctx.beginPath();
-      ctx.arc(a.x, a.y, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-      ctx.fill();
       ctx.fillStyle = "#94a3b8";
       ctx.beginPath();
       ctx.arc(m.x, m.y, 3, 0, Math.PI * 2);
@@ -401,7 +399,7 @@ export class Renderer {
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
     if (selected.type === "wall") {
-      const poly = wallPolygon(selected.start, selected.end, selected.thickness).map(p => this.worldToScreen(p));
+      const poly = wallJointPolygon(selected, this.model.walls).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
@@ -443,16 +441,22 @@ export class Renderer {
   drawFrame() {
     if (!this.showFrame) return;
     const floor = this.model.getCurrentFloor();
-    drawPlanFrame(this.ctx, this.canvas.width, this.canvas.height, {});
+    drawPlanFrame(this.ctx, this.canvas.width, this.canvas.height, {
+      paperFormat: this.model.projectMeta.paperFormat
+    });
     fillTitleBlock(this.ctx, this.canvas.width, this.canvas.height, {
       projectName: this.model.projectMeta.projectName,
-      scaleLabel: this.model.projectMeta.scaleLabel,
+      scaleLabel:  this.model.projectMeta.scaleLabel,
       drawingTitle: this.model.projectMeta.drawingTitle,
       paperFormat: this.model.projectMeta.paperFormat,
       versionLabel: this.model.projectMeta.versionLabel,
-      floorName: floor?.name || "-",
-      dateLabel: new Date().toLocaleDateString("de-DE")
+      floorName:   floor?.name || "-",
+      dateLabel:   new Date().toLocaleDateString("de-DE")
     });
+  }
+
+  getPaperRect() {
+    return computePaperRect(this.canvas.width, this.canvas.height, this.model.projectMeta.paperFormat);
   }
 }
 

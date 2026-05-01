@@ -208,7 +208,7 @@ export function snapToAxis(point, reference, tolerance = 0.2) {
 export function projectPointToWall(point, wall) {
   return pointToSegmentDistance(point, wall.start, wall.end);
 }
-export function smartSnapPoint(rawPoint, walls, gridSize, snapEnabled = true, reference = null) {
+export function smartSnapPoint(rawPoint, walls, gridSize, snapEnabled = true, reference = null, objects = []) {
   let point = {
     ...rawPoint
   };
@@ -217,6 +217,9 @@ export function smartSnapPoint(rawPoint, walls, gridSize, snapEnabled = true, re
   }
   point = snapToExistingEndpoints(point, walls, 0.3);
   point = snapToWallMidpoints(point, walls, 0.2);
+  if (objects.length > 0) {
+    point = snapToObjectEdges(point, objects, 0.25);
+  }
   if (reference) {
     point = snapToAxis(point, reference, 0.25);
   }
@@ -253,6 +256,111 @@ export function buildWallNodes(walls, tolerance = 0.02) {
   }
   return nodes;
 }
+function lineIntersection(p1, d1, p2, d2) {
+  const cross = d1.x * d2.y - d1.y * d2.x;
+  if (Math.abs(cross) < 1e-9) return null;
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const t = (dx * d2.y - dy * d2.x) / cross;
+  return { x: p1.x + t * d1.x, y: p1.y + t * d1.y };
+}
+
+function detectTJunction(nodePoint, myWall, allWalls, tol) {
+  for (const w of allWalls) {
+    if (w.id === myWall.id) continue;
+    if (distance(w.start, nodePoint) <= tol || distance(w.end, nodePoint) <= tol) continue;
+    const res = pointToSegmentDistance(nodePoint, w.start, w.end);
+    if (res.distance <= tol && res.t > 0.01 && res.t < 0.99) {
+      return { wall: w, t: res.t };
+    }
+  }
+  return null;
+}
+
+export function wallJointPolygon(wall, allWalls, tolerance = 0.08) {
+  const dir = normalize({ x: wall.end.x - wall.start.x, y: wall.end.y - wall.start.y });
+  const n = perpendicular(dir);
+  const h = wall.thickness / 2;
+
+  const pts = [
+    { x: wall.start.x + n.x * h, y: wall.start.y + n.y * h },
+    { x: wall.end.x + n.x * h,   y: wall.end.y + n.y * h   },
+    { x: wall.end.x - n.x * h,   y: wall.end.y - n.y * h   },
+    { x: wall.start.x - n.x * h, y: wall.start.y - n.y * h }
+  ];
+
+  function adjustAtNode(nodePoint, awayDir, leftIdx, rightIdx) {
+    const conns = allWalls.filter(w => w.id !== wall.id && (
+      distance(w.start, nodePoint) <= tolerance ||
+      distance(w.end, nodePoint) <= tolerance
+    ));
+
+    if (conns.length > 0) {
+      const conn = conns[0];
+      const connAtStart = distance(conn.start, nodePoint) <= tolerance;
+      const connAwayDir = connAtStart
+        ? normalize({ x: conn.end.x - conn.start.x, y: conn.end.y - conn.start.y })
+        : normalize({ x: conn.start.x - conn.end.x, y: conn.start.y - conn.end.y });
+      const connN = perpendicular(connAwayDir);
+      const connH = conn.thickness / 2;
+
+      const dot = Math.abs(awayDir.x * connAwayDir.x + awayDir.y * connAwayDir.y);
+      if (dot > 0.97) return;
+
+      const myLeftPt    = { x: nodePoint.x + n.x * h,        y: nodePoint.y + n.y * h        };
+      const connLeftPt  = { x: nodePoint.x + connN.x * connH, y: nodePoint.y + connN.y * connH };
+      const myRightPt   = { x: nodePoint.x - n.x * h,        y: nodePoint.y - n.y * h        };
+      const connRightPt = { x: nodePoint.x - connN.x * connH, y: nodePoint.y - connN.y * connH };
+
+      const leftMiter  = lineIntersection(myLeftPt,  awayDir, connLeftPt,  connAwayDir);
+      const rightMiter = lineIntersection(myRightPt, awayDir, connRightPt, connAwayDir);
+
+      if (leftMiter)  pts[leftIdx]  = leftMiter;
+      if (rightMiter) pts[rightIdx] = rightMiter;
+      return;
+    }
+
+    const tj = detectTJunction(nodePoint, wall, allWalls, tolerance);
+    if (tj) {
+      const baseH = tj.wall.thickness / 2;
+      const ext = {
+        x: nodePoint.x - awayDir.x * baseH,
+        y: nodePoint.y - awayDir.y * baseH
+      };
+      pts[leftIdx]  = { x: ext.x + n.x * h, y: ext.y + n.y * h };
+      pts[rightIdx] = { x: ext.x - n.x * h, y: ext.y - n.y * h };
+    }
+  }
+
+  adjustAtNode(wall.start, { x:  dir.x, y:  dir.y }, 0, 3);
+  adjustAtNode(wall.end,   { x: -dir.x, y: -dir.y }, 1, 2);
+
+  return pts;
+}
+
+export function snapToObjectEdges(point, objects, tolerance = 0.25) {
+  let best = null;
+  for (const obj of objects) {
+    const left   = obj.x - obj.width  / 2;
+    const right  = obj.x + obj.width  / 2;
+    const top    = obj.y - obj.height / 2;
+    const bottom = obj.y + obj.height / 2;
+    const candidates = [
+      { x: left,    y: point.y },
+      { x: right,   y: point.y },
+      { x: point.x, y: top    },
+      { x: point.x, y: bottom }
+    ];
+    for (const c of candidates) {
+      const d = distance(point, c);
+      if (d <= tolerance && (!best || d < best.distance)) {
+        best = { point: c, distance: d };
+      }
+    }
+  }
+  return best ? best.point : point;
+}
+
 export function buildOrthogonalRoomsFromWalls(walls) {
   if (!walls.length) return [];
   const xs = new Set();
