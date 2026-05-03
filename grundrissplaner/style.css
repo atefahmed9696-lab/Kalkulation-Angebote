@@ -85,7 +85,7 @@ select:hover {
 }
 #topbar {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr auto;
   align-items: center;
   padding: 0 16px;
   border-bottom: 1px solid #3b4049;
@@ -97,6 +97,24 @@ select:hover {
 }
 #status-right {
   text-align: right;
+}
+#export-to-kalk {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 7px;
+  background: rgba(39,174,96,.25);
+  color: #7debb5;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#export-to-kalk:hover {
+  background: rgba(39,174,96,.45);
+  color: #fff;
 }
 #canvas {
   display: block;

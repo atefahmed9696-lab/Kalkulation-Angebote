@@ -1083,7 +1083,7 @@
         <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
         <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
         <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
-        <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundriss-Editor</button>
+        <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundrissplaner V2.6</button>
       </div>
 
       <div class="container">
@@ -4732,157 +4732,177 @@ const GR_ICONBAR = [
   { id:'eraser',  tip:'Element löschen',           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l12-12 5 5z"/><path d="M6 17L17 6"/></svg>`, label:'Löschen', cat:null },
 ];
 
-/* ── Open / Close ────────────────────────────────────────────── */
+/* ── Open / Close (Grundrissplaner V2.6 als iframe) ─────────── */
 function openGrundrissEditor() {
   if (document.getElementById('grModal')) return;
-
-  const iconbarHtml = GR_ICONBAR.map(b => `
-    <button class="gr-ib-btn" id="grib-${b.id}" data-tip="${b.tip}"
-      onclick="grIconbarClick('${b.id}')" title="">
-      ${b.icon}<span>${b.label}</span>
-    </button>`).join('') +
-    `<div class="gr-iconbar-divider"></div>
-     <button class="gr-ib-btn" id="grib-grid" data-tip="Raster an/aus"
-       onclick="grToggleGrid()" title="">
-       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-       <span>Raster</span>
-     </button>
-     <button class="gr-ib-btn" id="grib-snap" data-tip="Einrasten an/aus"
-       onclick="grToggleSnap()" title="">
-       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-       <span>Snap</span>
-     </button>`;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.id = 'grModal';
+  overlay.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;';
   overlay.innerHTML = `
-    <div class="gr-modal-box" onclick="event.stopPropagation()">
-
-      <!-- ── Header bar ─────────────────────────────────────── -->
-      <div class="gr-header">
-        <span class="gr-header-logo">🏠</span>
-        <span class="gr-header-title">Grundriss-Editor</span>
-        <div class="gr-header-sep"></div>
-        <button class="gr-header-btn" onclick="grUndo()" id="grhdr-undo" title="Rückgängig (Ctrl+Z)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Undo
+    <div style="
+      display:flex;flex-direction:column;
+      width:99vw;max-width:1600px;height:96vh;
+      background:#1a2236;border-radius:14px;
+      box-shadow:0 20px 60px rgba(0,0,0,.6);
+      overflow:hidden;">
+      <!-- Header -->
+      <div style="
+        display:flex;align-items:center;gap:10px;
+        background:linear-gradient(135deg,#1a2236 0%,#1e2d47 100%);
+        padding:0 14px;height:50px;flex-shrink:0;border-radius:14px 14px 0 0;">
+        <span style="font-size:20px">🏠</span>
+        <span style="font-size:14px;font-weight:700;color:#e8edf5;white-space:nowrap">Grundrissplaner V2.6</span>
+        <div style="width:1px;height:24px;background:rgba(255,255,255,.15);margin:0 6px;flex-shrink:0"></div>
+        <button id="gr-iframe-to-kalk" onclick="grRequestIframeExport()" style="
+          display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;cursor:pointer;
+          font-size:12px;font-weight:600;border:none;
+          background:rgba(39,174,96,.25);color:#7debb5;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          In Kalkulation übernehmen
         </button>
-        <button class="gr-header-btn" onclick="grRedo()" id="grhdr-redo" title="Wiederholen (Ctrl+Y)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Redo
-        </button>
-        <div class="gr-header-sep"></div>
-        <button class="gr-header-btn" onclick="grExportSVG()" title="Als SVG exportieren">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> SVG
-        </button>
-        <button class="gr-header-btn" onclick="grSaveJSON()" title="Als JSON speichern">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Speichern
-        </button>
-        <button class="gr-header-btn" onclick="grLoadJSONClick()" title="JSON laden">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Laden
-        </button>
-        <button class="gr-header-btn" onclick="grPrintPlan()" title="Plan drucken">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Drucken
-        </button>
-        <button class="gr-header-btn danger" onclick="grClearAll()" title="Alles löschen">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Löschen
-        </button>
-        <div class="gr-header-spacer"></div>
-        <button class="gr-header-btn" onclick="grToKalk()" title="In Kalkulation übernehmen" style="background:rgba(39,174,96,.25);color:#7debb5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> In Kalkulation
-        </button>
-        <div class="gr-header-sep"></div>
-        <button class="gr-header-close" onclick="closeGrundrissEditor()" title="Schließen">✕</button>
+        <div style="flex:1"></div>
+        <button onclick="closeGrundrissEditor()" style="
+          width:30px;height:30px;border-radius:8px;border:none;
+          background:rgba(255,255,255,.09);color:#d4dff0;cursor:pointer;
+          font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
-
-      <!-- ── Main area ──────────────────────────────────────── -->
-      <div class="gr-main">
-
-        <!-- Left icon toolbar -->
-        <div class="gr-iconbar">${iconbarHtml}</div>
-
-        <!-- Expandable sub-panel -->
-        <div class="gr-subpanel" id="gr-subpanel">
-          <div class="gr-subpanel-header" id="gr-subpanel-title">Werkzeuge</div>
-          <div class="gr-subpanel-inner" id="gr-subpanel-inner"></div>
-        </div>
-
-        <!-- Canvas area with rulers -->
-        <div class="gr-canvas-area" style="position:relative">
-          <div class="gr-ruler-corner"></div>
-          <canvas class="gr-ruler-top" id="gr-ruler-h" height="20"></canvas>
-          <canvas class="gr-ruler-left" id="gr-ruler-v" width="20"></canvas>
-          <div class="gr-canvas-wrap" id="gr-canvas-wrap">
-            <div class="gr-canvas-inner" id="gr-canvas-inner">
-              <svg id="gr-svg"
-                width="${GR_W * GR_GRID}" height="${GR_H * GR_GRID}"
-                xmlns="http://www.w3.org/2000/svg"
-                style="display:block"
-                onmousedown="grMouseDown(event)"
-                onmousemove="grMouseMove(event)"
-                onmouseup="grMouseUp(event)"
-                onclick="grClick(event)"
-                oncontextmenu="grContextMenu(event)">
-              </svg>
-              <input type="file" id="gr-json-input" accept=".json" style="display:none" onchange="grLoadJSON(event)">
-            </div>
-            <!-- Floating zoom controls -->
-            <div class="gr-zoom-float">
-              <button onclick="grZoom(-0.25)" title="Verkleinern">−</button>
-              <span id="gr-zoom-label">100%</span>
-              <button onclick="grZoom(0.25)" title="Vergrößern">+</button>
-              <button onclick="grZoom(0,'reset')" title="1:1" style="font-size:10px;width:auto;padding:0 6px">1:1</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right properties panel -->
-        <div class="gr-rightpanel">
-          <div class="gr-rp-tabs">
-            <div class="gr-rp-tab active" id="grrt-props" onclick="grRpTab('props')">EIGENSCHAFTEN</div>
-            <div class="gr-rp-tab" id="grrt-stats" onclick="grRpTab('stats')">STATISTIK</div>
-          </div>
-          <div class="gr-rp-body" id="gr-props-body">
-            <div style="color:#aaa;font-size:11px;padding-top:8px">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#c8d0de" stroke-width="1.5" style="display:block;margin:0 auto 8px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              Kein Element gewählt.<br><small style="color:#c8d0de">Werkzeug wählen oder Element anklicken</small>
-            </div>
-          </div>
-          <div class="gr-rp-body" id="gr-stats-body" style="display:none;font-size:11px;line-height:2;color:#4a5568"></div>
-        </div>
-
-      </div>
-
-      <!-- ── Status bar ─────────────────────────────────────── -->
-      <div class="gr-statusbar">
-        <span id="gr-coord-display"><b>x:</b> — <b>y:</b> —</span>
-        <span id="gr-status-hint" style="color:#5a7a9e">Werkzeug aus der linken Leiste wählen</span>
-        <span style="margin-left:auto;color:#5a7a9e">1 Kästchen = 1 m &nbsp;·&nbsp; ESC = Abbrechen &nbsp;·&nbsp; Del = Löschen &nbsp;·&nbsp; Rechtsklick = Drehen</span>
-      </div>
-
+      <!-- iframe -->
+      <iframe id="gr-iframe"
+        src="grundrissplaner/index.html"
+        style="flex:1;border:none;width:100%;background:#fff;"
+        allow="fullscreen">
+      </iframe>
     </div>`;
   document.body.appendChild(overlay);
-  // Middle-mouse-button pan + wheel zoom on canvas wrap
-  const wrap = overlay.querySelector('.gr-canvas-wrap');
-  if (wrap) {
-    wrap.addEventListener('mousedown', grWrapMouseDown, { passive: false });
-    wrap.addEventListener('wheel', e => { e.preventDefault(); grZoom(e.deltaY < 0 ? 0.1 : -0.1); }, { passive: false });
-    wrap.addEventListener('scroll', () => grDrawRulers());
-  }
-  grSnapshot();
-  try {
-    const saved = localStorage.getItem('grPlan');
-    if (saved && (grState.items.length + grState.walls.length + grState.rooms.length) === 0) {
-      grRestoreSnapshot(saved);
-    }
-  } catch(e) {}
-  grRender();
-  grUpdateToolbar();
-  grDrawRulers();
 }
 
 function closeGrundrissEditor() {
   const m = document.getElementById('grModal');
   if (m) m.remove();
+}
+
+/* ── iframe → Kalkulation (postMessage-Brücke) ───────────────── */
+function grRequestIframeExport() {
+  const iframe = document.getElementById('gr-iframe');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'request-export' }, '*');
+  }
+}
+
+window.addEventListener('message', function(event) {
+  if (!event.data || event.data.type !== 'export-to-kalk') return;
+  grToKalkFromIframe(event.data.state);
+});
+
+function grToKalkFromIframe(state) {
+  if (!state || !state.floors) { showToast('⚠️ Keine Daten empfangen'); return; }
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  let added = 0;
+
+  // Alle Etagen zusammenführen
+  const allWalls    = state.floors.flatMap(f => f.walls    || []);
+  const allOpenings = state.floors.flatMap(f => f.openings || []);
+  const allObjects  = state.floors.flatMap(f => f.objects  || []);
+
+  // Wände → Trockenbau
+  const wallLen = allWalls.reduce((s, w) => {
+    if (!w.start || !w.end) return s;
+    return s + Math.hypot(w.end.x - w.start.x, w.end.y - w.start.y);
+  }, 0);
+  if (wallLen > 0.5) {
+    daten.positionen.trockenbau.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Trennwände / Wände (aus Grundriss)',
+      einheit: 'lfm', menge: parseFloat(wallLen.toFixed(2)),
+      materialpreis: 85, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Türen → Türen-Gewerk
+  const nDoor = allOpenings.filter(o => o.type === 'door').length;
+  if (nDoor > 0) {
+    daten.positionen.tueren.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Innentüren (aus Grundriss)',
+      einheit: 'Stk', menge: nDoor,
+      materialpreis: 485, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Fenster → Fenster-Gewerk
+  const winOpenings = allOpenings.filter(o => o.type === 'window');
+  if (winOpenings.length > 0) {
+    const totalWinW = winOpenings.reduce((s, o) => s + (o.width || 0.9), 0);
+    daten.positionen.fenster.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Fenster (aus Grundriss)',
+      einheit: 'lfm', menge: parseFloat(totalWinW.toFixed(2)),
+      materialpreis: 420, stundensatz: stdSatz, stunden: 0
+    });
+    added++;
+  }
+
+  // Elektro-Objekte
+  const elektroMap = {
+    socket:  { desc: 'Schutzkontaktsteckdose UP (aus Grundriss)', mat: 42,  satz: 65 },
+    switch:  { desc: 'Wechselschalter UP (aus Grundriss)',        mat: 40,  satz: 65 },
+    lamp:    { desc: 'LED-Deckenleuchte einbauen (aus Grundriss)', mat: 155, satz: 65 }
+  };
+  for (const [id, cfg] of Object.entries(elektroMap)) {
+    const n = allObjects.filter(o => o.layer === 'electrical' && o.catalogId === id).length;
+    if (n > 0) {
+      daten.positionen.elektro.push({
+        id: ++posIdCounter, pos: 'GR',
+        beschreibung: cfg.desc, einheit: 'Stk', menge: n,
+        materialpreis: cfg.mat, stundensatz: cfg.satz, stunden: 0
+      });
+      added++;
+    }
+  }
+
+  // Sanitär-Objekte
+  const sanitaerMap = {
+    wc:      { desc: 'WC / Toilette montieren u. anschließen',       mat: 285, satz: 70 },
+    shower:  { desc: 'Dusche Unterputz-Thermostat Endmontage',        mat: 485, satz: 70 },
+    bathtub: { desc: 'Badewanne montieren u. anschließen',            mat: 569, satz: 70 },
+    sink:    { desc: 'Waschtisch montieren u. anschließen',           mat: 464, satz: 70 }
+  };
+  for (const [id, cfg] of Object.entries(sanitaerMap)) {
+    const n = allObjects.filter(o => o.layer === 'sanitary' && o.catalogId === id).length;
+    if (n > 0) {
+      daten.positionen.sanitaer.push({
+        id: ++posIdCounter, pos: 'GR',
+        beschreibung: cfg.desc, einheit: 'Stk', menge: n,
+        materialpreis: cfg.mat, stundensatz: cfg.satz, stunden: 0
+      });
+      added++;
+    }
+  }
+
+  // Heizung
+  const nHk = allObjects.filter(o => o.layer === 'heating' && o.catalogId === 'radiator').length;
+  if (nHk > 0) {
+    daten.positionen.heizung.push({
+      id: ++posIdCounter, pos: 'GR',
+      beschreibung: 'Flachheizkörper montieren u. anschließen (aus Grundriss)',
+      einheit: 'Stk', menge: nHk,
+      materialpreis: 390, stundensatz: 65, stunden: 0
+    });
+    added++;
+  }
+
+  if (added > 0) {
+    GEWERKE.filter(g => !g.spezial).forEach(g => renderPositionen(g.id));
+    autoSave();
+    closeGrundrissEditor();
+    showToast(`✅ ${added} Positionen aus Grundrissplaner V2.6 übernommen`);
+  } else {
+    showToast('⚠️ Keine Elemente im Grundriss gefunden');
+  }
 }
 
 /* ── Tool selection ──────────────────────────────────────────── */

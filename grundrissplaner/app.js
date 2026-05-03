@@ -358,4 +358,27 @@ window.addEventListener("keydown", event => {
   if (!isTyping && event.key === "8") activateTool("heating");
   if (!isTyping && event.key === "9") activateTool("drywall");
 });
+
+/* ── postMessage: In Kalkulation übernehmen ─────────────────── */
+function exportStateToParent() {
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'export-to-kalk', state: model.getSerializableState() }, '*');
+  }
+}
+
+// Wenn im iframe eingebettet: "In Kalkulation"-Button anzeigen
+if (window.parent !== window) {
+  const btn = document.getElementById('export-to-kalk');
+  if (btn) {
+    btn.style.display = 'inline-flex';
+    btn.addEventListener('click', exportStateToParent);
+  }
+}
+
+// Auf Anfrage vom Parent reagieren
+window.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'request-export') {
+    exportStateToParent();
+  }
+});
 refreshAll();
