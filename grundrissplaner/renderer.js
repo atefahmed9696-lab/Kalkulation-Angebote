@@ -2,7 +2,7 @@ import {
   metersToPixels,
   polygonCentroid,
   wallPolygon,
-  wallJointPolygon,
+  wallOutlineWithJoins,
   distance
 } from "./geometry.js";
 import {
@@ -114,7 +114,7 @@ export class Renderer {
     ctx.save();
     for (const wall of this.model.walls) {
       if (!this.model.layers[wall.layer]) continue;
-      const poly = wallJointPolygon(wall, this.model.walls).map(p => this.worldToScreen(p));
+      const poly = wallOutlineWithJoins(wall, this.model.walls).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
@@ -126,10 +126,19 @@ export class Renderer {
       ctx.strokeStyle = wall.layer === "drywall" ? "#7c3aed" : "#000000";
       ctx.lineWidth = 1;
       ctx.stroke();
+      const a = this.worldToScreen(wall.start);
+      const b = this.worldToScreen(wall.end);
       const m = this.worldToScreen({
         x: (wall.start.x + wall.end.x) / 2,
         y: (wall.start.y + wall.end.y) / 2
       });
+      ctx.fillStyle = "#f59e0b";
+      ctx.beginPath();
+      ctx.arc(a.x, a.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = "#94a3b8";
       ctx.beginPath();
       ctx.arc(m.x, m.y, 3, 0, Math.PI * 2);
@@ -330,7 +339,13 @@ export class Renderer {
     const ctx = this.ctx;
     ctx.save();
     if (this.preview.type === "wall") {
-      const poly = wallPolygon(this.preview.start, this.preview.end, this.preview.thickness).map(p => this.worldToScreen(p));
+      const pseudoWall = {
+        id: "__preview__",
+        start: this.preview.start,
+        end: this.preview.end,
+        thickness: this.preview.thickness
+      };
+      const poly = wallOutlineWithJoins(pseudoWall, [pseudoWall, ...this.model.walls]).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
@@ -399,7 +414,7 @@ export class Renderer {
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
     if (selected.type === "wall") {
-      const poly = wallJointPolygon(selected, this.model.walls).map(p => this.worldToScreen(p));
+      const poly = wallOutlineWithJoins(selected, this.model.walls).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
