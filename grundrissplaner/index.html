@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Grundrissplaner V2.6</title>
   <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
   <div id="app">
@@ -100,9 +108,14 @@
         <div id="status-left">Werkzeug: Auswahl</div>
         <div id="status-center">Cursor: 0.00 m / 0.00 m</div>
         <div id="status-right">Fläche: 0.00 m²</div>
+        <div id="view-toggle">
+          <button id="btn-2d" class="view-tab active">2D</button>
+          <button id="btn-3d" class="view-tab">3D</button>
+        </div>
         <button id="export-to-kalk" title="In Kalkulation übernehmen" style="display:none">✔ In Kalkulation</button>
       </div>
       <canvas id="canvas"></canvas>
+      <canvas id="canvas3d"></canvas>
     </main>
   </div>
   <script type="module" src="app.js"></script>

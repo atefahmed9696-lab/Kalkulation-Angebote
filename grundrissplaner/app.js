@@ -5,6 +5,9 @@ import {
   Renderer
 } from "./renderer.js";
 import {
+  Renderer3D
+} from "./renderer3d.js";
+import {
   ToolController
 } from "./tools.js";
 import {
@@ -12,8 +15,11 @@ import {
   exportCanvasToPNG
 } from "./pdf-export.js";
 const canvas = document.getElementById("canvas");
+const canvas3d = document.getElementById("canvas3d");
 const model = new FloorPlanModel();
 const renderer = new Renderer(canvas, model);
+const renderer3d = new Renderer3D(canvas3d, model);
+let viewMode = "2d";
 const ui = {
   toolButtons: [...document.querySelectorAll(".tool-btn")],
   layerCheckboxes: [...document.querySelectorAll("[data-layer]")],
@@ -162,7 +168,11 @@ function activateTool(tool) {
 }
 
 function refreshAll() {
-  renderer.render();
+  if (viewMode === "3d") {
+    renderer3d.update();
+  } else {
+    renderer.render();
+  }
   ui.updateArea();
   ui.updateProperties(model.selected);
   ui.refreshFloorList();
@@ -170,7 +180,41 @@ function refreshAll() {
 activateTool("select");
 renderer.resize();
 ui.refreshFloorList();
-window.addEventListener("resize", () => renderer.resize());
+window.addEventListener("resize", () => {
+  if (viewMode === "2d") {
+    renderer.resize();
+  } else {
+    renderer3d.resize();
+  }
+});
+
+// --- 2D / 3D view toggle ---
+const btn2d = document.getElementById("btn-2d");
+const btn3d = document.getElementById("btn-3d");
+
+function activateView(mode) {
+  viewMode = mode;
+  if (mode === "3d") {
+    canvas.style.display = "none";
+    canvas3d.style.display = "block";
+    btn2d.classList.remove("active");
+    btn3d.classList.add("active");
+    renderer3d.resize();
+    renderer3d.buildScene();
+    renderer3d.startLoop();
+  } else {
+    renderer3d.stopLoop();
+    canvas3d.style.display = "none";
+    canvas.style.display = "block";
+    btn2d.classList.add("active");
+    btn3d.classList.remove("active");
+    renderer.resize();
+    renderer.render();
+  }
+}
+
+btn2d.addEventListener("click", () => activateView("2d"));
+btn3d.addEventListener("click", () => activateView("3d"));
 ui.toolButtons.forEach(btn => {
   btn.addEventListener("click", () => activateTool(btn.dataset.tool));
 });
