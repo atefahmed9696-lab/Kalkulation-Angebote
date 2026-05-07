@@ -38,7 +38,7 @@ export class FloorPlanModel {
       drawingTitle: "Grundriss",
       paperFormat: "A3",
       scaleLabel: "1:100",
-      versionLabel: "V2.6"
+      versionLabel: "V2.7"
     };
     this.floors = [];
     this.currentFloorId = null;

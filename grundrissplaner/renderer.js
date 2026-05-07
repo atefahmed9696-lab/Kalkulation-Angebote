@@ -3,7 +3,8 @@ import {
   polygonCentroid,
   wallPolygon,
   wallOutlineWithJoins,
-  distance
+  distance,
+  buildRenderableWalls
 } from "./geometry.js";
 import {
   drawPlanFrame,
@@ -111,10 +112,11 @@ export class Renderer {
   }
   drawWalls() {
     const ctx = this.ctx;
+    const renderWalls = buildRenderableWalls(this.model.walls);
     ctx.save();
-    for (const wall of this.model.walls) {
+    for (const wall of renderWalls) {
       if (!this.model.layers[wall.layer]) continue;
-      const poly = wallOutlineWithJoins(wall, this.model.walls).map(p => this.worldToScreen(p));
+      const poly = wallOutlineWithJoins(wall, renderWalls).map(p => this.worldToScreen(p));
       ctx.beginPath();
       poly.forEach((p, i) => {
         if (i === 0) ctx.moveTo(p.x, p.y);
@@ -126,6 +128,9 @@ export class Renderer {
       ctx.strokeStyle = wall.layer === "drywall" ? "#7c3aed" : "#000000";
       ctx.lineWidth = 1;
       ctx.stroke();
+    }
+    for (const wall of this.model.walls) {
+      if (!this.model.layers[wall.layer]) continue;
       const a = this.worldToScreen(wall.start);
       const b = this.worldToScreen(wall.end);
       const m = this.worldToScreen({

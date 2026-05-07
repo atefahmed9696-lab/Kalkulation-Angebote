@@ -153,6 +153,54 @@ export function wallOutlineWithJoins(wall, allWalls) {
   }
   return [startLeft, endLeft, endRight, startRight];
 }
+
+function uniquePoints(points, tolerance = 0.01) {
+  const out = [];
+  for (const p of points) {
+    const exists = out.some(q => distance(p, q) <= tolerance);
+    if (!exists) out.push({ x: p.x, y: p.y });
+  }
+  return out;
+}
+
+function splitPointsForWall(wall, allWalls, tolerance = 0.02) {
+  const points = [wall.start, wall.end];
+  for (const other of allWalls) {
+    if (other.id === wall.id) continue;
+    const hit = lineIntersection(wall.start, wall.end, other.start, other.end);
+    if (!hit) continue;
+    const onThis = pointToSegmentDistance(hit, wall.start, wall.end);
+    const onOther = pointToSegmentDistance(hit, other.start, other.end);
+    const interiorThis = onThis.t > 0.02 && onThis.t < 0.98;
+    const interiorOther = onOther.t > 0.02 && onOther.t < 0.98;
+    if (!interiorThis || !interiorOther) continue;
+    if (onThis.distance <= tolerance && onOther.distance <= tolerance) {
+      points.push(hit);
+    }
+  }
+  return uniquePoints(points, tolerance);
+}
+
+export function buildRenderableWalls(walls) {
+  const segments = [];
+  for (const wall of walls) {
+    const points = splitPointsForWall(wall, walls);
+    const sorted = points.sort((a, b) => distance(wall.start, a) - distance(wall.start, b));
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const start = sorted[i];
+      const end = sorted[i + 1];
+      if (distance(start, end) <= 0.01) continue;
+      segments.push({
+        ...wall,
+        id: `${wall.id}__seg_${i}`,
+        sourceWallId: wall.id,
+        start: { x: start.x, y: start.y },
+        end: { x: end.x, y: end.y }
+      });
+    }
+  }
+  return segments;
+}
 function computeJoin(wall, allWalls, endpointKey) {
   const connected = findConnectedWalls(wall, allWalls, endpointKey, 0.03);
   if (!connected.length) return null;
@@ -274,8 +322,8 @@ export function smartSnapPoint(rawPoint, walls, gridSize, snapEnabled = true, re
   }
   return point;
 }
-export function smartOrthoSnap(start, rawPoint, walls, gridSize, snapEnabled = true) {
-  let point = smartSnapPoint(rawPoint, walls, gridSize, snapEnabled, start);
+export function smartOrthoSnap(start, rawPoint, walls, gridSize, snapEnabled = true, objects = []) {
+  let point = smartSnapPoint(rawPoint, walls, gridSize, snapEnabled, start, objects);
   let ortho = orthogonalize(start, point);
   ortho = snapToExistingEndpoints(ortho, walls, 0.3);
   ortho = snapToWallMidpoints(ortho, walls, 0.2);

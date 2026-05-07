@@ -128,7 +128,7 @@ export class ToolController {
   onMouseMove(worldPoint) {
     const point = this.normalizePoint(worldPoint);
     if (this.currentTool === "wall" && this.startPoint) {
-      const end = smartOrthoSnap(this.startPoint, worldPoint, this.model.walls, this.model.gridSize, this.model.snapEnabled);
+      const end = smartOrthoSnap(this.startPoint, worldPoint, this.model.walls, this.model.gridSize, this.model.snapEnabled, this.model.objects);
       this.renderer.preview = {
         type: "wall",
         start: this.startPoint,
@@ -207,7 +207,7 @@ export class ToolController {
       const wall = this.model.getWallById(this.dragState.wallId);
       if (!wall) return;
       const otherPoint = this.dragState.endpoint === "start" ? wall.end : wall.start;
-      const adjusted = smartOrthoSnap(otherPoint, worldPoint, this.model.walls.filter(w => w.id !== wall.id), this.model.gridSize, this.model.snapEnabled);
+      const adjusted = smartOrthoSnap(otherPoint, worldPoint, this.model.walls.filter(w => w.id !== wall.id), this.model.gridSize, this.model.snapEnabled, this.model.objects);
       if (this.dragState.endpoint === "start") {
         this.model.updateWall(wall.id, {
           start: adjusted
@@ -240,7 +240,7 @@ export class ToolController {
   }
   onMouseUp(worldPoint) {
     if (this.currentTool === "wall" && this.startPoint) {
-      const end = smartOrthoSnap(this.startPoint, worldPoint, this.model.walls, this.model.gridSize, this.model.snapEnabled);
+      const end = smartOrthoSnap(this.startPoint, worldPoint, this.model.walls, this.model.gridSize, this.model.snapEnabled, this.model.objects);
       if (Math.hypot(end.x - this.startPoint.x, end.y - this.startPoint.y) > 0.05) {
         const wall = this.model.addWall(this.startPoint, end, this.model.wallThickness, "architecture");
         this.model.selected = wall;
