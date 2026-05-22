@@ -19,9 +19,6 @@ const canvas3d = document.getElementById("canvas3d");
 const model = new FloorPlanModel();
 const renderer = new Renderer(canvas, model);
 const renderer3d = new Renderer3D(canvas3d, model);
-const AUTOSAVE_KEY = "grundrissplaner.v2.autosave";
-const BACKUP_KEY = "grundrissplaner.v2.backups";
-const BACKUP_LIMIT = 20;
 let viewMode = "2d";
 const ui = {
   toolButtons: [...document.querySelectorAll(".tool-btn")],
@@ -163,62 +160,6 @@ const ui = {
 };
 const tools = new ToolController(model, renderer, ui);
 
-function readJSONStorage(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJSONStorage(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore storage quota / availability errors
-  }
-}
-
-function createInfrastructureBackup(reason = "manual") {
-  const backups = readJSONStorage(BACKUP_KEY, []);
-  backups.push({
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    reason,
-    version: model.projectMeta.versionLabel || "V2.8",
-    state: model.getSerializableState()
-  });
-  while (backups.length > BACKUP_LIMIT) backups.shift();
-  writeJSONStorage(BACKUP_KEY, backups);
-}
-
-function restoreLatestInfrastructureBackup() {
-  const backups = readJSONStorage(BACKUP_KEY, []);
-  const latest = backups[backups.length - 1];
-  if (!latest?.state) return false;
-  model.applyState(latest.state);
-  model.history = [model.getSerializableState()];
-  model.future = [];
-  return true;
-}
-
-function persistAutosave() {
-  writeJSONStorage(AUTOSAVE_KEY, {
-    savedAt: new Date().toISOString(),
-    state: model.getSerializableState()
-  });
-}
-
-function loadAutosaveOnStartup() {
-  const saved = readJSONStorage(AUTOSAVE_KEY, null);
-  if (!saved?.state) return;
-  model.applyState(saved.state);
-  model.history = [model.getSerializableState()];
-  model.future = [];
-}
-
 function activateTool(tool) {
   ui.toolButtons.forEach(btn => {
     btn.classList.toggle("active", btn.dataset.tool === tool);
@@ -235,10 +176,8 @@ function refreshAll() {
   ui.updateArea();
   ui.updateProperties(model.selected);
   ui.refreshFloorList();
-  persistAutosave();
 }
 activateTool("select");
-loadAutosaveOnStartup();
 renderer.resize();
 ui.refreshFloorList();
 window.addEventListener("resize", () => {
@@ -323,13 +262,11 @@ document.getElementById("rename-floor").addEventListener("click", () => {
 });
 document.getElementById("delete-floor").addEventListener("click", () => {
   if (!confirm("Aktuelle Etage löschen?")) return;
-  createInfrastructureBackup("beforeDeleteFloor");
   const ok = model.deleteCurrentFloor();
   if (ok) refreshAll();
 });
 document.getElementById("clear-all").addEventListener("click", () => {
   if (!confirm("Aktuelle Etage wirklich komplett löschen?")) return;
-  createInfrastructureBackup("beforeClearFloor");
   model.clear();
   refreshAll();
 });
@@ -350,7 +287,6 @@ document.getElementById("load-json").addEventListener("click", () => {
 document.getElementById("file-input").addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
-  createInfrastructureBackup("beforeLoadJson");
   const text = await file.text();
   model.loadFromJSON(text);
   ui.snapToggle.checked = model.snapEnabled;
@@ -360,24 +296,6 @@ document.getElementById("file-input").addEventListener("change", async (event) =
     input.checked = model.layers[input.dataset.layer];
   });
   refreshAll();
-});
-document.getElementById("backup-state").addEventListener("click", () => {
-  createInfrastructureBackup("manual");
-  alert("Backup lokal gespeichert.");
-});
-document.getElementById("restore-backup").addEventListener("click", () => {
-  if (!confirm("Letztes lokales Backup wiederherstellen?")) return;
-  if (restoreLatestInfrastructureBackup()) {
-    ui.snapToggle.checked = model.snapEnabled;
-    ui.gridSizeInput.value = model.gridSize;
-    ui.wallThicknessInput.value = model.wallThickness;
-    ui.layerCheckboxes.forEach(input => {
-      input.checked = model.layers[input.dataset.layer];
-    });
-    refreshAll();
-  } else {
-    alert("Kein Backup gefunden.");
-  }
 });
 document.getElementById("export-png").addEventListener("click", () => {
   renderer.render();

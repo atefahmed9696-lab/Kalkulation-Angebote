@@ -109,6 +109,6 @@ export function fillTitleBlock(ctx, canvasWidth, canvasHeight, meta = {}) {
   ctx.fillText(meta.drawingTitle || 'Grundriss',        tbX + 8,   tbY + 43);
   ctx.fillText(meta.paperFormat  || 'A3',               tbX + 218, tbY + 43);
   ctx.fillText(meta.dateLabel    || '',                 tbX + 8,   tbY + 73);
-  ctx.fillText(meta.versionLabel || 'V2.8',             tbX + 218, tbY + 73);
+  ctx.fillText(meta.versionLabel || 'V2.6',             tbX + 218, tbY + 73);
   ctx.restore();
 }
