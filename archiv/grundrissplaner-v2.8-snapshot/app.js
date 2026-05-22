@@ -1,7 +1,6 @@
 import {
   FloorPlanModel
 } from "./model.js";
-import { PriceCalculator } from "./services/PriceCalculator.js";
 import {
   Renderer
 } from "./renderer.js";
@@ -489,31 +488,16 @@ window.addEventListener("keydown", event => {
 /* ── postMessage: In Kalkulation übernehmen ─────────────────── */
 function exportStateToParent() {
   if (window.parent !== window) {
-    const state = model.getSerializableState();
-    // V2.9: Vorberechnete Positionen via PriceCalculator mitsenden
-    const calc = new PriceCalculator();
-    const flooringType = document.getElementById('export-flooring')?.value || 'fliesen';
-    const wallType     = document.getElementById('export-walltype')?.value || 'maler';
-    const ceilingType  = document.getElementById('export-ceiltype')?.value || 'maler_decke';
-    const prePositions = calc.generatePositions(state, { flooringType, wallType, ceilingType });
-    window.parent.postMessage({
-      type: 'export-to-kalk',
-      state,
-      prePositions,
-    }, '*');
+    window.parent.postMessage({ type: 'export-to-kalk', state: model.getSerializableState() }, '*');
   }
 }
 
-// Wenn im iframe eingebettet: "In Kalkulation"-Button + Material-Auswahl anzeigen
+// Wenn im iframe eingebettet: "In Kalkulation"-Button anzeigen
 if (window.parent !== window) {
-  const btn  = document.getElementById('export-to-kalk');
-  const opts = document.getElementById('export-options');
+  const btn = document.getElementById('export-to-kalk');
   if (btn) {
     btn.style.display = 'inline-flex';
     btn.addEventListener('click', exportStateToParent);
-  }
-  if (opts) {
-    opts.style.display = 'inline-flex';
   }
 }
 

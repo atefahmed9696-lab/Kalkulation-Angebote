@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grundrissplaner V2.9</title>
+  <title>Grundrissplaner V2.8</title>
   <link rel="stylesheet" href="style.css" />
   <script type="importmap">
   {
@@ -17,7 +17,7 @@
 <body>
   <div id="app">
     <aside id="sidebar">
-      <h1>Grundrissplaner V2.9</h1>
+      <h1>Grundrissplaner V2.8</h1>
       <section>
         <h2>Werkzeuge</h2>
         <div class="tool-grid">
@@ -115,35 +115,6 @@
           <button id="btn-3d" class="view-tab">3D</button>
         </div>
         <button id="export-to-kalk" title="In Kalkulation übernehmen" style="display:none">✔ In Kalkulation</button>
-        <!-- V2.9: Material-Auswahl für den Kalkulations-Export -->
-        <span id="export-options" style="display:none;gap:4px;align-items:center;font-size:11px">
-          <label title="Bodenbelag">🪵
-            <select id="export-flooring" style="font-size:11px;max-width:110px">
-              <option value="fliesen">Fliesen</option>
-              <option value="parkett">Parkett</option>
-              <option value="laminat">Laminat</option>
-              <option value="teppich">Teppich</option>
-              <option value="estrich">Estrich</option>
-              <option value="epoxid">Epoxid</option>
-            </select>
-          </label>
-          <label title="Wandbelag">🖌️
-            <select id="export-walltype" style="font-size:11px;max-width:110px">
-              <option value="maler">Maler</option>
-              <option value="tapete">Tapete</option>
-              <option value="wandfliesen">Wandfliesen</option>
-              <option value="putz">Innenputz</option>
-              <option value="trockenbau_bekleidung">TRB-Bekleidung</option>
-            </select>
-          </label>
-          <label title="Decke">⬜
-            <select id="export-ceiltype" style="font-size:11px;max-width:110px">
-              <option value="maler_decke">Decke streichen</option>
-              <option value="abhaengdecke">Abgehängt</option>
-              <option value="akustik">Akustik</option>
-            </select>
-          </label>
-        </span>
       </div>
       <canvas id="canvas"></canvas>
       <canvas id="canvas3d"></canvas>
