@@ -38,7 +38,7 @@ export class FloorPlanModel {
       drawingTitle: "Grundriss",
       paperFormat: "A3",
       scaleLabel: "1:100",
-      versionLabel: "V2.9"
+      versionLabel: "V3.0"
     };
     this.floors = [];
     this.currentFloorId = null;
@@ -316,11 +316,12 @@ export class FloorPlanModel {
       this.rebuildWallNodes();
     }
   }
-  renameRoom(id, name) {
+  renameRoom(id, name, roomType) {
     const room = this.rooms.find(r => r.id === id);
     if (!room) return;
     this.saveHistory("renameRoom");
-    room.name = name || room.name;
+    if (name) room.name = name;
+    if (roomType != null) room.roomType = roomType;
     const floor = this.getCurrentFloor();
     if (floor) floor.roomNames[room.stableKey] = room.name;
   }

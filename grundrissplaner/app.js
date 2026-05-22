@@ -277,6 +277,25 @@ function activateView(mode) {
 
 btn2d.addEventListener("click", () => activateView("2d"));
 btn3d.addEventListener("click", () => activateView("3d"));
+
+// V3.0: Zoom buttons
+function updateZoomLabel() {
+  const btn = document.getElementById("zoom-reset");
+  if (btn) btn.textContent = `${Math.round(renderer.zoom * 100)}%`;
+}
+document.getElementById("zoom-in")?.addEventListener("click", () => {
+  renderer.zoomAt(canvas.width / 2, canvas.height / 2, 1.25);
+  updateZoomLabel();
+});
+document.getElementById("zoom-out")?.addEventListener("click", () => {
+  renderer.zoomAt(canvas.width / 2, canvas.height / 2, 0.8);
+  updateZoomLabel();
+});
+document.getElementById("zoom-reset")?.addEventListener("click", () => {
+  renderer.resetView();
+  updateZoomLabel();
+});
+
 ui.toolButtons.forEach(btn => {
   btn.addEventListener("click", () => activateTool(btn.dataset.tool));
 });
@@ -391,6 +410,11 @@ document.getElementById("export-pdf").addEventListener("click", () => {
   exportCanvasToPDF(canvas, `${model.getCurrentFloor()?.name || "grundriss"}.pdf`, paperRect);
 });
 
+function getScreenPointFromEvent(event) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+
 function getWorldPointFromEvent(event) {
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
@@ -400,6 +424,10 @@ function getWorldPointFromEvent(event) {
     y
   });
 }
+
+// V3.0: Pan state
+let panState = null;
+
 canvas.addEventListener("dblclick", event => {
   const world = getWorldPointFromEvent(event);
   for (const room of model.rooms) {
@@ -409,8 +437,18 @@ canvas.addEventListener("dblclick", event => {
     const maxY = Math.max(...room.polygon.map(p => p.y));
     if (world.x >= minX && world.x <= maxX && world.y >= minY && world.y <= maxY) {
       const name = prompt("Raumname:", room.name || "");
-      if (name) {
-        model.renameRoom(room.id, name);
+      if (name != null) {
+        // V3.0: Optional Raum-Typ auswählen
+        const types = ["", "wohnzimmer", "schlafzimmer", "kinderzimmer", "kueche", "bad", "wc", "flur", "buero", "keller", "garage"];
+        const typeLabels = ["(keiner)", "Wohnzimmer", "Schlafzimmer", "Kinderzimmer", "Küche", "Bad", "WC", "Flur/Diele", "Büro", "Keller", "Garage"];
+        const currentIdx = types.indexOf(room.roomType || "");
+        const typeInput = prompt(
+          "Raum-Typ:\n" + types.map((t, i) => `${i}: ${typeLabels[i]}`).join("\n"),
+          currentIdx >= 0 ? currentIdx : 0
+        );
+        const typeIdx = parseInt(typeInput, 10);
+        const roomType = (!isNaN(typeIdx) && typeIdx >= 0 && typeIdx < types.length) ? types[typeIdx] : room.roomType;
+        model.renameRoom(room.id, name, roomType);
         refreshAll();
       }
       break;
@@ -418,23 +456,53 @@ canvas.addEventListener("dblclick", event => {
   }
 });
 canvas.addEventListener("mousedown", event => {
+  // V3.0: Middle mouse button = pan
+  if (event.button === 1) {
+    event.preventDefault();
+    const sp = getScreenPointFromEvent(event);
+    panState = { startSX: sp.x, startSY: sp.y, startPanX: renderer.panX, startPanY: renderer.panY };
+    return;
+  }
   tools.onMouseDown(getWorldPointFromEvent(event));
   ui.updateProperties(model.selected);
   ui.updateArea();
 });
 canvas.addEventListener("mousemove", event => {
+  // V3.0: Pan with middle mouse
+  if (panState && event.buttons === 4) {
+    const sp = getScreenPointFromEvent(event);
+    renderer.panX = panState.startPanX + (sp.x - panState.startSX);
+    renderer.panY = panState.startPanY + (sp.y - panState.startSY);
+    renderer.render();
+    return;
+  }
   const world = getWorldPointFromEvent(event);
   tools.onMouseMove(world);
-  ui.statusCenter.textContent = `Cursor: ${world.x.toFixed(2)} m / ${world.y.toFixed(2)} m`;
+  const zoomPct = Math.round(renderer.zoom * 100);
+  ui.statusCenter.textContent = `Cursor: ${world.x.toFixed(2)} m / ${world.y.toFixed(2)} m  |  Zoom: ${zoomPct}%`;
   ui.updateProperties(model.selected);
   ui.updateArea();
 });
 canvas.addEventListener("mouseup", event => {
+  if (event.button === 1) {
+    panState = null;
+    return;
+  }
   tools.onMouseUp(getWorldPointFromEvent(event));
   ui.updateProperties(model.selected);
   ui.updateArea();
 });
+// V3.0: Scroll wheel zoom
+canvas.addEventListener("wheel", event => {
+  event.preventDefault();
+  const sp = getScreenPointFromEvent(event);
+  const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+  renderer.zoomAt(sp.x, sp.y, factor);
+  const zoomPct = Math.round(renderer.zoom * 100);
+  ui.statusCenter.textContent = `Zoom: ${zoomPct}%`;
+}, { passive: false });
 canvas.addEventListener("mouseleave", () => {
+  panState = null;
   if (tools.currentTool !== "select") {
     tools.clearPreview();
   }
@@ -484,6 +552,16 @@ window.addEventListener("keydown", event => {
   if (!isTyping && event.key === "7") activateTool("sanitary");
   if (!isTyping && event.key === "8") activateTool("heating");
   if (!isTyping && event.key === "9") activateTool("drywall");
+  // V3.0: Zoom shortcuts
+  if (!isTyping && event.key === "Home") {
+    renderer.resetView();
+  }
+  if (!isTyping && (event.key === "+" || event.key === "=")) {
+    renderer.zoomAt(canvas.width / 2, canvas.height / 2, 1.25);
+  }
+  if (!isTyping && event.key === "-") {
+    renderer.zoomAt(canvas.width / 2, canvas.height / 2, 0.8);
+  }
 });
 
 /* ── postMessage: In Kalkulation übernehmen ─────────────────── */

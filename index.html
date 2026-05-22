@@ -1089,7 +1089,7 @@
         <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
         <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
         <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
-        <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundrissplaner V2.9</button>
+        <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundrissplaner V3.0</button>
       </div>
 
       <div class="container">
@@ -4738,7 +4738,7 @@ const GR_ICONBAR = [
   { id:'eraser',  tip:'Element löschen',           icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l12-12 5 5z"/><path d="M6 17L17 6"/></svg>`, label:'Löschen', cat:null },
 ];
 
-/* ── Open / Close (Grundrissplaner V2.9 als iframe) ─────────── */
+/* ── Open / Close (Grundrissplaner V3.0 als iframe) ─────────── */
 function openGrundrissEditor() {
   if (document.getElementById('grModal')) return;
 
@@ -4759,7 +4759,7 @@ function openGrundrissEditor() {
         background:linear-gradient(135deg,#1a2236 0%,#1e2d47 100%);
         padding:0 14px;height:50px;flex-shrink:0;border-radius:14px 14px 0 0;">
         <span style="font-size:20px">🏠</span>
-        <span style="font-size:14px;font-weight:700;color:#e8edf5;white-space:nowrap">Grundrissplaner V2.9</span>
+        <span style="font-size:14px;font-weight:700;color:#e8edf5;white-space:nowrap">Grundrissplaner V3.0</span>
         <div style="width:1px;height:24px;background:rgba(255,255,255,.15);margin:0 6px;flex-shrink:0"></div>
         <button id="gr-iframe-to-kalk" onclick="grRequestIframeExport()" style="
           display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;cursor:pointer;
@@ -4807,7 +4807,7 @@ function grToKalkFromIframe(state, prePositions) {
   const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
   let added = 0;
 
-  // V2.9: Wenn prePositions aus PriceCalculator vorhanden → direkt verwenden
+  // V3.0: Wenn prePositions aus PriceCalculator vorhanden → direkt verwenden
   if (prePositions && prePositions.length > 0) {
     // Gewerk-Mapping: PriceCalculator.gewerk → daten.positionen.key
     const gewerkMap = {
@@ -4839,7 +4839,7 @@ function grToKalkFromIframe(state, prePositions) {
       GEWERKE.filter(g => !g.spezial).forEach(g => renderPositionen(g.id));
       autoSave();
       closeGrundrissEditor();
-      showToast(`✅ ${added} Positionen aus Grundrissplaner V2.9 übernommen (BKI-Preise)`);
+      showToast(`✅ ${added} Positionen aus Grundrissplaner V3.0 übernommen (BKI-Preise)`);
     } else {
       showToast('⚠️ Keine Elemente im Grundriss gefunden');
     }
@@ -4944,7 +4944,7 @@ function grToKalkFromIframe(state, prePositions) {
     GEWERKE.filter(g => !g.spezial).forEach(g => renderPositionen(g.id));
     autoSave();
     closeGrundrissEditor();
-    showToast(`✅ ${added} Positionen aus Grundrissplaner V2.9 übernommen`);
+    showToast(`✅ ${added} Positionen aus Grundrissplaner V3.0 übernommen`);
   } else {
     showToast('⚠️ Keine Elemente im Grundriss gefunden');
   }

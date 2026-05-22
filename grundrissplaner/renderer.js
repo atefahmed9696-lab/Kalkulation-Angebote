@@ -19,6 +19,10 @@ export class Renderer {
     this.model = model;
     this.preview = null;
     this.showFrame = true;
+    // V3.0: Pan & Zoom
+    this.panX = 0;
+    this.panY = 0;
+    this.zoom = 1.0;
   }
   resize() {
     const rect = this.canvas.getBoundingClientRect();
@@ -34,6 +38,10 @@ export class Renderer {
     } else {
       this.drawPaperBackground();
     }
+    // V3.0: Apply pan/zoom transform for content
+    ctx.save();
+    ctx.translate(this.panX, this.panY);
+    ctx.scale(this.zoom, this.zoom);
     this.drawGrid();
     this.drawRooms();
     this.drawWalls();
@@ -43,6 +51,8 @@ export class Renderer {
     this.drawWallNodes();
     this.drawPreview();
     this.drawSelection();
+    ctx.restore();
+    // Frame is always in screen-space, not affected by pan/zoom
     this.drawFrame();
   }
   worldToScreen(point) {
@@ -52,9 +62,10 @@ export class Renderer {
     };
   }
   screenToWorld(point) {
+    // V3.0: account for pan and zoom
     return {
-      x: point.x / this.model.scale,
-      y: point.y / this.model.scale
+      x: (point.x - this.panX) / (this.model.scale * this.zoom),
+      y: (point.y - this.panY) / (this.model.scale * this.zoom)
     };
   }
   drawPaperBackground() {
@@ -66,20 +77,28 @@ export class Renderer {
   }
   drawGrid() {
     const ctx = this.ctx;
-    const step = metersToPixels(this.model.gridSize, this.model.scale);
+    const scale = this.model.scale;
+    const step = metersToPixels(this.model.gridSize, scale);
+    // Compute visible range in model-screen coordinates (pre-zoom/pan space)
+    const visLeft   = -this.panX / this.zoom;
+    const visTop    = -this.panY / this.zoom;
+    const visRight  = (this.canvas.width  - this.panX) / this.zoom;
+    const visBottom = (this.canvas.height - this.panY) / this.zoom;
+    const startX = Math.floor(visLeft  / step) * step;
+    const startY = Math.floor(visTop   / step) * step;
     ctx.save();
     ctx.strokeStyle = "#e5e7eb";
-    ctx.lineWidth = 1;
-    for (let x = 0; x <= this.canvas.width; x += step) {
+    ctx.lineWidth = 1 / this.zoom; // constant visual line width
+    for (let x = startX; x <= visRight; x += step) {
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, this.canvas.height);
+      ctx.moveTo(x, visTop);
+      ctx.lineTo(x, visBottom);
       ctx.stroke();
     }
-    for (let y = 0; y <= this.canvas.height; y += step) {
+    for (let y = startY; y <= visBottom; y += step) {
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(this.canvas.width, y);
+      ctx.moveTo(visLeft, y);
+      ctx.lineTo(visRight, y);
       ctx.stroke();
     }
     ctx.restore();
@@ -95,18 +114,20 @@ export class Renderer {
         else ctx.lineTo(p.x, p.y);
       });
       ctx.closePath();
-      ctx.fillStyle = "rgba(59,130,246,0.08)";
+      ctx.fillStyle = ROOM_TYPE_COLORS[room.roomType] || ROOM_TYPE_COLORS.default;
       ctx.fill();
       ctx.strokeStyle = "rgba(59,130,246,0.28)";
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1 / this.zoom;
       ctx.stroke();
       const center = this.worldToScreen(room.centroid ?? polygonCentroid(room.polygon));
       ctx.fillStyle = "#1e3a8a";
-      ctx.font = "bold 14px Arial";
+      ctx.font = `bold ${14 / this.zoom}px Arial`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(room.name || "Raum", center.x, center.y - 10);
-      ctx.fillText(`${room.area.toFixed(2)} m²`, center.x, center.y + 10);
+      ctx.fillText(room.name || "Raum", center.x, center.y - 10 / this.zoom);
+      ctx.fillStyle = "#374151";
+      ctx.font = `${12 / this.zoom}px Arial`;
+      ctx.fillText(`${room.area.toFixed(2)} m²`, center.x, center.y + 10 / this.zoom);
     }
     ctx.restore();
   }
@@ -179,6 +200,7 @@ export class Renderer {
       const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x);
       const widthPx = metersToPixels(opening.width, this.model.scale);
       const wallPx = metersToPixels(wall.thickness, this.model.scale);
+      ctx.save();
       ctx.translate(center.x, center.y);
       ctx.rotate(angle);
       ctx.fillStyle = "#f8fafc";
@@ -207,7 +229,7 @@ export class Renderer {
         ctx.lineTo(widthPx / 4, wallPx / 3);
         ctx.stroke();
       }
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -222,6 +244,7 @@ export class Renderer {
       });
       const w = metersToPixels(obj.width, this.model.scale);
       const h = metersToPixels(obj.height, this.model.scale);
+      ctx.save();
       ctx.translate(center.x, center.y);
       ctx.rotate(obj.rotation);
       ctx.fillStyle = obj.color;
@@ -276,7 +299,7 @@ export class Renderer {
       ctx.font = "12px Arial";
       ctx.textAlign = "center";
       ctx.fillText(obj.name, 0, h / 2 + 14);
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -387,13 +410,14 @@ export class Renderer {
         const angle = Math.atan2(wall.end.y - wall.start.y, wall.end.x - wall.start.x);
         const widthPx = metersToPixels(this.preview.width, this.model.scale);
         const wallPx = metersToPixels(wall.thickness, this.model.scale);
+        ctx.save();
         ctx.translate(center.x, center.y);
         ctx.rotate(angle);
         ctx.fillStyle = "rgba(37,99,235,0.20)";
         ctx.fillRect(-widthPx / 2, -wallPx / 2 - 3, widthPx, wallPx + 6);
         ctx.strokeStyle = "#2563eb";
         ctx.strokeRect(-widthPx / 2, -wallPx / 2 - 3, widthPx, wallPx + 6);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.restore();
       }
     }
     if (this.preview.type === "dimension") {
@@ -478,7 +502,39 @@ export class Renderer {
   getPaperRect() {
     return computePaperRect(this.canvas.width, this.canvas.height, this.model.projectMeta.paperFormat);
   }
+
+  // V3.0: Zoom helpers
+  resetView() {
+    this.panX = 0;
+    this.panY = 0;
+    this.zoom = 1.0;
+    this.render();
+  }
+
+  zoomAt(screenX, screenY, factor) {
+    // Zoom centered on cursor position
+    const newZoom = Math.min(8, Math.max(0.1, this.zoom * factor));
+    this.panX = screenX - (screenX - this.panX) * (newZoom / this.zoom);
+    this.panY = screenY - (screenY - this.panY) * (newZoom / this.zoom);
+    this.zoom = newZoom;
+    this.render();
+  }
 }
+
+// V3.0: Room type colors (React-Planner inspired)
+const ROOM_TYPE_COLORS = {
+  wohnzimmer:   "rgba(253,224,71,0.14)",
+  schlafzimmer: "rgba(167,243,208,0.18)",
+  kinderzimmer: "rgba(196,181,253,0.18)",
+  kueche:       "rgba(252,165,165,0.18)",
+  bad:          "rgba(147,197,253,0.25)",
+  wc:           "rgba(125,211,252,0.22)",
+  flur:         "rgba(209,213,219,0.18)",
+  buero:        "rgba(167,243,208,0.15)",
+  keller:       "rgba(156,163,175,0.20)",
+  garage:       "rgba(203,213,225,0.20)",
+  default:      "rgba(59,130,246,0.08)"
+};
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
