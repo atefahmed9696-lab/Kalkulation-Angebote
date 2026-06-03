@@ -30,6 +30,22 @@ export const BKI_PRICE_DB = {
     wandfliesen:    { label: 'Wandfliesen (Bad, Küche)',      price: 72.00, unit: 'm²' },
     putz:           { label: 'Innenputz (Gipsputz)',          price: 27.00, unit: 'm²' },
     trockenbau_bekleidung: { label: 'Trockenbau-Wandbekleidung', price: 38.00, unit: 'm²' },
+    spachtel_q1:    { label: 'Spachtelung Q1 – Grundspachtelung',          price:  5.50, unit: 'm²' },
+    spachtel_q2:    { label: 'Spachtelung Q2 – Standardspachtelung',       price:  9.80, unit: 'm²' },
+    spachtel_q3:    { label: 'Spachtelung Q3 – Feinspachtelung',           price: 13.20, unit: 'm²' },
+    spachtel_q4:    { label: 'Spachtelung Q4 – Höchste Güte (Metalliclack)',price: 21.00, unit: 'm²' },
+    verspachteln:   { label: 'Verspachteln allgemein (Fugen, Risse, Anschlüsse)', price: 6.80, unit: 'm²' },
+    verspachteln_vollfl: { label: 'Vollflächige Verspachtelung (Filztapete)', price: 11.50, unit: 'm²' },
+  },
+
+  /** Gipsarbeiten €/m² (BKI Gebäude G7 – Putz/Trockenbau) */
+  gipsarbeiten: {
+    gipsputz_masch: { label: 'Innenputz Gipsputz maschinell einlagig 15 mm', price: 27.00, unit: 'm²' },
+    kalk_gipsputz:  { label: 'Kalk-Gipsputz 2-lagig 15 mm',                  price: 32.00, unit: 'm²' },
+    gipsputz_gefilzt: { label: 'Gipsputz gefilzt / geglättet (Sichtqualität)', price: 36.00, unit: 'm²' },
+    fermacell:      { label: 'Gipsfaserplatte Fermacell 12,5 mm auf UK',      price: 68.00, unit: 'm²' },
+    gk_direktmontage: { label: 'GK-Platte auf Massivwand Direktmontage',      price: 48.00, unit: 'm²' },
+    glattputz:      { label: 'Glattputz Innen bis 5 mm (Flächenspachtel)',    price: 19.50, unit: 'm²' },
   },
 
   /** Deckenarbeiten €/m² */
