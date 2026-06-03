@@ -31,6 +31,7 @@ export class FloorPlanModel {
       sanitary: true,
       heating: true,
       drywall: true,
+      furniture: true,
       dimension: true
     };
     this.projectMeta = {

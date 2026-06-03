@@ -50,7 +50,8 @@ const ui = {
       electrical: "Elektro",
       sanitary: "Sanitär",
       heating: "Heizung",
-      drywall: "Trockenbau"
+      drywall: "Trockenbau",
+      furniture: "Möbel"
     };
     this.statusLeft.textContent = `Werkzeug: ${names[tool] ?? tool}`;
   },

@@ -20,8 +20,8 @@ export class ToolController {
   setTool(tool) {
     this.currentTool = tool;
     this.ui.setStatusTool(tool);
-    if (["electrical", "sanitary", "heating", "drywall"].includes(tool)) {
-      const items = CATALOG[tool];
+    if (["electrical", "sanitary", "heating", "drywall", "furniture"].includes(tool)) {
+      const items = CATALOG[tool] ?? [];
       this.currentCatalogItem = items[0] ?? null;
       this.ui.populateCatalog(tool, items, this.currentCatalogItem?.id ?? "");
     } else {
@@ -52,7 +52,7 @@ export class ToolController {
       this.renderer.render();
       return;
     }
-    if (["electrical", "sanitary", "heating", "drywall"].includes(this.currentTool)) {
+    if (["electrical", "sanitary", "heating", "drywall", "furniture"].includes(this.currentTool)) {
       if (!this.currentCatalogItem) return;
       const obj = this.model.addObject(this.currentTool, this.currentCatalogItem, point.x, point.y);
       this.model.selected = obj;
@@ -163,7 +163,7 @@ export class ToolController {
       this.renderer.render();
       return;
     }
-    if (["electrical", "sanitary", "heating", "drywall"].includes(this.currentTool) && this.currentCatalogItem) {
+    if (["electrical", "sanitary", "heating", "drywall", "furniture"].includes(this.currentTool) && this.currentCatalogItem) {
       this.renderer.preview = {
         type: "object",
         x: point.x,
