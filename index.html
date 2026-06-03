@@ -985,6 +985,10 @@
         <span class="nav-item-icon">🌡️</span>
         <span class="nav-item-label">Heizlastberechnung</span>
       </div>
+      <div class="nav-item" onclick="showPage('kalkulation'); setTimeout(()=>heizkoerperModal(),200)">
+        <span class="nav-item-icon">♨️</span>
+        <span class="nav-item-label">Heizkörper-Berechnung</span>
+      </div>
       <div class="nav-item" onclick="showPage('kalkulation'); setTimeout(()=>schnellKalkulationModal(),200)">
         <span class="nav-item-icon">⚡</span>
         <span class="nav-item-label">Schnellkalkulation</span>
@@ -1030,6 +1034,7 @@
         <button class="btn btn-teal" onclick="showPage('kalkulation'); setTimeout(()=>schnellKalkulationModal(),200)">⚡ Schnellkalkulation</button>
         <button class="btn btn-info" onclick="showPage('projekte')">📁 Projekte ansehen</button>
         <button class="btn btn-orange" onclick="showPage('kalkulation'); setTimeout(()=>heizlastModal(),200)">🌡️ Heizlastberechnung</button>
+        <button class="btn btn-primary" style="background:#c0392b;color:#fff" onclick="showPage('kalkulation'); setTimeout(()=>heizkoerperModal(),200)">♨️ Heizkörper-Berechnung</button>
         <a href="app.html" target="_blank"><button class="btn btn-primary" style="background:#8e44ad;color:#fff">📱 Mitarbeiter-App öffnen</button></a>
       </div>
 
@@ -1088,6 +1093,7 @@
         <button class="btn btn-teal" onclick="schnellKalkulationModal()">🏠 Schnellkalkulation</button>
         <button class="btn btn-info" onclick="elektroKonfiguratorModal()">⚡ Elektro-Konfigurator</button>
         <button class="btn btn-orange" onclick="heizlastModal()">🌡️ Heizlastberechnung</button>
+        <button class="btn btn-primary" style="background:#c0392b;color:#fff" onclick="heizkoerperModal()">♨️ Heizkörper-Berechnung</button>
         <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
         <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundrissplaner V3.0</button>
       </div>
@@ -3580,6 +3586,170 @@ function ekEinfuegen() {
   renderPositionen('elektro');
   autoSave();
   showToast(`✅ ${positionen.length} Elektro-Positionen eingefügt`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HEIZKÖRPER-BERECHNUNG (EN 442 Kennlinie)
+═══════════════════════════════════════════════════════════════ */
+const HK_MODELLE = [
+  { id:'t22_600_600',  label:'Typ 22 · 600×600 mm',  q50:1060, preis:285 },
+  { id:'t22_600_1000', label:'Typ 22 · 600×1000 mm', q50:1760, preis:390 },
+  { id:'t22_600_1200', label:'Typ 22 · 600×1200 mm', q50:2110, preis:450 },
+  { id:'t33_600_600',  label:'Typ 33 · 600×600 mm',  q50:1520, preis:345 },
+  { id:'t33_600_1000', label:'Typ 33 · 600×1000 mm', q50:2520, preis:495 },
+  { id:'t33_600_1200', label:'Typ 33 · 600×1200 mm', q50:3020, preis:560 },
+];
+
+function hkRenderErgebnis() {
+  const box = document.getElementById('hk_result');
+  if (!box) return;
+
+  const raum = v('hk_raum');
+  const heizlastW = parseFloat(v('hk_heizlast')) || 0;
+  const tv = parseFloat(v('hk_tv')) || 55;
+  const tr = parseFloat(v('hk_tr')) || 45;
+  const ti = parseFloat(v('hk_ti')) || 20;
+  const n = parseFloat(v('hk_n')) || 1.3;
+  const sicherheit = parseFloat(v('hk_sicherheit')) || 0;
+  const modellId = v('hk_modell');
+  const modell = HK_MODELLE.find(m => m.id === modellId) || HK_MODELLE[0];
+
+  const dTm = ((tv + tr) / 2) - ti;
+  if (dTm <= 0 || heizlastW <= 0) {
+    box.innerHTML = '<div class="wiz-info">Bitte gültige Heizlast und Temperaturen eingeben.</div>';
+    window._hkErgebnis = null;
+    return;
+  }
+
+  const faktor = Math.pow(dTm / 50, n);
+  const heizlastMitReserve = heizlastW * (1 + sicherheit / 100);
+  const leistungJeKoerper = modell.q50 * faktor;
+  const anzahl = Math.max(1, Math.ceil(heizlastMitReserve / Math.max(leistungJeKoerper, 1)));
+  const gesamtLeistung = anzahl * leistungJeKoerper;
+  const deckung = heizlastMitReserve > 0 ? (gesamtLeistung / heizlastMitReserve) * 100 : 0;
+  const q50Soll = heizlastMitReserve / faktor;
+
+  window._hkErgebnis = {
+    raum,
+    heizlastW,
+    heizlastMitReserve,
+    tv, tr, ti, n, sicherheit,
+    dTm, faktor, q50Soll,
+    modell,
+    anzahl,
+    leistungJeKoerper,
+    gesamtLeistung,
+    deckung,
+  };
+
+  box.innerHTML = `
+    <div class="wiz-result-box">
+      <h4>📊 Ergebnis Heizkörper-Auslegung</h4>
+      <div class="wiz-result-grid">
+        <div class="wiz-result-item"><div class="wri-label">Auslegung</div><div class="wri-value">${raum ? esc(raum) : 'Raum'}</div><div class="wri-unit">${esc(modell.label)}</div></div>
+        <div class="wiz-result-item"><div class="wri-label">Raumheizlast</div><div class="wri-value">${Math.round(heizlastW)} W</div><div class="wri-unit">ohne Reserve</div></div>
+        <div class="wiz-result-item"><div class="wri-label">inkl. Reserve</div><div class="wri-value">${Math.round(heizlastMitReserve)} W</div><div class="wri-unit">+${sicherheit}%</div></div>
+        <div class="wiz-result-item"><div class="wri-label">ΔTm</div><div class="wri-value">${dTm.toFixed(1)} K</div><div class="wri-unit">((TV+TR)/2−Ti)</div></div>
+        <div class="wiz-result-item"><div class="wri-label">Leistung je HK</div><div class="wri-value">${Math.round(leistungJeKoerper)} W</div><div class="wri-unit">bei Betrieb</div></div>
+        <div class="wiz-result-item"><div class="wri-label">Benötigte Stück</div><div class="wri-value">${anzahl}</div><div class="wri-unit">Heizkörper</div></div>
+      </div>
+      <div class="wiz-info" style="margin-top:10px">
+        Kennlinie: Q = Q50 × (ΔTm/50)^n · n=${n.toFixed(2)} · erforderliche Q50-Leistung gesamt: ${Math.round(q50Soll)} W · Abdeckung: ${deckung.toFixed(0)}%
+      </div>
+    </div>`;
+}
+
+function heizkoerperModal() {
+  const existing = document.getElementById('heizkoerperModal');
+  if (existing) existing.remove();
+
+  const avgHL = window._hlErgebnis?.raumErgebnisse?.length
+    ? Math.round((window._hlErgebnis.kw * 1000) / window._hlErgebnis.raumErgebnisse.length)
+    : 1200;
+  const presetRaum = window._hlErgebnis?.raumErgebnisse?.[0]?.raum?.name || 'Wohnzimmer';
+
+  const m = document.createElement('div');
+  m.id = 'heizkoerperModal';
+  m.className = 'modal-overlay';
+  m.innerHTML = `
+    <div class="modal-box-lg" style="max-width:860px">
+      <div class="modal-header">
+        <h3>♨️ Heizkörper-Berechnung</h3>
+        <button class="modal-close" onclick="document.getElementById('heizkoerperModal').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wiz-info">Heizkörperauslegung auf Basis der Raumheizlast und EN-442-Kennlinie (Q = Q50 × (ΔTm/50)^n).</div>
+        <div class="wiz-grid">
+          <div class="wiz-field">
+            <label>Raum</label>
+            <input type="text" id="hk_raum" value="${esc(presetRaum)}" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Raumheizlast (W)</label>
+            <input type="number" id="hk_heizlast" value="${avgHL}" min="100" step="10" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Vorlauf TV (°C)</label>
+            <input type="number" id="hk_tv" value="55" min="25" max="90" step="1" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Rücklauf TR (°C)</label>
+            <input type="number" id="hk_tr" value="45" min="20" max="80" step="1" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Raumtemperatur Ti (°C)</label>
+            <input type="number" id="hk_ti" value="20" min="10" max="30" step="1" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Exponenten n</label>
+            <input type="number" id="hk_n" value="1.30" min="1.1" max="1.5" step="0.01" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Sicherheitszuschlag (%)</label>
+            <input type="number" id="hk_sicherheit" value="10" min="0" max="30" step="1" oninput="hkRenderErgebnis()">
+          </div>
+          <div class="wiz-field">
+            <label>Heizkörper-Modell</label>
+            <select id="hk_modell" onchange="hkRenderErgebnis()">
+              ${HK_MODELLE.map(h => `<option value="${h.id}">${h.label} · ${h.q50}W @ ΔT50</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div id="hk_result" style="margin-top:10px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" onclick="hkRenderErgebnis()">👁️ Berechnen</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-danger btn-sm" onclick="document.getElementById('heizkoerperModal').remove()">Schließen</button>
+          <button class="btn btn-success btn-sm" onclick="hkPositionenEinfuegen()">➕ Ins Angebot übernehmen</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+  hkRenderErgebnis();
+}
+
+function hkPositionenEinfuegen() {
+  if (!window._hkErgebnis) { showToast('⚠️ Bitte zuerst Heizkörper berechnen.'); return; }
+  const r = window._hkErgebnis;
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  daten.positionen.heizung.push({
+    id: ++posIdCounter,
+    pos: 'H4.HK',
+    beschreibung: `Heizkörper ${esc(r.raum)} – ${r.modell.label} (${Math.round(r.heizlastMitReserve)}W, TV/TR/Ti ${r.tv}/${r.tr}/${r.ti}°C) montieren u. anschließen`,
+    einheit: 'Stk',
+    menge: r.anzahl,
+    materialpreis: r.modell.preis,
+    stundensatz: stdSatz,
+    stunden: 1.8,
+  });
+
+  renderPositionen('heizung');
+  autoSave();
+  const modal = document.getElementById('heizkoerperModal');
+  if (modal) modal.remove();
+  showToast(`✅ ${r.anzahl} Heizkörper (${r.modell.label}) ins Angebot übernommen`);
 }
 
 /* ═══════════════════════════════════════════════════════════════
