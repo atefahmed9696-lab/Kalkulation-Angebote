@@ -59,7 +59,8 @@ export class FloorPlanModel {
       dimensions: [],
       rooms: [],
       roomNames: {},
-      wallNodes: []
+      wallNodes: [],
+      backgroundPlan: null
     };
   }
   createFloor(name = `Etage ${this.floors.length + 1}`, saveHistory = true) {
@@ -144,7 +145,10 @@ export class FloorPlanModel {
     this.wallThickness = state.wallThickness ?? 0.2;
     this.layers = deepClone(state.layers ?? this.layers);
     this.projectMeta = deepClone(state.projectMeta ?? this.projectMeta);
-    this.floors = deepClone(state.floors ?? []);
+    this.floors = deepClone(state.floors ?? []).map(floor => ({
+      ...floor,
+      backgroundPlan: floor.backgroundPlan ?? null
+    }));
     this.currentFloorId = state.currentFloorId ?? this.floors[0]?.id ?? null;
     if (!this.floors.length) {
       const floor = this.createEmptyFloor("Etage 1");
@@ -599,6 +603,30 @@ export class FloorPlanModel {
     floor.roomNames = {};
     floor.wallNodes = [];
     this.selected = null;
+  }
+  setCurrentFloorBackgroundPlan(plan) {
+    const floor = this.getCurrentFloor();
+    if (!floor) return false;
+    this.saveHistory("setBackgroundPlan");
+    floor.backgroundPlan = plan ? deepClone(plan) : null;
+    return true;
+  }
+  updateCurrentFloorBackgroundPlan(patch) {
+    const floor = this.getCurrentFloor();
+    if (!floor?.backgroundPlan) return false;
+    this.saveHistory("updateBackgroundPlan");
+    floor.backgroundPlan = {
+      ...floor.backgroundPlan,
+      ...deepClone(patch)
+    };
+    return true;
+  }
+  clearCurrentFloorBackgroundPlan() {
+    const floor = this.getCurrentFloor();
+    if (!floor?.backgroundPlan) return false;
+    this.saveHistory("clearBackgroundPlan");
+    floor.backgroundPlan = null;
+    return true;
   }
   toJSON() {
     return JSON.stringify(this.getSerializableState(), null, 2);

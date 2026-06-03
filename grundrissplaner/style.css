@@ -42,7 +42,8 @@ html, body {
 button,
 select,
 input[type="number"],
-input[type="text"] {
+input[type="text"],
+input[type="range"] {
   width: 100%;
   padding: 10px;
   border: 1px solid #4b5563;
@@ -50,6 +51,9 @@ input[type="text"] {
   color: #fff;
   border-radius: 8px;
   font-size: 14px;
+}
+input[type="range"] {
+  padding: 6px;
 }
 button {
   cursor: pointer;

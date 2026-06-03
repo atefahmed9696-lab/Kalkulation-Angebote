@@ -85,6 +85,30 @@
         <input type="file" id="file-input" accept=".json,application/json" hidden />
       </section>
       <section>
+        <h2>Grundriss-Vorlage</h2>
+        <div class="action-grid">
+          <button id="upload-plan-image">Bild hochladen</button>
+          <button id="remove-plan-image" class="danger">Bild entfernen</button>
+        </div>
+        <label class="stack">
+          Breite (m)
+          <input type="number" id="plan-width" min="0.1" step="0.1" value="10" />
+        </label>
+        <label class="stack">
+          Position X (m)
+          <input type="number" id="plan-x" step="0.1" value="0" />
+        </label>
+        <label class="stack">
+          Position Y (m)
+          <input type="number" id="plan-y" step="0.1" value="0" />
+        </label>
+        <label class="stack">
+          Transparenz
+          <input type="range" id="plan-opacity" min="0.1" max="1" step="0.05" value="0.35" />
+        </label>
+        <input type="file" id="plan-image-input" accept="image/*" hidden />
+      </section>
+      <section>
         <h2>Eigenschaften</h2>
         <div id="properties-panel">
           <div>Kein Objekt ausgewählt.</div>

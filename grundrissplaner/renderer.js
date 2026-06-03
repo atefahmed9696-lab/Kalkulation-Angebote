@@ -19,6 +19,7 @@ export class Renderer {
     this.model = model;
     this.preview = null;
     this.showFrame = true;
+    this.backgroundImageCache = new Map();
     // V3.0: Pan & Zoom
     this.panX = 0;
     this.panY = 0;
@@ -42,6 +43,7 @@ export class Renderer {
     ctx.save();
     ctx.translate(this.panX, this.panY);
     ctx.scale(this.zoom, this.zoom);
+    this.drawBackgroundPlan();
     this.drawGrid();
     this.drawRooms();
     this.drawWalls();
@@ -74,6 +76,39 @@ export class Renderer {
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.restore();
+  }
+  drawBackgroundPlan() {
+    const plan = this.model.getCurrentFloor()?.backgroundPlan;
+    if (!plan?.src) return;
+    const image = this.resolveBackgroundImage(plan.src);
+    if (!image) return;
+    const ctx = this.ctx;
+    const widthMeters = Math.max(0.1, Number(plan.widthMeters) || 1);
+    const heightMeters = Math.max(0.1, Number(plan.heightMeters) || 1);
+    const xMeters = Number(plan.x) || 0;
+    const yMeters = Number(plan.y) || 0;
+    const opacity = Math.min(1, Math.max(0.1, Number(plan.opacity) || 0.35));
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(
+      image,
+      metersToPixels(xMeters, this.model.scale),
+      metersToPixels(yMeters, this.model.scale),
+      metersToPixels(widthMeters, this.model.scale),
+      metersToPixels(heightMeters, this.model.scale)
+    );
+    ctx.restore();
+  }
+  resolveBackgroundImage(src) {
+    let image = this.backgroundImageCache.get(src);
+    if (!image) {
+      image = new Image();
+      image.decoding = "async";
+      image.src = src;
+      image.onload = () => this.render();
+      this.backgroundImageCache.set(src, image);
+    }
+    return image.complete ? image : null;
   }
   drawGrid() {
     const ctx = this.ctx;

@@ -36,6 +36,10 @@ const ui = {
   statusCenter: document.getElementById("status-center"),
   statusRight: document.getElementById("status-right"),
   floorSelect: document.getElementById("floor-select"),
+  planWidthInput: document.getElementById("plan-width"),
+  planXInput: document.getElementById("plan-x"),
+  planYInput: document.getElementById("plan-y"),
+  planOpacityInput: document.getElementById("plan-opacity"),
   setStatusTool(tool) {
     const names = {
       select: "Auswahl",
@@ -220,6 +224,44 @@ function loadAutosaveOnStartup() {
   model.future = [];
 }
 
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Bild konnte nicht geladen werden."));
+    image.src = src;
+  });
+}
+
+function syncBackgroundPlanControls() {
+  const plan = model.getCurrentFloor()?.backgroundPlan ?? null;
+  const disabled = !plan;
+  ui.planWidthInput.disabled = disabled;
+  ui.planXInput.disabled = disabled;
+  ui.planYInput.disabled = disabled;
+  ui.planOpacityInput.disabled = disabled;
+  if (!plan) {
+    ui.planWidthInput.value = "10";
+    ui.planXInput.value = "0";
+    ui.planYInput.value = "0";
+    ui.planOpacityInput.value = "0.35";
+    return;
+  }
+  ui.planWidthInput.value = String(plan.widthMeters ?? 10);
+  ui.planXInput.value = String(plan.x ?? 0);
+  ui.planYInput.value = String(plan.y ?? 0);
+  ui.planOpacityInput.value = String(plan.opacity ?? 0.35);
+}
+
 function activateTool(tool) {
   ui.toolButtons.forEach(btn => {
     btn.classList.toggle("active", btn.dataset.tool === tool);
@@ -233,6 +275,7 @@ function refreshAll() {
   } else {
     renderer.render();
   }
+  syncBackgroundPlanControls();
   ui.updateArea();
   ui.updateProperties(model.selected);
   ui.refreshFloorList();
@@ -378,6 +421,76 @@ document.getElementById("file-input").addEventListener("change", async (event) =
   ui.wallThicknessInput.value = model.wallThickness;
   ui.layerCheckboxes.forEach(input => {
     input.checked = model.layers[input.dataset.layer];
+  });
+  refreshAll();
+});
+document.getElementById("upload-plan-image").addEventListener("click", () => {
+  document.getElementById("plan-image-input").click();
+});
+document.getElementById("plan-image-input").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+  try {
+    const src = await fileToDataURL(file);
+    const image = await loadImage(src);
+    const defaultWidth = Math.max(1, Number((image.naturalWidth / model.scale).toFixed(2)));
+    const widthInput = prompt("Breite des Grundrissbilds in Metern:", String(defaultWidth));
+    if (widthInput == null) return;
+    const widthMeters = Math.max(0.1, Number(widthInput) || defaultWidth);
+    const heightMeters = Number((widthMeters * (image.naturalHeight / image.naturalWidth)).toFixed(3));
+    createInfrastructureBackup("beforeUploadBackgroundPlan");
+    model.setCurrentFloorBackgroundPlan({
+      name: file.name,
+      src,
+      widthMeters,
+      heightMeters,
+      x: 0,
+      y: 0,
+      opacity: 0.35
+    });
+    refreshAll();
+  } catch (error) {
+    alert(error?.message || "Grundrissbild konnte nicht geladen werden.");
+  }
+});
+document.getElementById("remove-plan-image").addEventListener("click", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  if (!confirm("Grundrissbild der aktuellen Etage entfernen?")) return;
+  createInfrastructureBackup("beforeRemoveBackgroundPlan");
+  if (model.clearCurrentFloorBackgroundPlan()) {
+    refreshAll();
+  }
+});
+ui.planWidthInput.addEventListener("change", () => {
+  const plan = model.getCurrentFloor()?.backgroundPlan;
+  if (!plan) return;
+  const widthMeters = Math.max(0.1, Number(ui.planWidthInput.value) || plan.widthMeters || 10);
+  const ratio = (plan.heightMeters || 1) / (plan.widthMeters || 1);
+  model.updateCurrentFloorBackgroundPlan({
+    widthMeters,
+    heightMeters: Number((widthMeters * ratio).toFixed(3))
+  });
+  refreshAll();
+});
+ui.planXInput.addEventListener("change", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  model.updateCurrentFloorBackgroundPlan({
+    x: Number(ui.planXInput.value) || 0
+  });
+  refreshAll();
+});
+ui.planYInput.addEventListener("change", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  model.updateCurrentFloorBackgroundPlan({
+    y: Number(ui.planYInput.value) || 0
+  });
+  refreshAll();
+});
+ui.planOpacityInput.addEventListener("input", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  model.updateCurrentFloorBackgroundPlan({
+    opacity: Math.min(1, Math.max(0.1, Number(ui.planOpacityInput.value) || 0.35))
   });
   refreshAll();
 });
