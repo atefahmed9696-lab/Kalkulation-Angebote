@@ -1,15 +1,3 @@
-const FLOOR_HEATING_DISTRIBUTORS = Array.from({ length: 16 }, (_, index) => {
-  const circuits = index + 1;
-  return {
-    id: `floor-heating-${circuits}`,
-    name: `Fußbodenheiz.-Verteiler ${circuits}-fach`,
-    width: Number((0.3 + circuits * 0.04).toFixed(2)),
-    height: 0.24,
-    color: "#ef4444",
-    symbol: "floor-heating"
-  };
-});
-
 export const CATALOG = {
   // ── Schaltzeichen (Elektro) – DIN EN 60617 / Bauplanübliche Symbole ──
   electrical: [
@@ -35,8 +23,6 @@ export const CATALOG = {
     // Elektroinstallation
     { id: "fan",             name: "Lüfter/Ventilator",    width: 0.22, height: 0.22, color: "#f59e0b", symbol: "fan" },
     { id: "distribution",    name: "Unterverteiler (UV)",   width: 0.30, height: 0.20, color: "#f59e0b", symbol: "distribution" },
-    { id: "distribution-electrical", name: "Elektroverteiler", width: 0.35, height: 0.22, color: "#f59e0b", symbol: "distribution-electrical" },
-    { id: "distribution-media", name: "Medienverteiler", width: 0.35, height: 0.22, color: "#f59e0b", symbol: "distribution-media" },
     { id: "smoke-detector",  name: "Rauchmelder",           width: 0.18, height: 0.18, color: "#f59e0b", symbol: "smoke-detector" },
     { id: "co-detector",     name: "CO-Melder",             width: 0.18, height: 0.18, color: "#f59e0b", symbol: "co-detector" },
     { id: "doorbell",        name: "Klingel/Taster",        width: 0.15, height: 0.15, color: "#f59e0b", symbol: "doorbell" },
@@ -69,7 +55,6 @@ export const CATALOG = {
   heating: [
     { id: "radiator",        name: "Heizkörper",            width: 1.00, height: 0.22, color: "#ef4444", symbol: "radiator" },
     { id: "floor-heating",   name: "Fußbodenheiz.-Verteiler",width: 0.40, height: 0.40, color: "#ef4444", symbol: "floor-heating" },
-    ...FLOOR_HEATING_DISTRIBUTORS,
     { id: "chimney",         name: "Schornstein",           width: 0.40, height: 0.40, color: "#ef4444", symbol: "chimney" },
     { id: "fireplace",       name: "Kaminofen",             width: 0.80, height: 0.60, color: "#ef4444", symbol: "fireplace" },
     { id: "boiler",          name: "Therme/Boiler",         width: 0.60, height: 0.50, color: "#ef4444", symbol: "boiler" },

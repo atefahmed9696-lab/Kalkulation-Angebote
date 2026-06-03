@@ -280,25 +280,10 @@ export class Renderer {
       ctx.translate(center.x, center.y);
       ctx.rotate(obj.rotation);
       drawSymbol(ctx, obj.symbol, obj.color, w, h);
-      const symbolText = getObjectSymbolText(obj);
-      if (symbolText) {
-        ctx.fillStyle = "#111827";
-        ctx.font = `bold ${Math.max(10, Math.min(w, h) * 0.45)}px Arial`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.strokeStyle = "rgba(255,255,255,0.9)";
-        ctx.lineWidth = 3;
-        ctx.strokeText(symbolText, 0, 0);
-        ctx.fillText(symbolText, 0, 0);
-      }
       ctx.fillStyle = "#111827";
       ctx.font = `${Math.max(9, 11 / this.zoom)}px Arial`;
       ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      const labelLines = [obj.name, ...getObjectMetaLines(obj)];
-      labelLines.forEach((line, index) => {
-        ctx.fillText(line, 0, h / 2 + (14 + index * 12) / this.zoom);
-      });
+      ctx.fillText(obj.name, 0, h / 2 + 14 / this.zoom);
       ctx.restore();
     }
     ctx.restore();
@@ -544,37 +529,6 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r);
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
-}
-
-function drawDistributorBox(ctx, color, w, h, label) {
-  ctx.fillStyle = color;
-  ctx.strokeStyle = "#000";
-  roundRect(ctx, -w / 2, -h / 2, w, h, 4);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "#000";
-  ctx.font = `bold ${Math.min(w, h) * 0.4}px Arial`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(label, 0, 0);
-}
-
-function getObjectSymbolText(obj) {
-  if (obj.catalogId?.startsWith("floor-heating-")) {
-    return obj.catalogId.replace("floor-heating-", "");
-  }
-  return "";
-}
-
-function getObjectMetaLines(obj) {
-  if (obj.catalogId === "radiator") {
-    return [`${formatMeters(obj.width)} × ${formatMeters(obj.height)} m`];
-  }
-  return [];
-}
-
-function formatMeters(value) {
-  return Number(value || 0).toFixed(2).replace(".", ",");
 }
 
 // ── Hauptzeichenfunktion für alle Symbole ────────────────────────────────────
@@ -823,16 +777,14 @@ function drawSymbol(ctx, symbol, color, w, h) {
       break;
     }
     case "distribution": {
-      // Unterverteiler: Rechteck mit UV-Label
-      drawDistributorBox(ctx, color, w, h, "UV");
-      break;
-    }
-    case "distribution-electrical": {
-      drawDistributorBox(ctx, color, w, h, "EV");
-      break;
-    }
-    case "distribution-media": {
-      drawDistributorBox(ctx, color, w, h, "MV");
+      // Unterverteiler: Rechteck mit UV-Label + Blitz
+      ctx.fillStyle = color; ctx.strokeStyle = "#000";
+      roundRect(ctx, -w / 2, -h / 2, w, h, 4);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#000";
+      ctx.font = `bold ${Math.min(w, h) * 0.4}px Arial`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("UV", 0, 0);
       break;
     }
     case "smoke-detector": {
