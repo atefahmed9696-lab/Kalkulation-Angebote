@@ -2132,36 +2132,28 @@ const MUSTER = {
 
   /* ── ABBRUCH ──────────────────────────────────────────────────── */
   abbruch: [
-    // Wände
-    { gruppe:'Wände', pos:'A1.01', beschreibung:'Holzständerwand abbrechen', einheit:'m²', menge:20, materialpreis:28, stundensatz:45, stunden:0 },
-    { gruppe:'Wände', pos:'A1.02', beschreibung:'Innenmauerwerk abbrechen 11,5cm', einheit:'m²', menge:15, materialpreis:48, stundensatz:45, stunden:0 },
-    { gruppe:'Wände', pos:'A1.03', beschreibung:'Innenmauerwerk abbrechen 17,5cm', einheit:'m²', menge:10, materialpreis:62, stundensatz:45, stunden:0 },
-    { gruppe:'Wände', pos:'A1.04', beschreibung:'Innenmauerwerk abbrechen 24cm', einheit:'m²', menge:8, materialpreis:82, stundensatz:45, stunden:0 },
-    // Decken & Böden
-    { gruppe:'Decken & Böden', pos:'A2.01', beschreibung:'Deckenbekleidung abbrechen', einheit:'m²', menge:40, materialpreis:31, stundensatz:45, stunden:0 },
-    { gruppe:'Decken & Böden', pos:'A2.02', beschreibung:'Verbundestrich abbrechen bis 50mm', einheit:'m²', menge:50, materialpreis:28, stundensatz:45, stunden:0 },
-    { gruppe:'Decken & Böden', pos:'A2.03', beschreibung:'Bodenfliesen / Estrich entfernen', einheit:'m²', menge:30, materialpreis:62, stundensatz:45, stunden:0 },
-    { gruppe:'Decken & Böden', pos:'A2.04', beschreibung:'Holzbalkendecke abbrechen', einheit:'m²', menge:20, materialpreis:92, stundensatz:45, stunden:0 },
-    // Tapeten & Oberflächen
-    { gruppe:'Tapeten & Oberflächen', pos:'A3.01', beschreibung:'Tapete entfernen (1 Lage)', einheit:'m²', menge:80, materialpreis:6.50, stundensatz:45, stunden:0 },
-    { gruppe:'Tapeten & Oberflächen', pos:'A3.02', beschreibung:'Tapete entfernen (mehrere Lagen)', einheit:'m²', menge:50, materialpreis:9.80, stundensatz:45, stunden:0 },
-    // Putz & Fassade
-    { gruppe:'Putz & Fassade', pos:'A4.01', beschreibung:'Außenputz abschlagen, Teilflächen', einheit:'m²', menge:60, materialpreis:34, stundensatz:45, stunden:0 },
-    { gruppe:'Putz & Fassade', pos:'A4.02', beschreibung:'Innenputz abschlagen vollflächig', einheit:'m²', menge:80, materialpreis:12.70, stundensatz:45, stunden:0 },
-    // Fenster & Türen
-    { gruppe:'Fenster & Türen', pos:'A5.01', beschreibung:'Fenster inkl. Zarge demontieren', einheit:'Stk', menge:4, materialpreis:68, stundensatz:45, stunden:0 },
-    { gruppe:'Fenster & Türen', pos:'A5.02', beschreibung:'Außentür inkl. Zarge demontieren', einheit:'Stk', menge:1, materialpreis:95, stundensatz:45, stunden:0 },
-    { gruppe:'Fenster & Türen', pos:'A5.03', beschreibung:'Innentür inkl. Zarge demontieren', einheit:'Stk', menge:3, materialpreis:52, stundensatz:45, stunden:0 },
-    { gruppe:'Fenster & Türen', pos:'A5.04', beschreibung:'Kellertür / Nebentür demontieren', einheit:'Stk', menge:1, materialpreis:62, stundensatz:45, stunden:0 },
-    // Einbauten & Installationen
-    { gruppe:'Einbauten & Installationen', pos:'A6.01', beschreibung:'Küchenzeile demontieren', einheit:'lfm', menge:4, materialpreis:68, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A6.02', beschreibung:'Heizkörper demontieren', einheit:'Stk', menge:5, materialpreis:44, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A6.03', beschreibung:'Sanitärobjekte Bad komplett demontieren', einheit:'Pauschal', menge:1, materialpreis:485, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A6.04', beschreibung:'Elektrische Installationen demontieren (Wohnung)', einheit:'Pauschal', menge:1, materialpreis:385, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A6.05', beschreibung:'Heizungsanlage komplett demontieren', einheit:'Pauschal', menge:1, materialpreis:685, stundensatz:45, stunden:0 },
-    { gruppe:'Einbauten & Installationen', pos:'A6.06', beschreibung:'Schuttabfuhr und Entsorgung', einheit:'t', menge:5, materialpreis:185, stundensatz:45, stunden:0 },
-    // Stundensatz
-    { gruppe:'Stundensatz', pos:'A7.01', beschreibung:'Stundensatz Abbrucharbeiter', einheit:'h', menge:1, materialpreis:0, stundensatz:45, stunden:1 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.01', beschreibung:'Baustelleneinrichtung – An- und Abtransport, Werkzeug, Kleinmaterial, Einrichtung der Arbeitsstelle', einheit:'Pauschal', menge:1, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.02', beschreibung:'Schutzmaßnahmen – Böden, Treppen, Fenster und verbleibende Bauteile abdecken und schützen', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.03', beschreibung:'Innenputz an Wänden abschlagen – Altputz von Innenwänden abschlagen, aufnehmen und sammeln', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.04', beschreibung:'Innenputz an Decken abschlagen – Altputz von Decken abschlagen, aufnehmen und sammeln', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.05', beschreibung:'Lose Putzreste nacharbeiten – Nachstemmen und manuelle Restarbeiten in Kleinbereichen', einheit:'h', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.06', beschreibung:'Innentüren ausbauen – Türblätter fachgerecht ausbauen und innerhalb der Baustelle bereitstellen', einheit:'Stk', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.07', beschreibung:'Türzargen ausbauen – Holz- oder Stahlzargen ausbauen, einschließlich Befestigungen', einheit:'Stk', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.08', beschreibung:'Sockelleisten entfernen – Sockelleisten lösen, aufnehmen und sammeln', einheit:'m', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.09', beschreibung:'Bodenbeläge aufnehmen – PVC, Laminat, Teppich oder sonstige Beläge aufnehmen', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.10', beschreibung:'Kleberreste / Untergrund nacharbeiten – Haftende Rückstände mechanisch entfernen', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.11', beschreibung:'Nichttragende Trennwände abbrechen – Leichte Innenwände rückbauen, Material getrennt sammeln', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.12', beschreibung:'Abgehängte Decken demontieren – Unterkonstruktion und Bekleidung rückbauen', einheit:'m²', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.13', beschreibung:'Sanitärobjekte ausbauen – WC, Waschbecken, Armaturen und Kleinteile demontieren', einheit:'Stk', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.14', beschreibung:'Heizkörper ausbauen – Heizkörper demontieren, sofern freigeschaltet und entleert', einheit:'Stk', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.15', beschreibung:'Elektro-Anbauteile demontieren – Schalter, Steckdosen, Leuchten nach Freischaltung ausbauen', einheit:'Stk', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.16', beschreibung:'Schutt im Gebäude transportieren – Bauschutt sammeln, von Hand transportieren und zur Ladestelle bringen', einheit:'m³', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.17', beschreibung:'Containerstellung – Container anliefern, bereitstellen und abholen', einheit:'Stk', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.18', beschreibung:'Bauschutt entsorgen – Mineralischer Bauschutt laden, abfahren und fachgerecht entsorgen', einheit:'t', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.19', beschreibung:'Baumischabfall entsorgen – Gemischte Abfälle laden, abfahren und fachgerecht entsorgen', einheit:'t', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.20', beschreibung:'Holzabfall entsorgen – Holz aus Ausbauarbeiten getrennt sammeln und entsorgen', einheit:'t', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.21', beschreibung:'Metallabfall entsorgen – Metallteile getrennt sammeln und entsorgen', einheit:'t', menge:0, materialpreis:0, stundensatz:45, stunden:0 },
+    { gruppe:'Abbrucharbeiten', pos:'A1.22', beschreibung:'Feinreinigung / besenrein – Baustelle nach Abschluss der Rückbauarbeiten besenrein übergeben', einheit:'Pauschal', menge:1, materialpreis:0, stundensatz:45, stunden:0 },
   ],
 
   /* ── ROHBAU ───────────────────────────────────────────────────── */
