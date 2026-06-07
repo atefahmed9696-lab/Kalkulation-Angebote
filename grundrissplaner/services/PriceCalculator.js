@@ -40,19 +40,89 @@ export const BKI_PRICE_DB = {
 
   /** Gipsarbeiten €/m² (BKI Gebäude G7 – Putz/Trockenbau) */
   gipsarbeiten: {
-    gipsputz_masch: { label: 'Innenputz Gipsputz maschinell einlagig 15 mm', price: 27.00, unit: 'm²' },
-    kalk_gipsputz:  { label: 'Kalk-Gipsputz 2-lagig 15 mm',                  price: 32.00, unit: 'm²' },
-    gipsputz_gefilzt: { label: 'Gipsputz gefilzt / geglättet (Sichtqualität)', price: 36.00, unit: 'm²' },
-    fermacell:      { label: 'Gipsfaserplatte Fermacell 12,5 mm auf UK',      price: 68.00, unit: 'm²' },
-    gk_direktmontage: { label: 'GK-Platte auf Massivwand Direktmontage',      price: 48.00, unit: 'm²' },
-    glattputz:      { label: 'Glattputz Innen bis 5 mm (Flächenspachtel)',    price: 19.50, unit: 'm²' },
+    gipsputz_masch:    { label: 'Innenputz Gipsputz maschinell einlagig 15 mm',  price: 27.00, unit: 'm²' },
+    kalk_gipsputz:     { label: 'Kalk-Gipsputz 2-lagig 15 mm',                   price: 32.00, unit: 'm²' },
+    gipsputz_gefilzt:  { label: 'Gipsputz gefilzt / geglättet (Sichtqualität)',  price: 36.00, unit: 'm²' },
+    fermacell:         { label: 'Gipsfaserplatte Fermacell 12,5 mm auf UK',       price: 68.00, unit: 'm²' },
+    gk_direktmontage:  { label: 'GK-Platte auf Massivwand Direktmontage',         price: 48.00, unit: 'm²' },
+    glattputz:         { label: 'Glattputz Innen bis 5 mm (Flächenspachtel)',     price: 19.50, unit: 'm²' },
   },
 
   /** Deckenarbeiten €/m² */
   ceiling: {
-    maler_decke:    { label: 'Decke streichen (2×)',          price:  9.50, unit: 'm²' },
-    abhaengdecke:   { label: 'Abgehängte GK-Decke',           price: 42.00, unit: 'm²' },
-    akustik:        { label: 'Akustikdecke (Mineralfaser)',    price: 55.00, unit: 'm²' },
+    maler_decke:       { label: 'Decke streichen (2×)',                           price:  9.50, unit: 'm²' },
+    abhaengdecke:      { label: 'Abgehängte GK-Decke',                            price: 42.00, unit: 'm²' },
+    akustik:           { label: 'Akustikdecke (Mineralfaser)',                    price: 55.00, unit: 'm²' },
+  },
+
+  /** Wandsysteme Sonder – Trockenbau (BKI 2024) */
+  wandsysteme: {
+    doppelstaender:      { label: 'Doppelständerwand CW doppelt beplankt (erhöhter Schallschutz)', price: 128.00, unit: 'm²' },
+    gis_installwand_m2:  { label: 'Sanitär-Installationswand GIS-System (UP-Spülkasten)',           price: 135.00, unit: 'm²' },
+    ansetzbinder:        { label: 'Trockenputz / Ansetzbinder – GK direkt auf Mauerwerk',           price:  44.00, unit: 'm²' },
+    strahlenschutz:      { label: 'Strahlenschutzwand blei-kaschierte Gipsplatte (Röntgenraum)',    price: 185.00, unit: 'm²' },
+    rundwand:            { label: 'Gebogene Wand / Rundwand Sonderkonstruktion GK',                 price: 145.00, unit: 'm²' },
+    gips_wandbauplatte:  { label: 'Gips-Wandbauplatte (Vollgips, Nut+Feder, z. B. MultiGips)',     price:  52.00, unit: 'm²' },
+  },
+
+  /** Deckensysteme Sonder – Trockenbau (BKI 2024) */
+  deckensysteme: {
+    rasterdecke:         { label: 'Rasterdecke / OWA-Einlegedecke T-Schienen + Mineralfaserplatten', price:  62.00, unit: 'm²' },
+    lamellendecke:       { label: 'Lamellendecke / Baffeldecke Metall/Holz offen',                   price:  95.00, unit: 'm'  },
+    dachgeschoss:        { label: 'Dachgeschossbekleidung Schräge inkl. Dampfbremse/Klimamembran',    price:  78.00, unit: 'm²' },
+  },
+
+  /** Design-Trockenbau, Formteile & Lichtvouuten (BKI 2024) */
+  design: {
+    lichtvoute:          { label: 'Lichtvoute / LED-Profil abgestufte Decken-/Wandnische',          price:  85.00, unit: 'm'  },
+    deckensegel:         { label: 'Deckensegel freihängend (rund/eckig/frei)',                       price: 185.00, unit: 'Stk'},
+    biegeformteil:       { label: 'Falt-/Biegetechnik-Formteil GK gefräst 90°-Kante/L/U',          price:  38.00, unit: 'm'  },
+    schattenfuge:        { label: 'Schattenfugenprofil Alu Wand-/Deckenübergang',                    price:  22.00, unit: 'm'  },
+    vorhangtasche:       { label: 'Vorhangtasche / Gardinenblende in Decke integriert',              price:  68.00, unit: 'm'  },
+    saulenverkleidung:   { label: 'Säulen-/Bogenverkleidung Halbschale rund',                       price: 125.00, unit: 'm'  },
+    nischenregal:        { label: 'Nischen- und Regaleinbau in Trockenbaukonstruktion',              price: 285.00, unit: 'Stk'},
+  },
+
+  /** Innenputzarbeiten Sonder – Gips, Kalk & Zement (BKI 2024) */
+  innenputz: {
+    gips_q1:             { label: 'Gips-Innenputz Q1 – abgezogen (z. B. MP 75)',                    price:  19.00, unit: 'm²' },
+    gips_q2:             { label: 'Gips-Innenputz Q2 – Standard (maschinell)',                      price:  27.00, unit: 'm²' },
+    gips_q3:             { label: 'Gips-Innenputz Q3 – gefilzt / feingeglättet',                    price:  36.00, unit: 'm²' },
+    gips_q4:             { label: 'Gips-Innenputz Q4 – vollflächig gespachtelt (Höchstqualität)',   price:  48.00, unit: 'm²' },
+    kalk_zement:         { label: 'Kalk-Zement-Putz feuchtigkeitsbeständig (Bad/Keller/Garage)',    price:  35.00, unit: 'm²' },
+    sanierputz:          { label: 'Sanierputz (Sackware) für feuchtes/salzbelastetes Mauerwerk',    price:  52.00, unit: 'm²' },
+    lehmputz:            { label: 'Lehmputz ökologisch mehrlagig mit Armierungsgewebe',             price:  48.00, unit: 'm²' },
+    duennlagenputz:      { label: 'Dünnlagenputz / Spachtelputz 2–5 mm (Beton/Porenbeton)',         price:  19.50, unit: 'm²' },
+    eckschutzschiene:    { label: 'Eckschutzschiene setzen (Alu/verzinkt, Fensterecken/Kanten)',    price:   8.50, unit: 'm'  },
+    apu_leiste:          { label: 'APU-Anputzleiste Fenster-/Türrahmen schlagregendicht',           price:   7.20, unit: 'm'  },
+  },
+
+  /** Außenputzarbeiten & Fassadenkonstruktion (BKI 2024) */
+  aussenputz: {
+    unterputz_leicht:    { label: 'Unterputz Leichtunterputz Außen 1. Schicht',                     price:  18.00, unit: 'm²' },
+    armierungsputz:      { label: 'Armierungsputz mit Glasfasergewebe-Einlage',                     price:  28.00, unit: 'm²' },
+    oberputz_mineral:    { label: 'Mineralischer Oberputz (Scheiben-/Kratzer-/Rillenputz)',          price:  24.00, unit: 'm²' },
+    oberputz_pastoes:    { label: 'Pastöser Oberputz Silikonharz-/Silikat-/Kunstharzbasis',         price:  32.00, unit: 'm²' },
+    buntsteinputz:       { label: 'Buntsteinputz / Mosaikputz Fassadensockel',                      price:  45.00, unit: 'm²' },
+    waermedaemmputz:     { label: 'Wärmedämmputz (Styroporkügelchen-Zuschlag)',                     price:  38.00, unit: 'm²' },
+    fassadenprofil:      { label: 'Fassaden-Profilleiste / Stuckprofil EPS aufgeklebt',             price:  28.00, unit: 'm'  },
+    sockelprofil:        { label: 'Sockelprofil / Tropfkantenleiste Fassaden-Startleiste',          price:  12.00, unit: 'm'  },
+  },
+
+  /** Bodensysteme im Trockenbau (BKI 2024) */
+  bodentrockenbau: {
+    trockenestrich_eps:  { label: 'Trockenestrich mit EPS/MF-Kaschierung (werkseitig gedämmt)',    price:  82.00, unit: 'm²' },
+    schüttung:           { label: 'Ausgleichsschüttung / Trockenschüttung (Ton/Perlite-Granulat)', price:  28.00, unit: 'm²' },
+    doppelboden:         { label: 'Hohlraumboden / Doppelboden auf Metallfüßen (Büro)',             price:  88.00, unit: 'm²' },
+  },
+
+  /** Anschlüsse, Spachtelung & Zubehör (BKI 2024) */
+  zubehör: {
+    fugenverspachtelung: { label: 'Fugenverspachtelung Plattenstöße mit Bewehrungsstreifen',        price:   4.80, unit: 'm'  },
+    anschlussfuge:       { label: 'Anschlussfuge elastisch Acryl/Silikon Bauteilübergang',          price:   6.50, unit: 'm'  },
+    trennwandband:       { label: 'Trennwandband / Entkopplung Schaumstoff unter Anschlussprofil', price:   3.20, unit: 'm'  },
+    revisionsklappe:     { label: 'Revisionsklappe einbauen flächenbündig (auch feuerh./luftd.)',   price: 145.00, unit: 'Stk'},
+    ua_profil:           { label: 'UA-Profil Türsturz 2 mm Stahl (schwere Türöffnung)',            price:  42.00, unit: 'm'  },
   },
 
   /** Einzelpositionen (Einheitspreis) */
