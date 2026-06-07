@@ -2535,6 +2535,334 @@ const MUSTER = {
   ],
 };
 
+
+/* ── Dokument-Import: Erweiterte Maler/Trockenbau-Positionen ─── */
+const DOC_GROUP_LABELS = {
+  A: 'Allgemeine Baustelleneinrichtung und Nebenleistungen',
+  B: 'Untergrundpruefung und Vorbereitung',
+  C: 'Innenputz - Gipsputzarbeiten',
+  D: 'Aussenputz und Fassadenputz',
+  E: 'Trockenbau - Standardwaende, Vorsatzschalen, Decken',
+  F: 'Trockenbau - Beplankung, Daemmung, Einlagen',
+  G: 'Trockenbau - Verspachtelung und Oberflaechen',
+  H: 'Trockenbau - Anschluesse, Details, Oeffnungen',
+  I: 'Design-Trockenbau / Sonderformen',
+  J: 'Fassadennahe Trockenbau- und Bekleidungsarbeiten',
+  K: 'Daemmung im Zusammenhang mit Putz und Trockenbau',
+  L: 'Rueckbau- und Vorarbeiten',
+  M: 'Besondere Zuschlaege und Sonderpositionen',
+};
+
+function normalizeDocEinheit(rawUnit = '') {
+  const u = String(rawUnit).toLowerCase();
+  if (u.includes('m2')) return 'm²';
+  if (u.includes('m3')) return 'm³';
+  if (u.includes('stk')) return 'Stk';
+  if (u.includes('std')) return 'h';
+  if (u.includes('tag')) return 'Pauschal';
+  if (u.includes('container')) return 'Pauschal';
+  if (u.includes('psch')) return 'Pauschal';
+  if (u.includes(' t') || u.startsWith('t') || u.includes('/ t')) return 't';
+  if (u.includes('m')) return 'm';
+  return 'Pauschal';
+}
+
+function parseDocPositions(raw, defaultStundensatz) {
+  return raw.trim().split('\n').map(line => {
+    const [groupCode, pos, beschreibung, unitRaw] = line.split('|');
+    return {
+      gruppe: DOC_GROUP_LABELS[groupCode] || groupCode,
+      pos,
+      beschreibung,
+      einheit: normalizeDocEinheit(unitRaw),
+      menge: 1,
+      materialpreis: 0,
+      stundensatz: defaultStundensatz,
+      stunden: 0,
+    };
+  });
+}
+
+const DOC_POS_COMMON = `
+A|A.01|Baustelleneinrichtung|psch.
+A|A.02|Baustelle raeumen|psch.
+A|A.03|An- und Abfahrt|psch. / Einsatz
+A|A.04|Materialtransport innerhalb Baustelle|Std. / psch.
+A|A.05|Schutzmassnahmen fuer Boeden, Fenster, Tueren|m2 / m / psch.
+A|A.06|Abkleben und Abdecken|m2 / m
+A|A.07|Geruestbeistellung / Kleinrollgeruest|psch. / Tag / m2
+A|A.08|Arbeitsbuehnen / Hebetechnik|Tag / Einsatz
+A|A.09|Staubschutzwaende stellen|m2
+A|A.10|Staubschutztueren einbauen|Stk.
+A|A.11|Bauschutt aufnehmen und sortieren|m3 / t / Std.
+A|A.12|Feinreinigung / besenrein|psch.
+A|A.13|Entsorgung nach Fraktionen|t / m3 / Container
+B|B.01|Untergrund pruefen|psch. / Std.
+B|B.02|Lose Altbeschichtungen entfernen|m2
+B|B.03|Altputz ausbessern / Hohllagen entfernen|m2 / Std.
+B|B.04|Untergrund reinigen|m2
+B|B.05|Tiefengrund auftragen|m2
+B|B.06|Haftgrund / Haftbruecke auftragen|m2
+B|B.07|Spritzbewurf herstellen|m2
+B|B.08|Saugverhalten egalisieren|m2
+B|B.09|Salzbelastete Flaechen vorbehandeln|m2
+B|B.10|Schimmelbefall vorbereitend reinigen|m2
+B|B.11|Risse aufschneiden und vorbereiten|m
+B|B.12|Untergrund egalisieren|m2
+B|B.13|Unebenheiten vorspachteln|m2
+B|B.14|Putztraeger anbringen|m2
+K|K.01|Innendaemmung Wand|m2
+K|K.02|Daemmung Vorsatzschale|m2
+K|K.03|Daemmung Dachschraege|m2
+K|K.04|Daemmung Decke|m2
+K|K.05|Trittschallrandstreifen|m
+K|K.06|Schallschutzstreifen|m
+K|K.07|Brandschutzdaemmung|m2
+K|K.08|Sockeldaemmung|m2
+K|K.09|Laibungsdaemmung|m2 / m
+L|L.01|Altputz abschlagen innen|m2
+L|L.02|Altputz abschlagen aussen|m2
+L|L.03|Trockenbauwaende rueckbauen|m2
+L|L.04|Abgehaengte Decken rueckbauen|m2
+L|L.05|Daemmstoffe ausbauen|m2
+L|L.06|Metallunterkonstruktion demontieren|m
+L|L.07|Putztraeger entfernen|m2
+L|L.08|Schutt laden und abfahren|m3 / t
+L|L.09|Sortenreine Trennung|t / Std.
+L|L.10|Entsorgung Gipsabfall|t
+L|L.11|Entsorgung Mineralwolle|t / m3
+L|L.12|Entsorgung Baumischabfall|t
+M|M.01|Zuschlag fuer kleine Teilflaechen|m2 / psch.
+M|M.02|Zuschlag fuer grosse Hoehen|m2
+M|M.03|Zuschlag fuer Erschwernisse|Std. / psch.
+M|M.04|Zuschlag fuer Rundungen|m / m2
+M|M.05|Zuschlag fuer mehrlagige Ausfuehrung|m2
+M|M.06|Zuschlag fuer Feuchtraum|m2
+M|M.07|Zuschlag fuer Brandschutzanforderung|m2
+M|M.08|Zuschlag fuer Schallschutzanforderung|m2
+M|M.09|Nacht- / Wochenendarbeit|Std.
+M|M.10|Beiarbeiten / Stundenlohnarbeiten|Std.
+`;
+
+const DOC_POS_MALER = `
+C|C.01|Gipsputz einlagig an Waenden|m2
+C|C.02|Gipsputz einlagig an Decken|m2
+C|C.03|Gips-Kalk-Putz an Waenden|m2
+C|C.04|Gips-Kalk-Putz an Decken|m2
+C|C.05|Maschinenputz innen|m2
+C|C.06|Handputz innen|m2
+C|C.07|Leichtputz innen|m2
+C|C.08|Feuchtraumgeeigneter Innenputz|m2
+C|C.09|Sanierputzsystem innen|m2
+C|C.10|Kalkzementputz innen|m2
+C|C.11|Unterputz innen|m2
+C|C.12|Oberputz innen|m2
+C|C.13|Mehrlagiger Innenputzaufbau|m2
+C|C.20|Putz an Laibungen|m
+C|C.21|Putz an Stuerzen|m
+C|C.22|Putz an Pfeilern|m2 / m
+C|C.23|Putz an Schaechten|m2
+C|C.24|Putz in Nischen|m2
+C|C.25|Putz an Treppenuntersichten|m2
+C|C.26|Putz in Feuchtraeumen|m2
+C|C.27|Putz in Kellern|m2
+C|C.28|Putz an Dachschraegen|m2
+C|C.29|Putz an Rundungen / Boegen|m
+C|C.30|Feinspachtelung Q1|m2
+C|C.31|Feinspachtelung Q2|m2
+C|C.32|Feinspachtelung Q3|m2
+C|C.33|Feinspachtelung Q4|m2
+C|C.34|Ganzflaechige Spachtelung|m2
+C|C.35|Porenverschluss|m2
+C|C.36|Filzputz / gefilzte Oberflaeche|m2
+C|C.37|Glaetten / abreiben|m2
+C|C.38|Schleifen gespachtelter Flaechen|m2
+C|C.39|Rissueberbrueckende Spachtelung|m2
+C|C.40|Eckschutzschienen setzen|m
+C|C.41|Abschlussprofile setzen|m
+C|C.42|Bewegungsfugenprofile|m
+C|C.43|Trennfugen ausbilden|m
+C|C.44|Anschluss an Fenster / Tueren|m
+C|C.45|Anschlussfugen vorbereiten|m
+C|C.46|Putzleisten setzen|m
+C|C.47|Kellenschnitt herstellen|m
+C|C.50|Putz ausbessern kleinflachig|m2
+C|C.51|Putzreparaturen nach Installationen|m
+C|C.52|Schlitze schliessen|m
+C|C.53|Aussparungen schliessen|Stk. / m2
+C|C.54|Fehlstellen reprofilieren|m / Stk.
+C|C.55|Risse vernadeln / armieren|m
+C|C.56|Gewebeeinlage in Teilflaechen|m2
+C|C.57|Hohllagen abschlagen und neu verputzen|m2
+D|D.01|Fassadenflaechen reinigen|m2
+D|D.02|Hochdruckreinigung|m2
+D|D.03|Altputz pruefen und abschlagen|m2
+D|D.04|Algen- / Pilzbehandlung|m2
+D|D.05|Tiefgrund / Putzgrund aussen|m2
+D|D.06|Spritzbewurf aussen|m2
+D|D.07|Gewebeeinbettung vorbereiten|m2
+D|D.08|Putztraeger aussen herstellen|m2
+D|D.09|Untergrundausgleich aussen|m2
+D|D.10|Kalkzement-Unterputz aussen|m2
+D|D.11|Kalkzement-Oberputz aussen|m2
+D|D.12|Mineralischer Oberputz|m2
+D|D.13|Scheibenputz|m2
+D|D.14|Reibeputz|m2
+D|D.15|Kratzputz|m2
+D|D.16|Filzputz|m2
+D|D.17|Edelputz|m2
+D|D.18|Leichtputz aussen|m2
+D|D.19|Sanierputz aussen|m2
+D|D.20|Sockelputz|m2
+D|D.21|Dichtungsschlaemme im Sockelbereich|m2
+D|D.22|Armierungsputz|m2
+D|D.23|Oberputz auf Armierungslage|m2
+D|D.30|Klebe- und Armierungsmasse aufziehen|m2
+D|D.31|Armierungsgewebe einbetten|m2
+D|D.32|Zusatzarmierung in Eckbereichen|m
+D|D.33|Diagonalarmierung an Oeffnungen|Stk. / m
+D|D.34|Eckschutzprofile aussen|m
+D|D.35|Sockelabschlussprofile|m
+D|D.36|Tropfkantenprofile|m
+D|D.37|Fensteranschlussprofile|m
+D|D.38|Bewegungsfugenprofile aussen|m
+D|D.40|Fensterlaibungen verputzen|m
+D|D.41|Stuerze verputzen|m
+D|D.42|Faschen ausbilden|m
+D|D.43|Gesimse ueberarbeiten|m
+D|D.44|Lisenen ausbilden|m
+D|D.45|Sockelanschluesse herstellen|m
+D|D.46|Balkonuntersichten verputzen|m2
+D|D.47|Dachuntersichten verputzen|m2
+D|D.48|Pfeiler aussen verputzen|m2 / m
+D|D.49|Leibungsdaemmung ueberarbeiten|m2
+`;
+
+const DOC_POS_TROCKENBAU = `
+E|E.01|UW-Profile liefern und montieren|m
+E|E.02|CW-Profile liefern und montieren|m
+E|E.03|UA-Profile fuer Verstaerkungen|m
+E|E.04|Direktabhaenger montieren|Stk.
+E|E.05|Noniusabhaenger montieren|Stk.
+E|E.06|CD-Profile fuer Decken|m
+E|E.07|Hutprofile montieren|m
+E|E.08|Holzunterkonstruktion herstellen|m2
+E|E.09|Schwingbuegel / Akustikabhaenger|Stk.
+E|E.10|Randanschluesse entkoppeln|m
+E|E.20|Einfach beplankte Trennwand|m2
+E|E.21|Doppelt beplankte Trennwand|m2
+E|E.22|Installationswand|m2
+E|E.23|Schachtwand|m2
+E|E.24|Feuchtraumwand|m2
+E|E.25|Brandschutzwand|m2
+E|E.26|Schallschutzwand|m2
+E|E.27|Sicherheitswand / Hartgipsplattenwand|m2
+E|E.28|Vorwandinstallation|m2
+E|E.29|Freistehende Vorsatzwand|m2
+E|E.30|Direkt befestigte Vorsatzschale|m2
+E|E.40|Abgehaengte Gipskartondecke|m2
+E|E.41|Akustikdecke gelocht|m2
+E|E.42|Rasterdecke|m2
+E|E.43|Brandschutzdecke|m2
+E|E.44|Feuchtraumdecke|m2
+E|E.45|Freitragende Decke|m2
+E|E.46|Deckenbekleidung direkt befestigt|m2
+E|E.47|Deckenfries / Randfries|m
+E|E.48|Revisionsoeffnung in Decke|Stk.
+E|E.60|Schachtbekleidung eckig|m2
+E|E.61|Schachtbekleidung mehrseitig|m2
+E|E.62|Rohrverkofferung|m
+E|E.63|Traegerbekleidung|m
+E|E.64|Stuetzenbekleidung|m
+E|E.65|Vorhangschiene / Nische vorbereiten|m
+E|E.66|Installationskanal aus Trockenbau|m
+F|F.01|Gipskartonplatten einlagig|m2
+F|F.02|Gipskartonplatten zweilagig|m2
+F|F.03|Gipsfaserplatten|m2
+F|F.04|Zementbauplatten|m2
+F|F.05|Feuchtraumplatten|m2
+F|F.06|Brandschutzplatten|m2
+F|F.07|Schallschutzplatten|m2
+F|F.08|Hartgipsplatten|m2
+F|F.09|Lochplatten fuer Akustik|m2
+F|F.10|Mineralwolledaemmung einlegen|m2
+F|F.11|Steinwolledaemmung einlegen|m2
+F|F.12|Daemmdicken-Zuschlag|m2
+F|F.13|Dampfbremse / Folie|m2
+F|F.14|Rieselschutz|m2
+F|F.15|Holzwerkstoffeinlage / Traverse|m
+F|F.16|Verstaerkung fuer Sanitaer oder Lasten|Stk. / m
+G|G.01|Fugenverspachtelung Q1|m2
+G|G.02|Fugenverspachtelung Q2|m2
+G|G.03|Fugenverspachtelung Q3|m2
+G|G.04|Fugenverspachtelung Q4|m2
+G|G.05|Fugendeckstreifen einlegen|m
+G|G.06|Schraubkoepfe verspachteln|m2
+G|G.07|Ganzflaechige Ueberzugsspachtelung|m2
+G|G.08|Schleifen der Oberflaechen|m2
+G|G.09|Oberflaechen filzen / glaetten|m2
+G|G.10|Oberflaechen fuer Anstrich vorbereiten|m2
+H|H.01|Anschluss an Wand / Decke / Boden|m
+H|H.02|Trennwandanschluss gleitend|m
+H|H.03|Bewegungsfugen ausbilden|m
+H|H.04|Eckschutzschienen|m
+H|H.05|Abschlussprofile|m
+H|H.06|Schattenfugenprofile|m
+H|H.07|LED-Lichtvouten vorbereiten|m
+H|H.08|Gardinennischen herstellen|m
+H|H.09|Revisionsklappen Wand|Stk.
+H|H.10|Revisionsklappen Decke|Stk.
+H|H.11|Ausschnitte fuer Einbauleuchten|Stk.
+H|H.12|Ausschnitte fuer Steckdosen / Schalter|Stk.
+H|H.13|Tueroeffnungen ausbilden|Stk.
+H|H.14|Verstuerze im Trockenbau|m
+H|H.15|Zargenverstaerkungen|Stk.
+H|H.16|Fensteranschluesse innen|m
+I|I.01|Abkofferungen gerade|m
+I|I.02|Abkofferungen mehrstufig|m
+I|I.03|Deckensegel|m2 / Stk.
+I|I.04|Lichtsegel|m2 / Stk.
+I|I.05|Lichtvouten|m
+I|I.06|Schattenfugen-Deckenrand|m
+I|I.07|Wandnischen|Stk.
+I|I.08|Regalkonstruktionen aus Trockenbau|m / Stk.
+I|I.09|TV-Waende / Medienwaende|Stk. / m2
+I|I.10|Vorhangkaesten|m
+I|I.11|Stuetzenverkleidungen eckig|m
+I|I.12|Stuetzenverkleidungen rund|m
+I|I.20|Gebogene Wandflaechen|m2
+I|I.21|Gewoelbte Deckenbekleidung|m2
+I|I.22|Rundboegen|m
+I|I.23|Ellipsen- / Kreisformen|Stk. / m2
+I|I.24|Freiformelemente|psch. / Stk.
+I|I.25|Geschwungene Lichtvouten|m
+I|I.26|Radiusausbildungen|m
+I|I.30|Akustiksegel|Stk. / m2
+I|I.31|Akustikpaneele|m2
+I|I.32|Gelochte Designdecken|m2
+I|I.33|Wandabsorber integriert|m2
+I|I.34|Schlitzplattenbekleidungen|m2
+I|I.35|Akustische Vorsatzschalen|m2
+J|J.01|Untersichten bekleiden|m2
+J|J.02|Dachkastenbekleidung|m2 / m
+J|J.03|Aussenbekleidung auf Unterkonstruktion|m2
+J|J.04|Zementplattenbekleidung aussen|m2
+J|J.05|Fassadenbekleidung in Teilflaechen|m2
+J|J.06|Laibungsbekleidungen|m
+J|J.07|Unterkonstruktion aussen|m2
+J|J.08|Anschlussprofile aussen|m
+`;
+
+MUSTER.maler.push(
+  ...parseDocPositions(DOC_POS_COMMON, 50),
+  ...parseDocPositions(DOC_POS_MALER, 50),
+);
+
+MUSTER.trockenbau.push(
+  ...parseDocPositions(DOC_POS_COMMON, 55),
+  ...parseDocPositions(DOC_POS_TROCKENBAU, 55),
+);
+
 /* ═══════════════════════════════════════════════════════════════
    Muster-Modal – Positionsauswahl
 ═══════════════════════════════════════════════════════════════ */
