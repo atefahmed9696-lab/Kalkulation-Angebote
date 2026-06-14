@@ -1096,6 +1096,7 @@
         <button class="btn btn-primary" style="background:#c0392b;color:#fff" onclick="heizkoerperModal()">♨️ Heizkörper-Berechnung</button>
         <button class="btn btn-success" onclick="openVertEditor()">🔌 Verteiler-Planeditor</button>
         <button class="btn btn-primary" onclick="openGrundrissEditor()" style="background:#e67e22;color:#fff">🏠 Grundrissplaner V3.0</button>
+        <button class="btn btn-primary" style="background:#6c3483;color:#fff" onclick="ladeKernsanierungsVorlage()">📋 Kernsanierung-Vorlage</button>
       </div>
 
       <div class="container">
@@ -3280,6 +3281,131 @@ MUSTER.trockenbau.push(
 );
 
 /* ═══════════════════════════════════════════════════════════════
+   Kernsanierung-Vorlage: 3-Zimmer-Altbauwohnung (ca. 80 m²)
+   Vollständige Kernsanierung – strukturiertes Leistungsverzeichnis
+═══════════════════════════════════════════════════════════════ */
+const KERNSANIERUNG_VORLAGE = {
+
+  /* 0. Baustelleneinrichtung + 2. Abbruch / Rückbau */
+  abbruch: [
+    { pos:'0.1', beschreibung:'Baustelleneinrichtung – Baucontainer und WC-Anlage aufstellen, Baustrom und Bauwasser anschließen, Absperrungen für Sanierungsdauer ca. 12 Wochen', einheit:'Pauschal', menge:1, materialpreis:850, stundensatz:65, stunden:0 },
+    { pos:'0.2', beschreibung:'Schutzmaßnahmen – Treppenhaus und Zugangsbereiche mit Folie und Karton schützen, Staubwände aus Folie herstellen', einheit:'Pauschal', menge:1, materialpreis:380, stundensatz:65, stunden:0 },
+    { pos:'0.3', beschreibung:'Entsorgungscontainer – Abrollcontainer 7 m³ für Bauschutt organisieren und entsorgen (Annahme: 3 Fuhren)', einheit:'Stk', menge:3, materialpreis:450, stundensatz:0, stunden:0 },
+    { pos:'2.1', beschreibung:'Bodenbeläge abbrechen und entsorgen – Vorhandene Beläge (Parkett, Teppich, PVC, Fliesen) vollständig aufnehmen, Kleber abschleifen, entsorgen', einheit:'m²', menge:80, materialpreis:12, stundensatz:65, stunden:0 },
+    { pos:'2.2', beschreibung:'Tapeten und Wandbeläge abziehen – Alte Tapeten, Wandfarbe und Grundierungsschichten abziehen und entsorgen', einheit:'m²', menge:260, materialpreis:5, stundensatz:65, stunden:0 },
+    { pos:'2.3', beschreibung:'Innentürzargen ausbauen und entsorgen – Vorhandene Türzargen und Türblätter demontieren, Restmaterial entsorgen', einheit:'Stk', menge:6, materialpreis:85, stundensatz:65, stunden:0 },
+    { pos:'2.4', beschreibung:'Fenster ausbauen und entsorgen – Alte Fenster inkl. außenliegender Sohlbänke und Blendrahmen ausbauen und fachgerecht entsorgen', einheit:'Stk', menge:6, materialpreis:120, stundensatz:65, stunden:0 },
+    { pos:'2.5', beschreibung:'Heizungsanlage demontieren – Heizkörper, Thermostatventile und Rohrleitungen vollständig zurückbauen und entsorgen (Annahme: zentrale Anlage)', einheit:'Pauschal', menge:1, materialpreis:950, stundensatz:65, stunden:0 },
+    { pos:'2.6', beschreibung:'Elektro-Rückbau – Alte Leitungen, Dosen, Schalter und Unterverteiler zurückbauen; Leerrohre entfernen', einheit:'Pauschal', menge:1, materialpreis:680, stundensatz:65, stunden:0 },
+    { pos:'2.7', beschreibung:'Sanitäreinrichtungen demontieren – Badewanne, WC, Waschbecken, Duschkabine und Armaturen demontieren und entsorgen', einheit:'Pauschal', menge:1, materialpreis:520, stundensatz:65, stunden:0 },
+    { pos:'2.8', beschreibung:'Rohrleitungen Wasser/Abwasser entfernen – Alte Wasser- und Abwasserleitungen innerhalb der Wohnung zurückbauen und entsorgen', einheit:'Pauschal', menge:1, materialpreis:480, stundensatz:65, stunden:0 },
+    { pos:'2.9', beschreibung:'Nicht-tragende Zwischenwände abbrechen – Leichte Trennwände (Gips, Holz, Leichtmauerwerk) abbrechen, Schutt entsorgen (Annahme)', einheit:'m²', menge:15, materialpreis:45, stundensatz:65, stunden:0 },
+    { pos:'2.10', beschreibung:'Bauschutt laden und entsorgen – Mineralischen Bauschutt und gemischten Abbruchabfall in Container laden, abfahren und deponieren, inkl. Deponiegebühren (Annahme)', einheit:'t', menge:8, materialpreis:85, stundensatz:65, stunden:0 },
+  ],
+
+  /* 3. Rohbau / Mauerwerk */
+  rohbau: [
+    { pos:'3.1', beschreibung:'Maueröffnungen herstellen – Wanddurchbrüche für neue Fenster oder Türen sägen, Sturz aus Stahl oder Stahlbeton einbauen, inkl. Abtragung und Neuverfugung', einheit:'Stk', menge:3, materialpreis:480, stundensatz:65, stunden:0 },
+    { pos:'3.2', beschreibung:'Neue Trennwände mauern – Innenwände KS 11,5 cm oder Porenbeton-Planziegel einschließlich Mörtelbett, Wandanschlüsse und Klebung', einheit:'m²', menge:20, materialpreis:85, stundensatz:65, stunden:0 },
+    { pos:'3.3', beschreibung:'Wanddurchbrüche schließen und vermauern – Nicht mehr benötigte Öffnungen zumauern, Anschlüsse verputzen und bündig herstellen', einheit:'Stk', menge:2, materialpreis:280, stundensatz:65, stunden:0 },
+    { pos:'3.4', beschreibung:'Kernbohrungen für Installationen – Kernbohrungen ∅ 125 mm für Lüftungsanlagen und Leitungsdurchführungen, inkl. Entstauben', einheit:'Stk', menge:4, materialpreis:185, stundensatz:65, stunden:0 },
+    { pos:'3.5', beschreibung:'Schlitze stemmen im Altbau – Installationsschlitze in bestehendem Mauerwerk stemmen für Elektro- und Sanitär-Leerrohre; Mehraufwand Altbau berücksichtigt (Annahme)', einheit:'m', menge:40, materialpreis:28, stundensatz:65, stunden:0 },
+  ],
+
+  /* 4. Dämmung / Trockenbau */
+  trockenbau: [
+    { pos:'4.1', beschreibung:'Innendämmung Außenwände – Vorsatzschale CW-/UW-Profil mit Mineralwolle 6 cm WLG 035, doppelt beplankt GKB 12,5 mm, inkl. Dampfbremse', einheit:'m²', menge:60, materialpreis:68, stundensatz:65, stunden:0 },
+    { pos:'4.2', beschreibung:'Trittschalldämmung – PE-Trittschalldämmplatten 3 cm auf Rohbeton vollflächig verlegen, Anschlussrandstreifen', einheit:'m²', menge:80, materialpreis:18, stundensatz:65, stunden:0 },
+    { pos:'4.3', beschreibung:'Vorwandinstallation / Installationskanal – Ständerwerk + GKF-Beplankung für Leitungsführung und Vorwandinstallation im Nassbereich', einheit:'m²', menge:12, materialpreis:85, stundensatz:65, stunden:0 },
+    { pos:'4.4', beschreibung:'Abgehängte Decke – Metallunterkonstruktion (CD-/UD-Profile) mit GKB 12,5 mm, plan gespachtelt, für technische Unterdecke', einheit:'m²', menge:20, materialpreis:62, stundensatz:65, stunden:0 },
+  ],
+
+  /* 5. Fenster */
+  fenster: [
+    { pos:'5.1', beschreibung:'Fenster 2-flügelig Dreh/Kipp – Kunststofffenster weiß 2-flügelig, 3-fach-Verglasung Uw ≤ 0,9 W/(m²K), inkl. Einbau, Anschlussband und umlaufender Abdichtung', einheit:'Stk', menge:4, materialpreis:1450, stundensatz:65, stunden:0 },
+    { pos:'5.2', beschreibung:'Fenster 1-flügelig Dreh/Kipp – Kunststofffenster weiß 1-flügelig, 3-fach-Verglasung, inkl. Einbau und Abdichtung', einheit:'Stk', menge:2, materialpreis:980, stundensatz:65, stunden:0 },
+    { pos:'5.3', beschreibung:'Innenfensterbänke – Kunststoff-Fensterbank weiß inkl. Schneiden, Kleben und seitlicher Abschlusskappe', einheit:'Stk', menge:6, materialpreis:95, stundensatz:65, stunden:0 },
+    { pos:'5.4', beschreibung:'Außenfensterbänke Aluminium – Alu-Sohlbank außen, farbig beschichtet, inkl. Anschlüsse und Dichtungen', einheit:'Stk', menge:6, materialpreis:145, stundensatz:65, stunden:0 },
+    { pos:'5.5', beschreibung:'Rollladen motorisch – Aluminium-Rollladen elektrisch motorisiert, inkl. Einbau, Gurtwickler und elektrischem Anschluss', einheit:'Stk', menge:4, materialpreis:685, stundensatz:65, stunden:0 },
+  ],
+
+  /* 5. Türen */
+  tueren: [
+    { pos:'5.6', beschreibung:'Wohnungseingangstür – Stahl-Wohnungseingangstür, Schallschutz 42 dB, Einbruchschutz RC2, inkl. Stahlzarge und vollständigem Einbau', einheit:'Stk', menge:1, materialpreis:2200, stundensatz:65, stunden:0 },
+    { pos:'5.7', beschreibung:'Innentüren Wohnräume – Innentür CPL weiß 88,5 cm, Hohlkern, inkl. Zargenset gefälzt und Schlossgarnitur, Einbau inkl.', einheit:'Stk', menge:5, materialpreis:680, stundensatz:65, stunden:0 },
+    { pos:'5.8', beschreibung:'Innentür Bad/WC – Innentür CPL mit Lüftungsunterschnitt oder -schlitz, inkl. Zarge und Einbau; Schallschutz beachten', einheit:'Stk', menge:1, materialpreis:720, stundensatz:65, stunden:0 },
+  ],
+
+  /* 6. Heizung */
+  heizung: [
+    { pos:'6.1', beschreibung:'Gastherme liefern und einbauen – Wandhängende Kombitherme 20 kW, inkl. Montage, Anschluss Gas/Wasser, Inbetriebnahme und Einregulierung', einheit:'Stk', menge:1, materialpreis:2800, stundensatz:65, stunden:0 },
+    { pos:'6.2', beschreibung:'Fußbodenheizung einbauen – Heizkreisverteiler und Tacker-System MV-Rohr 17×2 mm, vollflächig, Kreise beschriftet und angeschlossen', einheit:'m²', menge:65, materialpreis:48, stundensatz:65, stunden:0 },
+    { pos:'6.3', beschreibung:'Handtuchheizkörper Bad – Design-Handtuchheizkörper elektrisch-hydraulisch, inkl. Anschluss und Thermostatventil', einheit:'Stk', menge:1, materialpreis:480, stundensatz:65, stunden:0 },
+    { pos:'6.4', beschreibung:'Rohrleitungen Heizung – Vor-/Rücklaufleitung in Mehrschichtverbundrohr verlegen, inkl. Wärmedämmschlauch nach GEG', einheit:'m', menge:25, materialpreis:65, stundensatz:65, stunden:0 },
+    { pos:'6.5', beschreibung:'Hydraulischer Abgleich – Einregulierung aller Heizkreise, Systemdruck-Prüfung, Protokoll und Übergabe an Bauherrn', einheit:'Pauschal', menge:1, materialpreis:580, stundensatz:65, stunden:0 },
+  ],
+
+  /* 6. Lüftung */
+  lueftung: [
+    { pos:'6.6', beschreibung:'Dezentrale Lüftungsanlage mit WRG – Dezentrales Lüftungsgerät mit Wärmerückgewinnung je Wohnraum, inkl. Kernbohrung ∅ 125 mm und elektrischem Anschluss', einheit:'Stk', menge:3, materialpreis:950, stundensatz:65, stunden:0 },
+    { pos:'6.7', beschreibung:'Dunstabzug Küche – Umluft- oder Ablufthaube, Abluftkanal inkl. Wanddurchführung mit Rückschlagklappe', einheit:'Pauschal', menge:1, materialpreis:380, stundensatz:65, stunden:0 },
+  ],
+
+  /* 7. Sanitär */
+  sanitaer: [
+    { pos:'7.1', beschreibung:'Trinkwasserleitungen erneuern – Kalt- und Warmwasserleitungen in Mehrschichtverbundrohr, Unterputz, inkl. Absperrungen und Druckprüfung', einheit:'m', menge:30, materialpreis:68, stundensatz:65, stunden:0 },
+    { pos:'7.2', beschreibung:'Abwasserleitungen erneuern – Abwasserleitung schallgedämmt DN 50–110, Wanddurchführungen, inkl. Dichtheitsprüfung', einheit:'m', menge:20, materialpreis:82, stundensatz:65, stunden:0 },
+    { pos:'7.3', beschreibung:'Bodenebene Dusche herstellen – Bodenbündiger Duschbereich inkl. Ablaufrinne, Gefälleestrich, Verbundabdichtung OS 8, Anschlüsse', einheit:'Stk', menge:1, materialpreis:1850, stundensatz:65, stunden:0 },
+    { pos:'7.4', beschreibung:'WC hängend einbauen – Wand-WC mit Geberit-Unterputz-Spülkasten, Betätigungsplatte und Befestigungsrahmen', einheit:'Stk', menge:1, materialpreis:1250, stundensatz:65, stunden:0 },
+    { pos:'7.5', beschreibung:'Waschbecken mit Unterschrank – Waschbecken mit Unterschrank, Einhebelmischer, Siphon-Geruchsverschluss, inkl. Montage', einheit:'Stk', menge:1, materialpreis:950, stundensatz:65, stunden:0 },
+    { pos:'7.6', beschreibung:'Badewanne liefern und einbauen – Acryl-Badewanne 170×75 cm, inkl. Wannenrandarmatur, Ab- und Überlaufgarnitur, Siphon (Annahme)', einheit:'Stk', menge:1, materialpreis:1450, stundensatz:65, stunden:0 },
+    { pos:'7.7', beschreibung:'Warmwasserspeicher – Wandhängender Boiler 80 Liter, inkl. Sicherheitsgruppe, Anschluss Kalt-/Warmwasser', einheit:'Stk', menge:1, materialpreis:680, stundensatz:65, stunden:0 },
+  ],
+
+  /* 8. Elektro */
+  elektro: [
+    { pos:'8.1', beschreibung:'Unterverteilung erneuern – Unterverteiler 3-reihig Unterputz, komplett bestückt mit LS-Schaltern und FI-Schutzschaltern, anschlussfertig', einheit:'Stk', menge:1, materialpreis:850, stundensatz:65, stunden:0 },
+    { pos:'8.2', beschreibung:'Lichtleitungen NYM-J 3×1,5 mm² verlegen – Installationsleitung Unterputz für Beleuchtungs-Stromkreise, inkl. Leerrohre', einheit:'m', menge:150, materialpreis:3.80, stundensatz:65, stunden:0 },
+    { pos:'8.3', beschreibung:'Steckdosenleitungen NYM-J 3×2,5 mm² verlegen – Installationsleitung Unterputz für Steckdosen-Stromkreise, inkl. Leerrohre', einheit:'m', menge:120, materialpreis:5.20, stundensatz:65, stunden:0 },
+    { pos:'8.4', beschreibung:'Schlitzarbeiten Elektro (Altbau-Mehraufwand) – Installationsschlitze in Altbaumauerwerk stemmen und nach Verlegung mit Gips/Mörtel schließen', einheit:'m', menge:80, materialpreis:22, stundensatz:65, stunden:0 },
+    { pos:'8.5', beschreibung:'Schutzkontaktsteckdosen 1-fach einbauen – SK-Steckdose UP 1-fach inkl. Gerätedose, Putzdeckel und Rahmen, anschlussfertig', einheit:'Stk', menge:25, materialpreis:42, stundensatz:65, stunden:0 },
+    { pos:'8.6', beschreibung:'Schalter und Taster einbauen – Wechselschalter und Serienschalter UP inkl. Gerätedose und Rahmen, anschlussfertig', einheit:'Stk', menge:12, materialpreis:40, stundensatz:65, stunden:0 },
+    { pos:'8.7', beschreibung:'Netzwerkdosen CAT7 einbauen – Netzwerkdose CAT7 UP je Raum inkl. Gerätedose und Rahmen', einheit:'Stk', menge:5, materialpreis:62, stundensatz:65, stunden:0 },
+    { pos:'8.8', beschreibung:'Deckenauslässe für Beleuchtung – Deckenauslass UP für Leuchten-Anschluss, inkl. Abhängeleitung und Lüsterklemme', einheit:'Stk', menge:12, materialpreis:38, stundensatz:65, stunden:0 },
+    { pos:'8.9', beschreibung:'Rauchwarnmelder vernetzt – Rauchwarnmelder mit Funkverlinkung nach DIN 14676, je Raum und Flur, inkl. Einbau und Prüfung', einheit:'Stk', menge:4, materialpreis:48, stundensatz:65, stunden:0 },
+    { pos:'8.10', beschreibung:'Klingelanlage erneuern – Klingelanlage komplett mit Taster, Trafo und Klingel erneuern, Leitungen ggf. mitverlegen', einheit:'Pauschal', menge:1, materialpreis:320, stundensatz:65, stunden:0 },
+  ],
+
+  /* 9. Estrich */
+  estrich: [
+    { pos:'9.1', beschreibung:'Zement-Fließestrich ZE65 einbringen – Zementestrich 65 mm auf Trittschalldämmung, vollflächig, Randfugenbewehrung, Estrichgüte CT-C25-F5', einheit:'m²', menge:55, materialpreis:38, stundensatz:65, stunden:0 },
+    { pos:'9.2', beschreibung:'Beheizter Zementestrich ZE70 – Zementestrich 70 mm über Fußbodenheizungssystem, inkl. Nachbeheizen nach Einbauprotokoll', einheit:'m²', menge:25, materialpreis:42, stundensatz:65, stunden:0 },
+  ],
+
+  /* 9. Boden */
+  boden: [
+    { pos:'9.3', beschreibung:'Fertigparkett Eiche verlegen – Fertigparkett Eiche 15 mm geölt, schwimmend auf Dämmunterlage 3 mm, inkl. Anpassungsarbeiten an Türen und Übergängen', einheit:'m²', menge:55, materialpreis:68, stundensatz:65, stunden:0 },
+    { pos:'9.4', beschreibung:'Sockelleisten anbringen – Holz- oder MDF-Sockelleiste 15×58 mm, weiß lackiert, inkl. Befestigung und Eckanschlüsse', einheit:'m', menge:90, materialpreis:14, stundensatz:65, stunden:0 },
+  ],
+
+  /* 9. Fliesen */
+  fliesen: [
+    { pos:'9.5', beschreibung:'Bodenfliesen Bad verlegen – Feinsteinzeug 60×60 cm rutschhemmend R10, auf Flexkleber verlegt, inkl. Kreuzfugen und Fugenmörtel', einheit:'m²', menge:8, materialpreis:75, stundensatz:65, stunden:0 },
+    { pos:'9.6', beschreibung:'Wandfliesen Bad/Dusche verlegen – Wandfliesen 30×60 cm vollflächig bis Decke, großformatig, inkl. Randfliesen und Formteile', einheit:'m²', menge:25, materialpreis:68, stundensatz:65, stunden:0 },
+    { pos:'9.7', beschreibung:'Fugarbeiten und Silikonabschlüsse – Fugen im Nassbereich ausführen, Eckfugen und Anschlüsse an Armaturen mit sanitärem Silikon abdichten', einheit:'Pauschal', menge:1, materialpreis:280, stundensatz:65, stunden:0 },
+  ],
+
+  /* 9. Maler / Putz */
+  maler: [
+    { pos:'9.8', beschreibung:'Innenputz erneuern – Kalkzementputz auf Neubaumauerwerk und reparierte Altbauflächen 15 mm, glatt gerieben, inkl. Voranstrich (Annahme)', einheit:'m²', menge:40, materialpreis:28, stundensatz:65, stunden:0 },
+    { pos:'9.9', beschreibung:'Wände spachteln und streichen – Wandflächen mit Tiefengrund und Gipsflächenspachtel glatt spachteln, anschließend 2× Dispersionsfarbe weiß', einheit:'m²', menge:260, materialpreis:18, stundensatz:65, stunden:0 },
+    { pos:'9.10', beschreibung:'Decken streichen – Deckenflächen mit 2× Dispersionsfarbe weiß streichen, inkl. Grundierung', einheit:'m²', menge:80, materialpreis:16, stundensatz:65, stunden:0 },
+    { pos:'9.11', beschreibung:'Türzargen und Türblätter lackieren – Grundieren und mit 2× Alkydharzlack seidenmatt weiß streichen', einheit:'Stk', menge:6, materialpreis:145, stundensatz:65, stunden:0 },
+  ],
+
+};
+
+/* ═══════════════════════════════════════════════════════════════
    Muster-Modal – Positionsauswahl
 ═══════════════════════════════════════════════════════════════ */
 function addMusterpositionen(gewerkId) {
@@ -3413,6 +3539,69 @@ function insertMusterSelected(gewerkId) {
   renderPositionen(gewerkId);
   autoSave();
   showToast(`${count} Position${count !== 1 ? 'en' : ''} eingefügt ✅`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Kernsanierung-Vorlage laden
+═══════════════════════════════════════════════════════════════ */
+function ladeKernsanierungsVorlage() {
+  const gewerkeList = Object.keys(KERNSANIERUNG_VORLAGE);
+  const totalPos = gewerkeList.reduce((n, k) => n + KERNSANIERUNG_VORLAGE[k].length, 0);
+  const msg =
+    '📋 Kernsanierung-Vorlage laden?\n\n' +
+    'Vorlage: 3-Zimmer-Altbauwohnung, ca. 80 m², Vollsanierung\n' +
+    `${totalPos} Positionen in ${gewerkeList.length} Gewerken:\n\n` +
+    '• Abbruch (Baustelleneinrichtung + Rückbau)\n' +
+    '• Rohbau / Mauerwerk\n' +
+    '• Trockenbau / Dämmung\n' +
+    '• Fenster\n' +
+    '• Türen\n' +
+    '• Heizung\n' +
+    '• Lüftung\n' +
+    '• Sanitär\n' +
+    '• Elektro\n' +
+    '• Estrich\n' +
+    '• Boden\n' +
+    '• Fliesen\n' +
+    '• Maler / Putz\n\n' +
+    'HINWEIS: Mit "Annahme" markierte Positionen bitte an das Projekt anpassen.\n' +
+    'Bestehende Positionen bleiben erhalten (neue werden angehängt).\n' +
+    'Zum vollständigen Ersetzen erst "Zurücksetzen" ausführen.';
+
+  if (!confirm(msg)) return;
+
+  const stdSatz = parseFloat(document.getElementById('defaultStundensatz').value) || 65;
+  let total = 0;
+
+  gewerkeList.forEach(gewerkId => {
+    if (!daten.positionen[gewerkId]) return;
+    KERNSANIERUNG_VORLAGE[gewerkId].forEach(p => {
+      daten.positionen[gewerkId].push({
+        id: ++posIdCounter,
+        pos: p.pos,
+        beschreibung: p.beschreibung,
+        einheit: p.einheit,
+        menge: p.menge,
+        materialpreis: p.materialpreis,
+        stundensatz: stdSatz || p.stundensatz,
+        stunden: p.stunden
+      });
+      total++;
+    });
+    renderPositionen(gewerkId);
+  });
+
+  // Pre-fill project name if empty
+  const projEl = document.getElementById('projektName');
+  if (projEl && !projEl.value.trim()) {
+    projEl.value = 'Kernsanierung 3-Zimmer-Altbauwohnung (ca. 80 m²)';
+    autoSave();
+  }
+
+  autoSave();
+  refreshZusammenfassung();
+  showToast(`✅ Kernsanierung-Vorlage geladen: ${total} Positionen in ${gewerkeList.length} Gewerken`);
+  switchTab('abbruch');
 }
 
 /* ═══════════════════════════════════════════════════════════════
