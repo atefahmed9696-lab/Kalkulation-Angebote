@@ -196,6 +196,48 @@
     .kalk-table tbody tr.subtotal-row {
       background: #eaf1fb !important; font-weight: 700;
     }
+    .kalk-table tbody tr.gruppe-header-row { background: #eef2fa !important; }
+    .kalk-table tbody tr.gruppe-header-row td.gruppe-header {
+      font-size: 11px; font-weight: 700; color: #1a3a5c;
+      text-transform: uppercase; letter-spacing: .4px;
+      padding: 6px 8px; border-left: 3px solid #2e6da4;
+    }
+
+    /* ── LV-Detailansicht (Zusammenfassung) ──────────────────────── */
+    .lv-detail-title {
+      font-size: 14px; font-weight: 700; color: #1a3a5c;
+      margin: 24px 0 14px; padding-bottom: 6px;
+      border-bottom: 2px solid #2e6da4;
+    }
+    .lv-gewerk-block { margin-bottom: 22px; }
+    .lv-gewerk-header {
+      background: linear-gradient(135deg, #1a3a5c, #2e6da4);
+      color: #fff; font-size: 12px; font-weight: 700;
+      padding: 8px 12px; border-radius: 4px 4px 0 0;
+      text-transform: uppercase; letter-spacing: .4px;
+    }
+    .lv-pos-table {
+      width: 100%; border-collapse: collapse; font-size: 12px;
+    }
+    .lv-pos-table thead tr { background: #dde6f3; }
+    .lv-pos-table th {
+      padding: 6px 8px; font-size: 11px; font-weight: 700;
+      text-align: left; color: #1a3a5c; white-space: nowrap;
+    }
+    .lv-pos-table th.right, .lv-pos-table td.right { text-align: right; }
+    .lv-pos-table td {
+      padding: 4px 8px; border-bottom: 1px solid #e8ecf2; vertical-align: top;
+    }
+    .lv-pos-table tbody tr:nth-child(even) { background: #f7f9fc; }
+    .lv-pos-table tr.lv-gruppe-row { background: #eef2fa !important; }
+    .lv-pos-table tr.lv-gruppe-row td {
+      font-size: 11px; font-weight: 700; color: #1a3a5c;
+      text-transform: uppercase; letter-spacing: .4px;
+      border-left: 3px solid #2e6da4; padding: 5px 8px;
+    }
+    .lv-pos-table tfoot tr.lv-gewerk-sum td {
+      background: #dde6f3; font-weight: 700; color: #1a3a5c; padding: 7px 8px;
+    }
     .kalk-table td {
       padding: 5px 6px; border-bottom: 1px solid #e8ecf2;
       vertical-align: middle;
@@ -258,6 +300,12 @@
       .kalk-table { page-break-inside: auto; }
       .kalk-table tr { page-break-inside: avoid; }
       .gesamt-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+     .kalk-table td input, .kalk-table td select {
+       border: none !important; background: transparent !important;
+       padding: 2px 0 !important; font-size: 11px;
+     }
+     .lv-detail-title { margin-top: 16px; }
+     .lv-gewerk-block { page-break-inside: avoid; }
     }
 
     /* ── Responsive ─────────────────────────────────────────────── */
@@ -1370,7 +1418,7 @@ function renderGewerk(g) {
       <h3><span class="icon">${g.icon}</span> ${g.label.replace(/^[^\s]+\s/, '')}</h3>
       <div class="gewerk-actions no-print">
         <button class="btn btn-success btn-sm" onclick="addPosition('${g.id}')">➕ Position hinzufügen</button>
-        <button class="btn btn-warning btn-sm" onclick="addMusterpositionen('${g.id}')">📋 Musterpositionen</button>
+        <button class="btn btn-warning btn-sm" onclick="addMusterpositionen('${g.id}')">📋 LV-Positionen</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -1469,34 +1517,64 @@ function renderPositionen(gewerkId) {
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  daten.positionen[gewerkId].forEach((pos, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="text" value="${esc(pos.pos)}" placeholder="${idx+1}"
-        oninput="updatePos('${gewerkId}',${pos.id},'pos',this.value)" style="width:36px;text-align:center"></td>
-      <td><input type="text" value="${esc(pos.beschreibung)}" placeholder="Leistungsbeschreibung …"
-        oninput="updatePos('${gewerkId}',${pos.id},'beschreibung',this.value)" style="min-width:200px"></td>
-      <td>
-        <select onchange="updatePos('${gewerkId}',${pos.id},'einheit',this.value)">
-          ${EINHEITEN.map(e => `<option value="${e}" ${pos.einheit===e?'selected':''}>${e}</option>`).join('')}
-        </select>
-      </td>
-      <td><input type="number" class="num" value="${pos.menge||''}" placeholder="0" min="0" step="any"
-        oninput="updatePos('${gewerkId}',${pos.id},'menge',this.value)"></td>
-      <td><input type="number" class="num" value="${pos.materialpreis||''}" placeholder="0,00" min="0" step="0.01"
-        oninput="updatePos('${gewerkId}',${pos.id},'materialpreis',this.value)"></td>
-      <td><input type="number" class="num" value="${pos.stundensatz||''}" placeholder="0,00" min="0" step="0.01"
-        oninput="updatePos('${gewerkId}',${pos.id},'stundensatz',this.value)"></td>
-      <td><input type="number" class="num" value="${pos.stunden||''}" placeholder="0" min="0" step="0.1"
-        oninput="updatePos('${gewerkId}',${pos.id},'stunden',this.value)"></td>
-      <td class="right"><span class="gesamtpreis" id="gp-${pos.id}">${formatEur(calcGesamtpreis(pos))}</span></td>
-      <td class="center no-print">
-        <button class="del-btn" onclick="deletePosition('${gewerkId}',${pos.id})" title="Löschen">✕</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  const positionen = daten.positionen[gewerkId];
+  const hasGruppen = positionen.some(p => p.gruppe);
+
+  if (hasGruppen) {
+    const gruppenOrder = [];
+    const gruppenMap = {};
+    positionen.forEach(pos => {
+      const g = pos.gruppe || '';
+      if (!gruppenMap[g]) { gruppenMap[g] = []; gruppenOrder.push(g); }
+      gruppenMap[g].push(pos);
+    });
+    gruppenOrder.forEach(gruppenName => {
+      if (gruppenName) {
+        const headerTr = document.createElement('tr');
+        headerTr.className = 'gruppe-header-row';
+        headerTr.innerHTML = `<td colspan="9" class="gruppe-header">${esc(gruppenName)}</td>`;
+        tbody.appendChild(headerTr);
+      }
+      gruppenMap[gruppenName].forEach((pos, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = buildPosRowHtml(gewerkId, pos, idx);
+        tbody.appendChild(tr);
+      });
+    });
+  } else {
+    positionen.forEach((pos, idx) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = buildPosRowHtml(gewerkId, pos, idx);
+      tbody.appendChild(tr);
+    });
+  }
   updateSumme(gewerkId);
+}
+
+function buildPosRowHtml(gewerkId, pos, idx) {
+  return `
+    <td><input type="text" value="${esc(pos.pos)}" placeholder="${idx+1}"
+      oninput="updatePos('${gewerkId}',${pos.id},'pos',this.value)" style="width:36px;text-align:center"></td>
+    <td><input type="text" value="${esc(pos.beschreibung)}" placeholder="Leistungsbeschreibung …"
+      oninput="updatePos('${gewerkId}',${pos.id},'beschreibung',this.value)" style="min-width:200px"></td>
+    <td>
+      <select onchange="updatePos('${gewerkId}',${pos.id},'einheit',this.value)">
+        ${EINHEITEN.map(e => `<option value="${e}" ${pos.einheit===e?'selected':''}>${e}</option>`).join('')}
+      </select>
+    </td>
+    <td><input type="number" class="num" value="${pos.menge||''}" placeholder="0" min="0" step="any"
+      oninput="updatePos('${gewerkId}',${pos.id},'menge',this.value)"></td>
+    <td><input type="number" class="num" value="${pos.materialpreis||''}" placeholder="0,00" min="0" step="0.01"
+      oninput="updatePos('${gewerkId}',${pos.id},'materialpreis',this.value)"></td>
+    <td><input type="number" class="num" value="${pos.stundensatz||''}" placeholder="0,00" min="0" step="0.01"
+      oninput="updatePos('${gewerkId}',${pos.id},'stundensatz',this.value)"></td>
+    <td><input type="number" class="num" value="${pos.stunden||''}" placeholder="0" min="0" step="0.1"
+      oninput="updatePos('${gewerkId}',${pos.id},'stunden',this.value)"></td>
+    <td class="right"><span class="gesamtpreis" id="gp-${pos.id}">${formatEur(calcGesamtpreis(pos))}</span></td>
+    <td class="center no-print">
+      <button class="del-btn" onclick="deletePosition('${gewerkId}',${pos.id})" title="Löschen">✕</button>
+    </td>
+  `;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3410,7 +3488,7 @@ const KERNSANIERUNG_VORLAGE = {
 ═══════════════════════════════════════════════════════════════ */
 function addMusterpositionen(gewerkId) {
   const muster = MUSTER[gewerkId];
-  if (!muster || muster.length === 0) { showToast('Keine Musterpositionen verfügbar'); return; }
+  if (!muster || muster.length === 0) { showToast('Keine LV-Positionen verfügbar'); return; }
   openMusterModal(gewerkId, muster);
 }
 
@@ -3459,7 +3537,7 @@ function openMusterModal(gewerkId, muster) {
   modal.innerHTML = `
     <div class="modal-box">
       <div class="modal-header">
-        <h3>📋 Musterpositionen – ${title}</h3>
+        <h3>📋 LV-Positionen – ${title}</h3>
         <button class="modal-close" onclick="closeMusterModal()" title="Schließen">✕</button>
       </div>
       <div class="modal-body">${bodyHTML}</div>
@@ -3526,6 +3604,7 @@ function insertMusterSelected(gewerkId) {
     daten.positionen[gewerkId].push({
       id: ++posIdCounter,
       pos: m.pos,
+      gruppe: m.gruppe || '',
       beschreibung: m.beschreibung,
       einheit: m.einheit,
       menge: m.menge,
@@ -3632,6 +3711,7 @@ function renderZusammenfassung() {
       </div>
     </div>
     <div class="summen-grid" id="summenGrid"></div>
+    <div id="lv-detail"></div>
     <div class="notiz-area">
       <label>📝 Allgemeine Anmerkungen / Zahlungsbedingungen:</label>
       <textarea id="notiz-allgemein" placeholder="z.B. Zahlungsziel 14 Tage netto, Gewährleistung 5 Jahre …"
@@ -3680,6 +3760,99 @@ function refreshZusammenfassung() {
       datumEl.textContent = proj;
     }
   }
+  renderLVDetail();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Leistungsverzeichnis – Detailansicht
+   Rendert eine hierarchische LV-Übersicht in der Zusammenfassung:
+   Gewerk → Untergruppe → Einzelpositionen
+═══════════════════════════════════════════════════════════════ */
+function renderLVDetail() {
+  const lvContainer = document.getElementById('lv-detail');
+  if (!lvContainer) return;
+
+  const gewerkeWithPos = GEWERKE.filter(g => !g.spezial && (daten.positionen[g.id] || []).length > 0);
+  if (gewerkeWithPos.length === 0) {
+    lvContainer.innerHTML = '';
+    return;
+  }
+
+  const colHeaders = `
+    <thead>
+      <tr>
+        <th style="width:50px">Pos.</th>
+        <th>Leistungsbeschreibung</th>
+        <th style="width:70px">Einheit</th>
+        <th style="width:70px" class="right">Menge</th>
+        <th style="width:110px" class="right">EP (€/Einheit)</th>
+        <th style="width:120px" class="right">GP (€)</th>
+      </tr>
+    </thead>`;
+
+  let html = '<h4 class="lv-detail-title">📋 Leistungsverzeichnis – Positionsübersicht</h4>';
+
+  gewerkeWithPos.forEach(g => {
+    const positionen = daten.positionen[g.id] || [];
+    if (!positionen.length) return;
+
+    const hasGruppen = positionen.some(p => p.gruppe);
+    const gewerkSum = positionen.reduce((s, p) => s + calcGesamtpreis(p), 0);
+    const gewerkLabel = g.label.replace(/^[^\s]+\s/, '');
+
+    html += `<div class="lv-gewerk-block">
+      <div class="lv-gewerk-header">${g.label}</div>
+      <table class="lv-pos-table">${colHeaders}<tbody>`;
+
+    if (hasGruppen) {
+      const gruppenOrder = [];
+      const gruppenMap = {};
+      positionen.forEach(pos => {
+        const gr = pos.gruppe || '';
+        if (!gruppenMap[gr]) { gruppenMap[gr] = []; gruppenOrder.push(gr); }
+        gruppenMap[gr].push(pos);
+      });
+      gruppenOrder.forEach(gruppenName => {
+        if (gruppenName) {
+          html += `<tr class="lv-gruppe-row"><td colspan="6">${esc(gruppenName)}</td></tr>`;
+        }
+        gruppenMap[gruppenName].forEach(pos => {
+          const ep = (pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          html += `<tr>
+            <td>${esc(pos.pos || '')}</td>
+            <td>${esc(pos.beschreibung || '')}</td>
+            <td>${esc(pos.einheit || '')}</td>
+            <td class="right">${pos.menge != null ? Number(pos.menge).toLocaleString('de-DE') : ''}</td>
+            <td class="right">${ep}</td>
+            <td class="right">${formatEur(calcGesamtpreis(pos))}</td>
+          </tr>`;
+        });
+      });
+    } else {
+      positionen.forEach(pos => {
+        const ep = (pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        html += `<tr>
+          <td>${esc(pos.pos || '')}</td>
+          <td>${esc(pos.beschreibung || '')}</td>
+          <td>${esc(pos.einheit || '')}</td>
+          <td class="right">${pos.menge != null ? Number(pos.menge).toLocaleString('de-DE') : ''}</td>
+          <td class="right">${ep}</td>
+          <td class="right">${formatEur(calcGesamtpreis(pos))}</td>
+        </tr>`;
+      });
+    }
+
+    html += `</tbody>
+      <tfoot>
+        <tr class="lv-gewerk-sum">
+          <td colspan="5" class="right">Summe ${esc(gewerkLabel)}:</td>
+          <td class="right">${formatEur(gewerkSum)}</td>
+        </tr>
+      </tfoot>
+    </table></div>`;
+  });
+
+  lvContainer.innerHTML = html;
 }
 
 /* ═══════════════════════════════════════════════════════════════
