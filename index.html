@@ -1128,6 +1128,7 @@
               <button class="btn btn-warning" onclick="exportJSON()">📤 Exportieren</button>
               <button class="btn btn-warning" onclick="importClick()">📥 Importieren</button>
               <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+              <button class="btn btn-teal" onclick="druckeAktuellesAngebotPDF()">📄 PDF Angebot</button>
               <button class="btn btn-success" onclick="window.print()">🖨️ Drucken / PDF</button>
               <button class="btn btn-danger" onclick="allesZuruecksetzen()">🗑️ Zurücksetzen</button>
             </div>
@@ -7802,6 +7803,232 @@ function deleteAngebot(id) {
   showToast('🗑️ Angebot gelöscht');
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   PDF-Druck: Angebot aus gespeichertem Datensatz
+═══════════════════════════════════════════════════════════════ */
+function druckeAngebotPDF(id) {
+  const angebote = getAngebote();
+  const a = angebote.find(x => x.id === id);
+  if (!a) return;
+  _oeffneAngebotDruckfenster(a.projekt, a.daten);
+}
+
+function druckeAktuellesAngebotPDF() {
+  const pd = {
+    angebotsNr: v('angebotsNr'),
+    datum: v('datum'),
+    projektName: v('projektName'),
+    kunde: v('kunde'),
+    adresse: v('adresse'),
+    bearbeiter: v('bearbeiter'),
+    mwstSatz: v('mwstSatz') || '19',
+  };
+  _oeffneAngebotDruckfenster(pd, daten);
+}
+
+function _oeffneAngebotDruckfenster(proj, angebotDaten) {
+  function fmtEur(val) {
+    return Number(val || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  }
+  function escH(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function calcGP(pos) {
+    return (Number(pos.menge) * Number(pos.materialpreis || 0)) + (Number(pos.stundensatz || 0) * Number(pos.stunden || 0));
+  }
+
+  const gewerkeList = GEWERKE.filter(g => !g.spezial);
+  const gewerkeWithPos = gewerkeList.filter(g => (angebotDaten.positionen[g.id] || []).length > 0);
+
+  let gesamtNetto = 0;
+  gewerkeWithPos.forEach(g => {
+    (angebotDaten.positionen[g.id] || []).forEach(p => { gesamtNetto += calcGP(p); });
+  });
+  const mwst = parseFloat(proj.mwstSatz) || 19;
+  const mwstBetrag = gesamtNetto * mwst / 100;
+  const brutto = gesamtNetto + mwstBetrag;
+
+  const datumFormatiert = proj.datum
+    ? new Date(proj.datum).toLocaleDateString('de-DE')
+    : new Date().toLocaleDateString('de-DE');
+
+  let posBody = '';
+  gewerkeWithPos.forEach(g => {
+    const positionen = angebotDaten.positionen[g.id] || [];
+    const gewerkSum = positionen.reduce((s, p) => s + calcGP(p), 0);
+    const gewerkLabel = g.label.replace(/^[^\s]+\s/, '');
+    const hasGruppen = positionen.some(p => p.gruppe);
+    posBody += `
+      <tr class="gewerk-header-row">
+        <td colspan="6">${escH(g.label)}</td>
+      </tr>`;
+    if (hasGruppen) {
+      const order = [];
+      const map = {};
+      positionen.forEach(p => {
+        const gr = p.gruppe || '';
+        if (!map[gr]) { map[gr] = []; order.push(gr); }
+        map[gr].push(p);
+      });
+      order.forEach(gr => {
+        if (gr) posBody += `<tr class="gruppe-row"><td colspan="6">${escH(gr)}</td></tr>`;
+        map[gr].forEach(pos => {
+          const ep = Number(pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          posBody += `<tr>
+            <td>${escH(pos.pos || '')}</td>
+            <td class="desc">${escH(pos.beschreibung || '')}</td>
+            <td>${escH(pos.einheit || '')}</td>
+            <td class="right">${pos.menge != null ? Number(pos.menge).toLocaleString('de-DE') : ''}</td>
+            <td class="right">${ep} €</td>
+            <td class="right">${fmtEur(calcGP(pos))}</td>
+          </tr>`;
+        });
+      });
+    } else {
+      positionen.forEach(pos => {
+        const ep = Number(pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        posBody += `<tr>
+          <td>${escH(pos.pos || '')}</td>
+          <td class="desc">${escH(pos.beschreibung || '')}</td>
+          <td>${escH(pos.einheit || '')}</td>
+          <td class="right">${pos.menge != null ? Number(pos.menge).toLocaleString('de-DE') : ''}</td>
+          <td class="right">${ep} €</td>
+          <td class="right">${fmtEur(calcGP(pos))}</td>
+        </tr>`;
+      });
+    }
+    posBody += `<tr class="sum-row">
+      <td colspan="5" class="right">Summe ${escH(gewerkLabel)}:</td>
+      <td class="right">${fmtEur(gewerkSum)}</td>
+    </tr>`;
+  });
+
+  const notizAllg = (angebotDaten.notizen && angebotDaten.notizen['allgemein']) || '';
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Angebot ${escH(proj.angebotsNr || '')} – ${escH(proj.projektName || '')}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #222; background: #fff; }
+    .header {
+      background: linear-gradient(135deg, #12294a 0%, #1a3a5c 40%, #2e6da4 100%);
+      color: #fff; padding: 18px 28px 14px; print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    .header h1 { font-size: 18px; font-weight: 800; letter-spacing: .3px; }
+    .header .sub { font-size: 10px; opacity: .75; margin-top: 2px; }
+    .doc-title { font-size: 13px; font-weight: 700; margin-top: 8px; opacity: .9; }
+    .meta { display: flex; justify-content: space-between; padding: 16px 28px 10px; gap: 20px; }
+    .meta-block { flex: 1; }
+    .meta-block h3 { font-size: 9.5px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .5px; color: #666; margin-bottom: 6px; border-bottom: 1px solid #e0e6f0; padding-bottom: 3px; }
+    .meta-block p { font-size: 11.5px; margin-bottom: 3px; line-height: 1.5; }
+    .meta-block .label { color: #888; font-size: 10px; font-weight: 600; }
+    .content { padding: 0 28px 28px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 0; }
+    thead tr { background: #1a3a5c; color: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    th { padding: 7px 8px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; text-align: left; }
+    th.right, td.right { text-align: right; }
+    td { padding: 4px 8px; border-bottom: 1px solid #e8ecf2; vertical-align: top; font-size: 11px; }
+    td.desc { line-height: 1.45; }
+    tr:nth-child(even):not(.gewerk-header-row):not(.gruppe-row):not(.sum-row) { background: #f7f9fc; }
+    tr.gewerk-header-row td {
+      background: linear-gradient(135deg, #1a3a5c, #2e6da4); color: #fff;
+      font-size: 11px; font-weight: 700; padding: 6px 8px;
+      text-transform: uppercase; letter-spacing: .4px;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact;
+    }
+    tr.gruppe-row td {
+      font-size: 10.5px; font-weight: 700; color: #1a3a5c;
+      background: #eef2fa; text-transform: uppercase; letter-spacing: .4px;
+      border-left: 3px solid #2e6da4; padding: 5px 8px;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact;
+    }
+    tr.sum-row td { background: #dde6f3; font-weight: 700; color: #1a3a5c; padding: 5px 8px;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .totals { margin-top: 18px; display: flex; justify-content: flex-end; }
+    .totals-box { border: 1px solid #d0d7e2; border-radius: 8px; overflow: hidden; min-width: 280px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 6px 14px; font-size: 12px; border-bottom: 1px solid #e8ecf2; }
+    .totals-row:last-child { border-bottom: none; }
+    .totals-row.brutto {
+      background: linear-gradient(135deg, #1a3a5c, #2e6da4); color: #fff;
+      font-weight: 800; font-size: 13px;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact;
+    }
+    .totals-row .lbl { color: #555; }
+    .totals-row.brutto .lbl { color: #fff; }
+    .notizen { margin-top: 20px; padding: 12px 14px; background: #f7f9fc; border-radius: 6px; border: 1px solid #e0e6f0; }
+    .notizen h4 { font-size: 10px; font-weight: 800; color: #1a3a5c; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .notizen p { font-size: 11px; line-height: 1.6; white-space: pre-wrap; }
+    .footer { margin-top: 30px; padding: 10px 28px; border-top: 1px solid #e0e6f0; font-size: 9.5px; color: #aaa; text-align: center; }
+    @media print {
+      body { font-size: 10px; }
+      tr.gewerk-header-row td, tr.gruppe-row td, tr.sum-row td,
+      .totals-row.brutto, thead tr { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      tr { page-break-inside: avoid; }
+      .lv-block { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🏗️ GU Sanierungsbetrieb</h1>
+    <div class="sub">Kalkulation &amp; Angebote</div>
+    <div class="doc-title">📋 Angebot / Leistungsverzeichnis</div>
+  </div>
+  <div class="meta">
+    <div class="meta-block">
+      <h3>Auftraggeber</h3>
+      ${proj.kunde ? `<p><strong>${escH(proj.kunde)}</strong></p>` : ''}
+      ${proj.adresse ? `<p>${escH(proj.adresse)}</p>` : ''}
+    </div>
+    <div class="meta-block">
+      <h3>Projektdetails</h3>
+      ${proj.projektName ? `<p><span class="label">Projekt:</span> <strong>${escH(proj.projektName)}</strong></p>` : ''}
+      ${proj.angebotsNr ? `<p><span class="label">Angebots-Nr.:</span> ${escH(proj.angebotsNr)}</p>` : ''}
+      <p><span class="label">Datum:</span> ${datumFormatiert}</p>
+      ${proj.bearbeiter ? `<p><span class="label">Bearbeiter:</span> ${escH(proj.bearbeiter)}</p>` : ''}
+    </div>
+  </div>
+  <div class="content">
+    ${gewerkeWithPos.length === 0 ? '<p style="color:#999;text-align:center;padding:24px">Keine Positionen vorhanden.</p>' : `
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50px">Pos.</th>
+          <th>Leistungsbeschreibung</th>
+          <th style="width:60px">Einheit</th>
+          <th style="width:65px" class="right">Menge</th>
+          <th style="width:100px" class="right">EP (€)</th>
+          <th style="width:110px" class="right">GP (€)</th>
+        </tr>
+      </thead>
+      <tbody>${posBody}</tbody>
+    </table>`}
+    <div class="totals">
+      <div class="totals-box">
+        <div class="totals-row"><span class="lbl">Nettobetrag:</span> <strong>${fmtEur(gesamtNetto)}</strong></div>
+        <div class="totals-row"><span class="lbl">MwSt. ${mwst}%:</span> <strong>${fmtEur(mwstBetrag)}</strong></div>
+        <div class="totals-row brutto"><span class="lbl">Gesamtbetrag brutto:</span> <strong>${fmtEur(brutto)}</strong></div>
+      </div>
+    </div>
+    ${notizAllg ? `<div class="notizen"><h4>Anmerkungen / Zahlungsbedingungen</h4><p>${escH(notizAllg)}</p></div>` : ''}
+  </div>
+  <div class="footer">GU Sanierungsbetrieb – Dieses Dokument wurde automatisch erstellt.</div>
+  <script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { alert('Popup-Fenster wurde blockiert. Bitte Popup-Blocker deaktivieren.'); return; }
+  win.document.write(html);
+  win.document.close();
+}
+
 function neueKalkulation() {
   if (!confirm('Neue Kalkulation starten? Aktuelle nicht gespeicherte Daten gehen verloren.')) return;
   // Clear all positions
@@ -7905,6 +8132,7 @@ function angebotCardHtml(a, type) {
       <span class="list-card-betrag">${betrag} €</span>
       <div style="display:flex;gap:5px">
         <button class="btn btn-primary btn-sm" onclick="loadAngebotInKalkulation('${a.id}')">✏️ Bearbeiten</button>
+        <button class="btn btn-teal btn-sm" onclick="druckeAngebotPDF('${a.id}')">📄 PDF</button>
         ${type === 'draft' ? `<button class="btn btn-success btn-sm" onclick="angebotFreigebenById('${a.id}')">✅ Freigeben</button>` : ''}
         ${type === 'done' ? `<button class="btn btn-info btn-sm" onclick="rechnungAusAngebot('${a.id}')">🧾 Rechnung</button>` : ''}
         <button class="btn btn-danger btn-sm" onclick="deleteAngebot('${a.id}')">🗑️</button>
