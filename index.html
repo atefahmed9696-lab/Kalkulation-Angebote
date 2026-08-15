@@ -7734,6 +7734,7 @@ function calcAngebotsGesamtbrutto() {
 }
 
 function angebotAlsDraftSpeichern() {
+  syncNotizenAusForm();
   const pd = getCurrentProjektdaten();
   if (!pd.projektName && !pd.kunde) {
     alert('Bitte mindestens Projektname oder Kunde eingeben.');
@@ -7761,6 +7762,7 @@ function angebotAlsDraftSpeichern() {
 }
 
 function angebotFreigeben() {
+  syncNotizenAusForm();
   const pd = getCurrentProjektdaten();
   if (!pd.projektName) { alert('Bitte Projektname eingeben.'); return; }
   if (!confirm(`Angebot "${pd.projektName}" freigeben und als Projekt anlegen?`)) return;
@@ -7809,12 +7811,17 @@ function loadAngebotInKalkulation(id) {
       }
     });
   }
-  if (a.daten?.notizen) daten.notizen = { ...daten.notizen, ...a.daten.notizen };
+  // Reset all notizen first to avoid stale values from previous session
+  GEWERKE.filter(g => !g.spezial).forEach(g => { daten.notizen[g.id] = ''; });
+  daten.notizen['allgemein'] = '';
+  if (a.daten?.notizen) Object.assign(daten.notizen, a.daten.notizen);
   GEWERKE.filter(g => !g.spezial).forEach(g => {
     renderPositionen(g.id);
     const notizEl = document.getElementById('notiz-' + g.id);
     if (notizEl) notizEl.value = daten.notizen[g.id] || '';
   });
+  const notizAllgEl = document.getElementById('notiz-allgemein');
+  if (notizAllgEl) notizAllgEl.value = daten.notizen['allgemein'] || '';
   refreshZusammenfassung();
   speichern();
   showPage('kalkulation');
@@ -8082,8 +8089,14 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
 function neueKalkulation() {
   if (!confirm('Neue Kalkulation starten? Aktuelle nicht gespeicherte Daten gehen verloren.')) return;
   // Clear all positions
-  GEWERKE.filter(g => !g.spezial).forEach(g => { daten.positionen[g.id] = []; });
+  GEWERKE.filter(g => !g.spezial).forEach(g => {
+    daten.positionen[g.id] = [];
+    const notizEl = document.getElementById('notiz-' + g.id);
+    if (notizEl) notizEl.value = '';
+  });
   daten.notizen = {};
+  const notizAllgEl = document.getElementById('notiz-allgemein');
+  if (notizAllgEl) notizAllgEl.value = '';
   ['angebotsNr','datum','projektName','kunde','adresse','bearbeiter'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
