@@ -7901,6 +7901,10 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
       <td colspan="5" class="right">Summe ${escH(gewerkLabel)}:</td>
       <td class="right">${fmtEur(gewerkSum)}</td>
     </tr>`;
+    const notizGewerk = (angebotDaten.notizen && angebotDaten.notizen[g.id]) || '';
+    if (notizGewerk) {
+      posBody += `<tr class="notiz-row"><td colspan="6"><span class="notiz-label">📝 Bemerkung:</span> ${escH(notizGewerk)}</td></tr>`;
+    }
   });
 
   const notizAllg = (angebotDaten.notizen && angebotDaten.notizen['allgemein']) || '';
@@ -7949,6 +7953,10 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
     }
     tr.sum-row td { background: #dde6f3; font-weight: 700; color: #1a3a5c; padding: 5px 8px;
       print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    tr.notiz-row td { background: #fffbe6; font-size: 10.5px; color: #555; padding: 5px 8px;
+      white-space: pre-wrap; border-left: 3px solid #f0c040;
+      print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    tr.notiz-row .notiz-label { font-weight: 700; color: #8a6d00; }
     .totals { margin-top: 18px; display: flex; justify-content: flex-end; }
     .totals-box { border: 1px solid #d0d7e2; border-radius: 8px; overflow: hidden; min-width: 280px; }
     .totals-row { display: flex; justify-content: space-between; padding: 6px 14px; font-size: 12px; border-bottom: 1px solid #e8ecf2; }
