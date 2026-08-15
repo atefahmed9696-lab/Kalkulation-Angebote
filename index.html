@@ -238,6 +238,13 @@
     .lv-pos-table tfoot tr.lv-gewerk-sum td {
       background: #dde6f3; font-weight: 700; color: #1a3a5c; padding: 7px 8px;
     }
+    .lv-gewerk-note {
+      margin-top: 10px; padding: 10px 12px;
+      background: #fffbe6; border-left: 3px solid #f0c040;
+      color: #555; font-size: 12px; line-height: 1.55;
+      white-space: pre-wrap;
+    }
+    .lv-gewerk-note strong { color: #8a6d00; }
     .kalk-table td {
       padding: 5px 6px; border-bottom: 1px solid #e8ecf2;
       vertical-align: middle;
@@ -3773,8 +3780,13 @@ function renderLVDetail() {
   const lvContainer = document.getElementById('lv-detail');
   if (!lvContainer) return;
 
-  const gewerkeWithPos = GEWERKE.filter(g => !g.spezial && (daten.positionen[g.id] || []).length > 0);
-  if (gewerkeWithPos.length === 0) {
+  const gewerkeWithContent = GEWERKE.filter(g => {
+    if (g.spezial) return false;
+    const positionen = daten.positionen[g.id] || [];
+    const notiz = String(daten.notizen[g.id] || '').trim();
+    return positionen.length > 0 || !!notiz;
+  });
+  if (gewerkeWithContent.length === 0) {
     lvContainer.innerHTML = '';
     return;
   }
@@ -3793,31 +3805,44 @@ function renderLVDetail() {
 
   let html = '<h4 class="lv-detail-title">📋 Leistungsverzeichnis – Positionsübersicht</h4>';
 
-  gewerkeWithPos.forEach(g => {
+  gewerkeWithContent.forEach(g => {
     const positionen = daten.positionen[g.id] || [];
-    if (!positionen.length) return;
+    const notizGewerk = String(daten.notizen[g.id] || '').trim();
 
     const hasGruppen = positionen.some(p => p.gruppe);
     const gewerkSum = positionen.reduce((s, p) => s + calcGesamtpreis(p), 0);
     const gewerkLabel = g.label.replace(/^[^\s]+\s/, '');
 
-    html += `<div class="lv-gewerk-block">
-      <div class="lv-gewerk-header">${g.label}</div>
-      <table class="lv-pos-table">${colHeaders}<tbody>`;
+    html += `<div class="lv-gewerk-block"><div class="lv-gewerk-header">${g.label}</div>`;
 
-    if (hasGruppen) {
-      const gruppenOrder = [];
-      const gruppenMap = {};
-      positionen.forEach(pos => {
-        const gr = pos.gruppe || '';
-        if (!gruppenMap[gr]) { gruppenMap[gr] = []; gruppenOrder.push(gr); }
-        gruppenMap[gr].push(pos);
-      });
-      gruppenOrder.forEach(gruppenName => {
-        if (gruppenName) {
-          html += `<tr class="lv-gruppe-row"><td colspan="6">${esc(gruppenName)}</td></tr>`;
-        }
-        gruppenMap[gruppenName].forEach(pos => {
+    if (positionen.length) {
+      html += `<table class="lv-pos-table">${colHeaders}<tbody>`;
+      if (hasGruppen) {
+        const gruppenOrder = [];
+        const gruppenMap = {};
+        positionen.forEach(pos => {
+          const gr = pos.gruppe || '';
+          if (!gruppenMap[gr]) { gruppenMap[gr] = []; gruppenOrder.push(gr); }
+          gruppenMap[gr].push(pos);
+        });
+        gruppenOrder.forEach(gruppenName => {
+          if (gruppenName) {
+            html += `<tr class="lv-gruppe-row"><td colspan="6">${esc(gruppenName)}</td></tr>`;
+          }
+          gruppenMap[gruppenName].forEach(pos => {
+            const ep = (pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            html += `<tr>
+              <td>${esc(pos.pos || '')}</td>
+              <td>${esc(pos.beschreibung || '')}</td>
+              <td>${esc(pos.einheit || '')}</td>
+              <td class="right">${pos.menge != null ? Number(pos.menge).toLocaleString('de-DE') : ''}</td>
+              <td class="right">${ep}</td>
+              <td class="right">${formatEur(calcGesamtpreis(pos))}</td>
+            </tr>`;
+          });
+        });
+      } else {
+        positionen.forEach(pos => {
           const ep = (pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
           html += `<tr>
             <td>${esc(pos.pos || '')}</td>
@@ -3828,29 +3853,23 @@ function renderLVDetail() {
             <td class="right">${formatEur(calcGesamtpreis(pos))}</td>
           </tr>`;
         });
-      });
-    } else {
-      positionen.forEach(pos => {
-        const ep = (pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        html += `<tr>
-          <td>${esc(pos.pos || '')}</td>
-          <td>${esc(pos.beschreibung || '')}</td>
-          <td>${esc(pos.einheit || '')}</td>
-          <td class="right">${pos.menge != null ? Number(pos.menge).toLocaleString('de-DE') : ''}</td>
-          <td class="right">${ep}</td>
-          <td class="right">${formatEur(calcGesamtpreis(pos))}</td>
-        </tr>`;
-      });
+      }
+
+      html += `</tbody>
+        <tfoot>
+          <tr class="lv-gewerk-sum">
+            <td colspan="5" class="right">Summe ${esc(gewerkLabel)}:</td>
+            <td class="right">${formatEur(gewerkSum)}</td>
+          </tr>
+        </tfoot>
+      </table>`;
     }
 
-    html += `</tbody>
-      <tfoot>
-        <tr class="lv-gewerk-sum">
-          <td colspan="5" class="right">Summe ${esc(gewerkLabel)}:</td>
-          <td class="right">${formatEur(gewerkSum)}</td>
-        </tr>
-      </tfoot>
-    </table></div>`;
+    if (notizGewerk) {
+      html += `<div class="lv-gewerk-note"><strong>📝 Notizen / Hinweise:</strong> ${esc(notizGewerk)}</div>`;
+    }
+
+    html += `</div>`;
   });
 
   lvContainer.innerHTML = html;
@@ -7838,10 +7857,14 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
   }
 
   const gewerkeList = GEWERKE.filter(g => !g.spezial);
-  const gewerkeWithPos = gewerkeList.filter(g => (angebotDaten.positionen[g.id] || []).length > 0);
+  const gewerkeWithContent = gewerkeList.filter(g => {
+    const positionen = angebotDaten.positionen[g.id] || [];
+    const notiz = String((angebotDaten.notizen && angebotDaten.notizen[g.id]) || '').trim();
+    return positionen.length > 0 || !!notiz;
+  });
 
   let gesamtNetto = 0;
-  gewerkeWithPos.forEach(g => {
+  gewerkeWithContent.forEach(g => {
     (angebotDaten.positionen[g.id] || []).forEach(p => { gesamtNetto += calcGP(p); });
   });
   const mwst = parseFloat(proj.mwstSatz) || 19;
@@ -7853,19 +7876,20 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
     : new Date().toLocaleDateString('de-DE');
 
   let posBody = '';
-  gewerkeWithPos.forEach(g => {
+  gewerkeWithContent.forEach(g => {
     const positionen = angebotDaten.positionen[g.id] || [];
+    const notizGewerk = String((angebotDaten.notizen && angebotDaten.notizen[g.id]) || '').trim();
     const gewerkSum = positionen.reduce((s, p) => s + calcGP(p), 0);
     const gewerkLabel = g.label.replace(/^[^\s]+\s/, '');
     const hasGruppen = positionen.some(p => p.gruppe);
     posBody += `
-      <tr class="gewerk-header-row">
+        <tr class="gewerk-header-row">
         <td colspan="6">${escH(g.label)}</td>
-      </tr>`;
-    if (hasGruppen) {
-      const order = [];
-      const map = {};
-      positionen.forEach(p => {
+        </tr>`;
+    if (positionen.length && hasGruppen) {
+        const order = [];
+        const map = {};
+        positionen.forEach(p => {
         const gr = p.gruppe || '';
         if (!map[gr]) { map[gr] = []; order.push(gr); }
         map[gr].push(p);
@@ -7884,7 +7908,7 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
           </tr>`;
         });
       });
-    } else {
+    } else if (positionen.length) {
       positionen.forEach(pos => {
         const ep = Number(pos.materialpreis || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         posBody += `<tr>
@@ -7897,11 +7921,12 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
         </tr>`;
       });
     }
-    posBody += `<tr class="sum-row">
-      <td colspan="5" class="right">Summe ${escH(gewerkLabel)}:</td>
-      <td class="right">${fmtEur(gewerkSum)}</td>
-    </tr>`;
-    const notizGewerk = (angebotDaten.notizen && angebotDaten.notizen[g.id]) || '';
+    if (positionen.length) {
+      posBody += `<tr class="sum-row">
+        <td colspan="5" class="right">Summe ${escH(gewerkLabel)}:</td>
+        <td class="right">${fmtEur(gewerkSum)}</td>
+      </tr>`;
+    }
     if (notizGewerk) {
       posBody += `<tr class="notiz-row"><td colspan="6"><span class="notiz-label">📝 Bemerkung:</span> ${escH(notizGewerk)}</td></tr>`;
     }
@@ -8003,7 +8028,7 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
     </div>
   </div>
   <div class="content">
-    ${gewerkeWithPos.length === 0 ? '<p style="color:#999;text-align:center;padding:24px">Keine Positionen vorhanden.</p>' : `
+    ${gewerkeWithContent.length === 0 ? '<p style="color:#999;text-align:center;padding:24px">Keine Positionen oder Hinweise vorhanden.</p>' : `
     <table>
       <thead>
         <tr>
