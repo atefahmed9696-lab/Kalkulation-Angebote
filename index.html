@@ -3863,6 +3863,15 @@ function renderLVDetail() {
           </tr>
         </tfoot>
       </table>`;
+    } else if (notizGewerk) {
+      html += `<table class="lv-pos-table">${colHeaders}<tbody></tbody>
+        <tfoot>
+          <tr class="lv-gewerk-sum">
+            <td colspan="5" class="right">Summe ${esc(gewerkLabel)}:</td>
+            <td class="right">${formatEur(gewerkSum)}</td>
+          </tr>
+        </tfoot>
+      </table>`;
     }
 
     if (notizGewerk) {
@@ -7833,6 +7842,7 @@ function druckeAngebotPDF(id) {
 }
 
 function druckeAktuellesAngebotPDF() {
+  syncNotizenAusForm();
   const pd = {
     angebotsNr: v('angebotsNr'),
     datum: v('datum'),
@@ -7843,6 +7853,15 @@ function druckeAktuellesAngebotPDF() {
     mwstSatz: v('mwstSatz') || '19',
   };
   _oeffneAngebotDruckfenster(pd, daten);
+}
+
+function syncNotizenAusForm() {
+  GEWERKE.filter(g => !g.spezial).forEach(g => {
+    const el = document.getElementById('notiz-' + g.id);
+    if (el) daten.notizen[g.id] = el.value || '';
+  });
+  const allgEl = document.getElementById('notiz-allgemein');
+  if (allgEl) daten.notizen['allgemein'] = allgEl.value || '';
 }
 
 function _oeffneAngebotDruckfenster(proj, angebotDaten) {
@@ -7921,12 +7940,10 @@ function _oeffneAngebotDruckfenster(proj, angebotDaten) {
         </tr>`;
       });
     }
-    if (positionen.length) {
-      posBody += `<tr class="sum-row">
-        <td colspan="5" class="right">Summe ${escH(gewerkLabel)}:</td>
-        <td class="right">${fmtEur(gewerkSum)}</td>
-      </tr>`;
-    }
+    posBody += `<tr class="sum-row">
+      <td colspan="5" class="right">Summe ${escH(gewerkLabel)}:</td>
+      <td class="right">${fmtEur(gewerkSum)}</td>
+    </tr>`;
     if (notizGewerk) {
       posBody += `<tr class="notiz-row"><td colspan="6"><span class="notiz-label">📝 Bemerkung:</span> ${escH(notizGewerk)}</td></tr>`;
     }
