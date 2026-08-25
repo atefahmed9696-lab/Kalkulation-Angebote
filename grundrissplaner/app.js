@@ -1,0 +1,718 @@
+import {
+  FloorPlanModel
+} from "./model.js";
+import { PriceCalculator } from "./services/PriceCalculator.js";
+import {
+  Renderer
+} from "./renderer.js";
+import {
+  Renderer3D
+} from "./renderer3d.js";
+import {
+  ToolController
+} from "./tools.js";
+import {
+  exportCanvasToPDF,
+  exportCanvasToPNG
+} from "./pdf-export.js";
+const canvas = document.getElementById("canvas");
+const canvas3d = document.getElementById("canvas3d");
+const model = new FloorPlanModel();
+const renderer = new Renderer(canvas, model);
+const renderer3d = new Renderer3D(canvas3d, model);
+const AUTOSAVE_KEY = "grundrissplaner.v2.autosave";
+const BACKUP_KEY = "grundrissplaner.v2.backups";
+const BACKUP_LIMIT = 20;
+let viewMode = "2d";
+const ui = {
+  toolButtons: [...document.querySelectorAll(".tool-btn")],
+  layerCheckboxes: [...document.querySelectorAll("[data-layer]")],
+  snapToggle: document.getElementById("snap-toggle"),
+  gridSizeInput: document.getElementById("grid-size"),
+  wallThicknessInput: document.getElementById("wall-thickness"),
+  catalogSelect: document.getElementById("catalog-select"),
+  propertiesPanel: document.getElementById("properties-panel"),
+  statusLeft: document.getElementById("status-left"),
+  statusCenter: document.getElementById("status-center"),
+  statusRight: document.getElementById("status-right"),
+  floorSelect: document.getElementById("floor-select"),
+  planWidthInput: document.getElementById("plan-width"),
+  planXInput: document.getElementById("plan-x"),
+  planYInput: document.getElementById("plan-y"),
+  planOpacityInput: document.getElementById("plan-opacity"),
+  setStatusTool(tool) {
+    const names = {
+      select: "Auswahl",
+      wall: "Wand",
+      door: "Tür",
+      window: "Fenster",
+      dimension: "Bemaßung",
+      electrical: "Elektro",
+      sanitary: "Sanitär",
+      heating: "Heizung",
+      drywall: "Trockenbau",
+      furniture: "Möbel"
+    };
+    this.statusLeft.textContent = `Werkzeug: ${names[tool] ?? tool}`;
+  },
+  populateCatalog(layer, items, selectedId) {
+    this.catalogSelect.innerHTML = "";
+    if (!layer || !items.length) {
+      const opt = document.createElement("option");
+      opt.textContent = "Kein Katalog aktiv";
+      opt.value = "";
+      this.catalogSelect.appendChild(opt);
+      return;
+    }
+    for (const item of items) {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = item.name;
+      if (item.id === selectedId) opt.selected = true;
+      this.catalogSelect.appendChild(opt);
+    }
+  },
+  refreshFloorList() {
+    this.floorSelect.innerHTML = "";
+    for (const floor of model.floors) {
+      const opt = document.createElement("option");
+      opt.value = floor.id;
+      opt.textContent = floor.name;
+      if (floor.id === model.currentFloorId) opt.selected = true;
+      this.floorSelect.appendChild(opt);
+    }
+  },
+  updateProperties(selected) {
+    if (!selected) {
+      this.propertiesPanel.innerHTML = `        <div class="prop-row"><span class="prop-label">Projekt</span></div>        <div class="prop-row">Projektname <input id="meta-project-name" type="text" value="${model.projectMeta.projectName}"></div>        <div class="prop-row">Zeichnung <input id="meta-drawing-title" type="text" value="${model.projectMeta.drawingTitle}"></div>        <div class="prop-row">Maßstab <input id="meta-scale-label" type="text" value="${model.projectMeta.scaleLabel}"></div>        <div class="prop-row">Format <input id="meta-paper-format" type="text" value="${model.projectMeta.paperFormat}"></div>        <button id="apply-meta">Projekt übernehmen</button>      `;
+      document.getElementById("apply-meta").onclick = () => {
+        model.saveHistory("updateProjectMeta");
+        model.projectMeta.projectName = document.getElementById("meta-project-name").value;
+        model.projectMeta.drawingTitle = document.getElementById("meta-drawing-title").value;
+        model.projectMeta.scaleLabel = document.getElementById("meta-scale-label").value;
+        model.projectMeta.paperFormat = document.getElementById("meta-paper-format").value;
+        refreshAll();
+      };
+      return;
+    }
+    if (selected.type === "wall") {
+      this.propertiesPanel.innerHTML = `        <div class="prop-row"><span class="prop-label">Typ</span>: Wand</div>        <div class="prop-row">Start X <input id="prop-start-x" type="number" step="0.1" value="${selected.start.x}"></div>        <div class="prop-row">Start Y <input id="prop-start-y" type="number" step="0.1" value="${selected.start.y}"></div>        <div class="prop-row">Ende X <input id="prop-end-x" type="number" step="0.1" value="${selected.end.x}"></div>        <div class="prop-row">Ende Y <input id="prop-end-y" type="number" step="0.1" value="${selected.end.y}"></div>        <div class="prop-row">Stärke <input id="prop-thickness" type="number" min="0.05" step="0.01" value="${selected.thickness}"></div>        <button id="apply-props">Übernehmen</button>      `;
+      document.getElementById("apply-props").onclick = () => {
+        model.updateWall(selected.id, {
+          start: {
+            x: Number(document.getElementById("prop-start-x").value),
+            y: Number(document.getElementById("prop-start-y").value)
+          },
+          end: {
+            x: Number(document.getElementById("prop-end-x").value),
+            y: Number(document.getElementById("prop-end-y").value)
+          },
+          thickness: Number(document.getElementById("prop-thickness").value)
+        });
+        refreshAll();
+      };
+      return;
+    }
+    if (selected.type === "object") {
+      this.propertiesPanel.innerHTML = `        <div class="prop-row"><span class="prop-label">Typ</span>: ${selected.name}</div>        <div class="prop-row">Name <input id="prop-name" type="text" value="${selected.name}"></div>        <div class="prop-row">X <input id="prop-x" type="number" step="0.1" value="${selected.x}"></div>        <div class="prop-row">Y <input id="prop-y" type="number" step="0.1" value="${selected.y}"></div>        <div class="prop-row">Breite <input id="prop-width" type="number" min="0.05" step="0.05" value="${selected.width}"></div>        <div class="prop-row">Höhe <input id="prop-height" type="number" min="0.05" step="0.05" value="${selected.height}"></div>        <div class="prop-row">Rotation <input id="prop-rotation" type="number" step="0.1" value="${selected.rotation}"></div>        <button id="apply-props">Übernehmen</button>      `;
+      document.getElementById("apply-props").onclick = () => {
+        model.updateObject(selected.id, {
+          name: document.getElementById("prop-name").value,
+          x: Number(document.getElementById("prop-x").value),
+          y: Number(document.getElementById("prop-y").value),
+          width: Number(document.getElementById("prop-width").value),
+          height: Number(document.getElementById("prop-height").value),
+          rotation: Number(document.getElementById("prop-rotation").value)
+        });
+        refreshAll();
+      };
+      return;
+    }
+    if (selected.type === "door" || selected.type === "window") {
+      this.propertiesPanel.innerHTML = `        <div class="prop-row"><span class="prop-label">Typ</span>: ${selected.type}</div>        <div class="prop-row">Position t <input id="prop-t" type="number" min="0.05" max="0.95" step="0.01" value="${selected.positionT}"></div>        <div class="prop-row">Breite <input id="prop-width" type="number" min="0.2" step="0.05" value="${selected.width}"></div>        <div class="prop-row">Brüstung <input id="prop-sill" type="number" min="0" step="0.05" value="${selected.sillHeight}"></div>        <div class="prop-row">Höhe <input id="prop-height" type="number" min="0.2" step="0.05" value="${selected.height}"></div>        <button id="apply-props">Übernehmen</button>      `;
+      document.getElementById("apply-props").onclick = () => {
+        model.updateOpening(selected.id, {
+          positionT: Number(document.getElementById("prop-t").value),
+          width: Number(document.getElementById("prop-width").value),
+          sillHeight: Number(document.getElementById("prop-sill").value),
+          height: Number(document.getElementById("prop-height").value)
+        });
+        refreshAll();
+      };
+      return;
+    }
+    if (selected.type === "dimension") {
+      this.propertiesPanel.innerHTML = `        <div class="prop-row"><span class="prop-label">Typ</span>: Bemaßung</div>        <div class="prop-row">Start X <input id="prop-start-x" type="number" step="0.1" value="${selected.start.x}"></div>        <div class="prop-row">Start Y <input id="prop-start-y" type="number" step="0.1" value="${selected.start.y}"></div>        <div class="prop-row">Ende X <input id="prop-end-x" type="number" step="0.1" value="${selected.end.x}"></div>        <div class="prop-row">Ende Y <input id="prop-end-y" type="number" step="0.1" value="${selected.end.y}"></div>        <div class="prop-row">Offset <input id="prop-offset" type="number" step="0.05" value="${selected.offset ?? 0.25}"></div>        <button id="apply-props">Übernehmen</button>      `;
+      document.getElementById("apply-props").onclick = () => {
+        model.updateDimension(selected.id, {
+          start: {
+            x: Number(document.getElementById("prop-start-x").value),
+            y: Number(document.getElementById("prop-start-y").value)
+          },
+          end: {
+            x: Number(document.getElementById("prop-end-x").value),
+            y: Number(document.getElementById("prop-end-y").value)
+          },
+          offset: Number(document.getElementById("prop-offset").value)
+        });
+        refreshAll();
+      };
+      return;
+    }
+    this.propertiesPanel.innerHTML = "<div>Kein editierbares Objekt ausgewählt.</div>";
+  },
+  updateArea() {
+    const total = model.rooms.reduce((sum, room) => sum + room.area, 0);
+    const floorName = model.getCurrentFloor()?.name ?? "-";
+    this.statusRight.textContent = `${floorName} · Fläche: ${total.toFixed(2)} m²`;
+  }
+};
+const tools = new ToolController(model, renderer, ui);
+
+function readJSONStorage(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJSONStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore storage quota / availability errors
+  }
+}
+
+function createInfrastructureBackup(reason = "manual") {
+  const backups = readJSONStorage(BACKUP_KEY, []);
+  backups.push({
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    reason,
+    version: model.projectMeta.versionLabel || "V2.8",
+    state: model.getSerializableState()
+  });
+  while (backups.length > BACKUP_LIMIT) backups.shift();
+  writeJSONStorage(BACKUP_KEY, backups);
+}
+
+function restoreLatestInfrastructureBackup() {
+  const backups = readJSONStorage(BACKUP_KEY, []);
+  const latest = backups[backups.length - 1];
+  if (!latest?.state) return false;
+  model.applyState(latest.state);
+  model.history = [model.getSerializableState()];
+  model.future = [];
+  return true;
+}
+
+function persistAutosave() {
+  writeJSONStorage(AUTOSAVE_KEY, {
+    savedAt: new Date().toISOString(),
+    state: model.getSerializableState()
+  });
+}
+
+function loadAutosaveOnStartup() {
+  const saved = readJSONStorage(AUTOSAVE_KEY, null);
+  if (!saved?.state) return;
+  model.applyState(saved.state);
+  model.history = [model.getSerializableState()];
+  model.future = [];
+}
+
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Bild konnte nicht geladen werden."));
+    image.src = src;
+  });
+}
+
+function syncBackgroundPlanControls() {
+  const plan = model.getCurrentFloor()?.backgroundPlan ?? null;
+  const disabled = !plan;
+  ui.planWidthInput.disabled = disabled;
+  ui.planXInput.disabled = disabled;
+  ui.planYInput.disabled = disabled;
+  ui.planOpacityInput.disabled = disabled;
+  if (!plan) {
+    ui.planWidthInput.value = "10";
+    ui.planXInput.value = "0";
+    ui.planYInput.value = "0";
+    ui.planOpacityInput.value = "0.35";
+    return;
+  }
+  ui.planWidthInput.value = String(plan.widthMeters ?? 10);
+  ui.planXInput.value = String(plan.x ?? 0);
+  ui.planYInput.value = String(plan.y ?? 0);
+  ui.planOpacityInput.value = String(plan.opacity ?? 0.35);
+}
+
+function activateTool(tool) {
+  ui.toolButtons.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tool === tool);
+  });
+  tools.setTool(tool);
+}
+
+function refreshAll() {
+  if (viewMode === "3d") {
+    renderer3d.update();
+  } else {
+    renderer.render();
+  }
+  syncBackgroundPlanControls();
+  ui.updateArea();
+  ui.updateProperties(model.selected);
+  ui.refreshFloorList();
+  persistAutosave();
+}
+activateTool("select");
+loadAutosaveOnStartup();
+renderer.resize();
+ui.refreshFloorList();
+window.addEventListener("resize", () => {
+  if (viewMode === "2d") {
+    renderer.resize();
+  } else {
+    renderer3d.resize();
+  }
+});
+
+// --- 2D / 3D view toggle ---
+const btn2d = document.getElementById("btn-2d");
+const btn3d = document.getElementById("btn-3d");
+
+function activateView(mode) {
+  viewMode = mode;
+  if (mode === "3d") {
+    canvas.style.display = "none";
+    canvas3d.style.display = "block";
+    btn2d.classList.remove("active");
+    btn3d.classList.add("active");
+    renderer3d.resize();
+    renderer3d.buildScene();
+    renderer3d.startLoop();
+  } else {
+    renderer3d.stopLoop();
+    canvas3d.style.display = "none";
+    canvas.style.display = "block";
+    btn2d.classList.add("active");
+    btn3d.classList.remove("active");
+    renderer.resize();
+    renderer.render();
+  }
+}
+
+btn2d.addEventListener("click", () => activateView("2d"));
+btn3d.addEventListener("click", () => activateView("3d"));
+
+// V3.0: Zoom buttons
+function updateZoomLabel() {
+  const btn = document.getElementById("zoom-reset");
+  if (btn) btn.textContent = `${Math.round(renderer.zoom * 100)}%`;
+}
+document.getElementById("zoom-in")?.addEventListener("click", () => {
+  renderer.zoomAt(canvas.width / 2, canvas.height / 2, 1.25);
+  updateZoomLabel();
+});
+document.getElementById("zoom-out")?.addEventListener("click", () => {
+  renderer.zoomAt(canvas.width / 2, canvas.height / 2, 0.8);
+  updateZoomLabel();
+});
+document.getElementById("zoom-reset")?.addEventListener("click", () => {
+  renderer.resetView();
+  updateZoomLabel();
+});
+
+ui.toolButtons.forEach(btn => {
+  btn.addEventListener("click", () => activateTool(btn.dataset.tool));
+});
+ui.layerCheckboxes.forEach(input => {
+  input.addEventListener("change", () => {
+    model.saveHistory("toggleLayer");
+    model.layers[input.dataset.layer] = input.checked;
+    refreshAll();
+  });
+});
+ui.snapToggle.addEventListener("change", () => {
+  model.saveHistory("snapToggle");
+  model.snapEnabled = ui.snapToggle.checked;
+});
+ui.gridSizeInput.addEventListener("change", () => {
+  model.saveHistory("gridSize");
+  model.gridSize = Math.max(0.1, Number(ui.gridSizeInput.value) || 0.5);
+  refreshAll();
+});
+ui.wallThicknessInput.addEventListener("change", () => {
+  model.saveHistory("wallThickness");
+  model.wallThickness = Math.max(0.05, Number(ui.wallThicknessInput.value) || 0.2);
+  refreshAll();
+});
+ui.catalogSelect.addEventListener("change", () => {
+  tools.setCatalogItemById(tools.currentTool, ui.catalogSelect.value);
+});
+ui.floorSelect.addEventListener("change", () => {
+  model.setCurrentFloor(ui.floorSelect.value);
+  refreshAll();
+});
+document.getElementById("add-floor").addEventListener("click", () => {
+  const name = prompt("Name der neuen Etage:", `Etage ${model.floors.length + 1}`);
+  if (!name) return;
+  model.createFloor(name);
+  refreshAll();
+});
+document.getElementById("rename-floor").addEventListener("click", () => {
+  const current = model.getCurrentFloor();
+  if (!current) return;
+  const name = prompt("Neuer Etagenname:", current.name);
+  if (!name) return;
+  model.renameCurrentFloor(name);
+  refreshAll();
+});
+document.getElementById("delete-floor").addEventListener("click", () => {
+  if (!confirm("Aktuelle Etage löschen?")) return;
+  createInfrastructureBackup("beforeDeleteFloor");
+  const ok = model.deleteCurrentFloor();
+  if (ok) refreshAll();
+});
+document.getElementById("clear-all").addEventListener("click", () => {
+  if (!confirm("Aktuelle Etage wirklich komplett löschen?")) return;
+  createInfrastructureBackup("beforeClearFloor");
+  model.clear();
+  refreshAll();
+});
+document.getElementById("save-json").addEventListener("click", () => {
+  const blob = new Blob([model.toJSON()], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "grundrissprojekt.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById("load-json").addEventListener("click", () => {
+  document.getElementById("file-input").click();
+});
+document.getElementById("file-input").addEventListener("change", async (event) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  createInfrastructureBackup("beforeLoadJson");
+  const text = await file.text();
+  model.loadFromJSON(text);
+  ui.snapToggle.checked = model.snapEnabled;
+  ui.gridSizeInput.value = model.gridSize;
+  ui.wallThicknessInput.value = model.wallThickness;
+  ui.layerCheckboxes.forEach(input => {
+    input.checked = model.layers[input.dataset.layer];
+  });
+  refreshAll();
+});
+document.getElementById("upload-plan-image").addEventListener("click", () => {
+  document.getElementById("plan-image-input").click();
+});
+document.getElementById("plan-image-input").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+  try {
+    const src = await fileToDataURL(file);
+    const image = await loadImage(src);
+    const defaultWidth = Math.max(1, Number((image.naturalWidth / model.scale).toFixed(2)));
+    const widthInput = prompt("Breite des Grundrissbilds in Metern:", String(defaultWidth));
+    if (widthInput == null) return;
+    const widthMeters = Math.max(0.1, Number(widthInput) || defaultWidth);
+    const heightMeters = Number((widthMeters * (image.naturalHeight / image.naturalWidth)).toFixed(3));
+    createInfrastructureBackup("beforeUploadBackgroundPlan");
+    model.setCurrentFloorBackgroundPlan({
+      name: file.name,
+      src,
+      widthMeters,
+      heightMeters,
+      x: 0,
+      y: 0,
+      opacity: 0.35
+    });
+    refreshAll();
+  } catch (error) {
+    alert(error?.message || "Grundrissbild konnte nicht geladen werden.");
+  }
+});
+document.getElementById("remove-plan-image").addEventListener("click", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  if (!confirm("Grundrissbild der aktuellen Etage entfernen?")) return;
+  createInfrastructureBackup("beforeRemoveBackgroundPlan");
+  if (model.clearCurrentFloorBackgroundPlan()) {
+    refreshAll();
+  }
+});
+ui.planWidthInput.addEventListener("change", () => {
+  const plan = model.getCurrentFloor()?.backgroundPlan;
+  if (!plan) return;
+  const widthMeters = Math.max(0.1, Number(ui.planWidthInput.value) || plan.widthMeters || 10);
+  const ratio = (plan.heightMeters || 1) / (plan.widthMeters || 1);
+  model.updateCurrentFloorBackgroundPlan({
+    widthMeters,
+    heightMeters: Number((widthMeters * ratio).toFixed(3))
+  });
+  refreshAll();
+});
+ui.planXInput.addEventListener("change", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  model.updateCurrentFloorBackgroundPlan({
+    x: Number(ui.planXInput.value) || 0
+  });
+  refreshAll();
+});
+ui.planYInput.addEventListener("change", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  model.updateCurrentFloorBackgroundPlan({
+    y: Number(ui.planYInput.value) || 0
+  });
+  refreshAll();
+});
+ui.planOpacityInput.addEventListener("input", () => {
+  if (!model.getCurrentFloor()?.backgroundPlan) return;
+  model.updateCurrentFloorBackgroundPlan({
+    opacity: Math.min(1, Math.max(0.1, Number(ui.planOpacityInput.value) || 0.35))
+  });
+  refreshAll();
+});
+document.getElementById("backup-state").addEventListener("click", () => {
+  createInfrastructureBackup("manual");
+  alert("Backup lokal gespeichert.");
+});
+document.getElementById("restore-backup").addEventListener("click", () => {
+  if (!confirm("Letztes lokales Backup wiederherstellen?")) return;
+  if (restoreLatestInfrastructureBackup()) {
+    ui.snapToggle.checked = model.snapEnabled;
+    ui.gridSizeInput.value = model.gridSize;
+    ui.wallThicknessInput.value = model.wallThickness;
+    ui.layerCheckboxes.forEach(input => {
+      input.checked = model.layers[input.dataset.layer];
+    });
+    refreshAll();
+  } else {
+    alert("Kein Backup gefunden.");
+  }
+});
+document.getElementById("export-png").addEventListener("click", () => {
+  renderer.render();
+  const paperRect = renderer.showFrame ? renderer.getPaperRect() : null;
+  exportCanvasToPNG(canvas, `${model.getCurrentFloor()?.name || "grundriss"}.png`, paperRect);
+});
+document.getElementById("export-pdf").addEventListener("click", () => {
+  renderer.render();
+  const paperRect = renderer.showFrame ? renderer.getPaperRect() : null;
+  exportCanvasToPDF(canvas, `${model.getCurrentFloor()?.name || "grundriss"}.pdf`, paperRect);
+});
+
+function getScreenPointFromEvent(event) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+
+function getWorldPointFromEvent(event) {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  return renderer.screenToWorld({
+    x,
+    y
+  });
+}
+
+// V3.0: Pan state
+let panState = null;
+
+canvas.addEventListener("dblclick", event => {
+  const world = getWorldPointFromEvent(event);
+  for (const room of model.rooms) {
+    const minX = Math.min(...room.polygon.map(p => p.x));
+    const maxX = Math.max(...room.polygon.map(p => p.x));
+    const minY = Math.min(...room.polygon.map(p => p.y));
+    const maxY = Math.max(...room.polygon.map(p => p.y));
+    if (world.x >= minX && world.x <= maxX && world.y >= minY && world.y <= maxY) {
+      const name = prompt("Raumname:", room.name || "");
+      if (name != null) {
+        // V3.0: Optional Raum-Typ auswählen
+        const types = ["", "wohnzimmer", "schlafzimmer", "kinderzimmer", "kueche", "bad", "wc", "flur", "buero", "keller", "garage"];
+        const typeLabels = ["(keiner)", "Wohnzimmer", "Schlafzimmer", "Kinderzimmer", "Küche", "Bad", "WC", "Flur/Diele", "Büro", "Keller", "Garage"];
+        const currentIdx = types.indexOf(room.roomType || "");
+        const typeInput = prompt(
+          "Raum-Typ:\n" + types.map((t, i) => `${i}: ${typeLabels[i]}`).join("\n"),
+          currentIdx >= 0 ? currentIdx : 0
+        );
+        const typeIdx = parseInt(typeInput, 10);
+        const roomType = (!isNaN(typeIdx) && typeIdx >= 0 && typeIdx < types.length) ? types[typeIdx] : room.roomType;
+        model.renameRoom(room.id, name, roomType);
+        refreshAll();
+      }
+      break;
+    }
+  }
+});
+canvas.addEventListener("mousedown", event => {
+  // V3.0: Middle mouse button = pan
+  if (event.button === 1) {
+    event.preventDefault();
+    const sp = getScreenPointFromEvent(event);
+    panState = { startSX: sp.x, startSY: sp.y, startPanX: renderer.panX, startPanY: renderer.panY };
+    return;
+  }
+  tools.onMouseDown(getWorldPointFromEvent(event));
+  ui.updateProperties(model.selected);
+  ui.updateArea();
+});
+canvas.addEventListener("mousemove", event => {
+  // V3.0: Pan with middle mouse
+  if (panState && event.buttons === 4) {
+    const sp = getScreenPointFromEvent(event);
+    renderer.panX = panState.startPanX + (sp.x - panState.startSX);
+    renderer.panY = panState.startPanY + (sp.y - panState.startSY);
+    renderer.render();
+    return;
+  }
+  const world = getWorldPointFromEvent(event);
+  tools.onMouseMove(world);
+  const zoomPct = Math.round(renderer.zoom * 100);
+  ui.statusCenter.textContent = `Cursor: ${world.x.toFixed(2)} m / ${world.y.toFixed(2)} m  |  Zoom: ${zoomPct}%`;
+  ui.updateProperties(model.selected);
+  ui.updateArea();
+});
+canvas.addEventListener("mouseup", event => {
+  if (event.button === 1) {
+    panState = null;
+    return;
+  }
+  tools.onMouseUp(getWorldPointFromEvent(event));
+  ui.updateProperties(model.selected);
+  ui.updateArea();
+});
+// V3.0: Scroll wheel zoom
+canvas.addEventListener("wheel", event => {
+  event.preventDefault();
+  const sp = getScreenPointFromEvent(event);
+  const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+  renderer.zoomAt(sp.x, sp.y, factor);
+  const zoomPct = Math.round(renderer.zoom * 100);
+  ui.statusCenter.textContent = `Zoom: ${zoomPct}%`;
+}, { passive: false });
+canvas.addEventListener("mouseleave", () => {
+  panState = null;
+  if (tools.currentTool !== "select") {
+    tools.clearPreview();
+  }
+});
+window.addEventListener("keydown", event => {
+  const tag = document.activeElement?.tagName?.toLowerCase();
+  const isTyping = tag === "input" || tag === "textarea";
+  if ((event.key === "Delete" || event.key === "Backspace") && !isTyping) {
+    const changed = model.deleteSelected();
+    if (changed) refreshAll();
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+    event.preventDefault();
+    if (event.shiftKey) {
+      if (model.redo()) refreshAll();
+    } else {
+      if (model.undo()) refreshAll();
+    }
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "y") {
+    event.preventDefault();
+    if (model.redo()) refreshAll();
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d" && !isTyping) {
+    event.preventDefault();
+    const duplicated = model.duplicateSelected();
+    if (duplicated) refreshAll();
+    return;
+  }
+  if (!isTyping && (event.key === "q" || event.key === "Q")) {
+    if (model.rotateSelected(-Math.PI / 12)) refreshAll();
+    return;
+  }
+  if (!isTyping && (event.key === "e" || event.key === "E")) {
+    if (model.rotateSelected(Math.PI / 12)) refreshAll();
+    return;
+  }
+  if (!isTyping && event.key === "1") activateTool("select");
+  if (!isTyping && event.key === "2") activateTool("wall");
+  if (!isTyping && event.key === "3") activateTool("door");
+  if (!isTyping && event.key === "4") activateTool("window");
+  if (!isTyping && event.key === "5") activateTool("dimension");
+  if (!isTyping && event.key === "6") activateTool("electrical");
+  if (!isTyping && event.key === "7") activateTool("sanitary");
+  if (!isTyping && event.key === "8") activateTool("heating");
+  if (!isTyping && event.key === "9") activateTool("drywall");
+  // V3.0: Zoom shortcuts
+  if (!isTyping && event.key === "Home") {
+    renderer.resetView();
+  }
+  if (!isTyping && (event.key === "+" || event.key === "=")) {
+    renderer.zoomAt(canvas.width / 2, canvas.height / 2, 1.25);
+  }
+  if (!isTyping && event.key === "-") {
+    renderer.zoomAt(canvas.width / 2, canvas.height / 2, 0.8);
+  }
+});
+
+/* ── postMessage: In Kalkulation übernehmen ─────────────────── */
+function exportStateToParent() {
+  if (window.parent !== window) {
+    const state = model.getSerializableState();
+    // V2.9: Vorberechnete Positionen via PriceCalculator mitsenden
+    const calc = new PriceCalculator();
+    const flooringType = document.getElementById('export-flooring')?.value || 'fliesen';
+    const wallType     = document.getElementById('export-walltype')?.value || 'maler';
+    const ceilingType  = document.getElementById('export-ceiltype')?.value || 'maler_decke';
+    const prePositions = calc.generatePositions(state, { flooringType, wallType, ceilingType });
+    window.parent.postMessage({
+      type: 'export-to-kalk',
+      state,
+      prePositions,
+    }, '*');
+  }
+}
+
+// Wenn im iframe eingebettet: "In Kalkulation"-Button + Material-Auswahl anzeigen
+if (window.parent !== window) {
+  const btn  = document.getElementById('export-to-kalk');
+  const opts = document.getElementById('export-options');
+  if (btn) {
+    btn.style.display = 'inline-flex';
+    btn.addEventListener('click', exportStateToParent);
+  }
+  if (opts) {
+    opts.style.display = 'inline-flex';
+  }
+}
+
+// Auf Anfrage vom Parent reagieren
+window.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'request-export') {
+    exportStateToParent();
+  }
+});
+refreshAll();

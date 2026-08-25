@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Mitarbeiter-App – GU Sanierung</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1a3a5c; --blue-mid: #2e6da4; --blue-light: #5ba8e5;
+      --green: #27ae60; --orange: #e67e22; --red: #e74c3c; --yellow: #f39c12;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 14px; color: #222;
+      background: #f0f2f5; min-height: 100vh;
+      padding-bottom: 80px; /* for bottom nav */
+    }
+
+    /* ── Top Bar ─────────────────────────────────────────────────── */
+    .topbar {
+      background: linear-gradient(135deg, #0d1f35, #1a3a5c, #2e6da4);
+      color: #fff; padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    .topbar h1 { font-size: 1rem; font-weight: 800; }
+    .topbar-back { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 0 6px 0 0; }
+
+    /* ── Bottom Nav ──────────────────────────────────────────────── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #fff; border-top: 1px solid #e0e6f0;
+      display: flex; z-index: 200;
+      box-shadow: 0 -2px 10px rgba(0,0,0,.1);
+    }
+    .bn-item {
+      flex: 1; padding: 10px 4px 6px; text-align: center;
+      cursor: pointer; border: none; background: none;
+      color: #999; font-size: 11px; font-weight: 600;
+      transition: color .15s;
+    }
+    .bn-item .bn-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+    .bn-item.active { color: var(--blue-mid); }
+
+    /* ── Pages ───────────────────────────────────────────────────── */
+    .page { display: none; padding: 0 0 20px; }
+    .page.active { display: block; }
+
+    /* ── Cards ───────────────────────────────────────────────────── */
+    .card {
+      background: #fff; border-radius: 12px;
+      margin: 12px 12px 0; padding: 14px 16px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.08);
+    }
+    .card-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--blue); margin-bottom: 10px; }
+
+    /* ── Projekt Cards ───────────────────────────────────────────── */
+    .proj-card {
+      background: #fff; border-radius: 12px;
+      margin: 10px 12px 0; padding: 14px 16px;
+      box-shadow: 0 1px 5px rgba(0,0,0,.1);
+      cursor: pointer;
+      border-left: 4px solid var(--blue-mid);
+      transition: box-shadow .15s;
+    }
+    .proj-card:active { box-shadow: 0 3px 12px rgba(0,0,0,.15); }
+    .proj-card h3 { font-size: 14px; font-weight: 700; color: var(--blue); }
+    .proj-card .pc-sub { font-size: 12px; color: #777; margin-top: 3px; }
+    .proj-card .pc-pct { font-size: 1.2rem; font-weight: 900; color: var(--blue-mid); float: right; }
+    .progress-bar-wrap { height: 6px; background: #e0e6f0; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--blue-mid), var(--green)); border-radius: 3px; transition: width .4s; }
+
+    /* ── Gewerk List ─────────────────────────────────────────────── */
+    .gewerk-item {
+      background: #f7f9fc; border-radius: 8px; margin-bottom: 8px; overflow: hidden;
+    }
+    .gewerk-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; cursor: pointer; font-weight: 700; font-size: 13px;
+    }
+    .gewerk-pct { font-size: 12px; font-weight: 900; color: var(--blue-mid); }
+    .gewerk-positions { display: none; border-top: 1px solid #e0e6f0; padding: 6px 8px; }
+    .gewerk-positions.open { display: block; }
+    .pos-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 4px; border-bottom: 1px solid #f0f2f5;
+    }
+    .pos-item:last-child { border-bottom: none; }
+    .pos-check { width: 22px; height: 22px; cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+    .pos-text { flex: 1; }
+    .pos-desc { font-size: 13px; color: #333; line-height: 1.4; }
+    .pos-qty { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .pos-done .pos-desc { text-decoration: line-through; color: #bbb; }
+
+    /* ── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: 8px; border: none;
+      cursor: pointer; font-size: 13px; font-weight: 700;
+      transition: opacity .15s; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    .btn:active { opacity: .85; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-warning { background: var(--orange); color: #fff; }
+    .btn-danger  { background: var(--red); color: #fff; }
+    .btn-block { width: 100%; justify-content: center; margin-top: 8px; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    /* ── Forms ───────────────────────────────────────────────────── */
+    .form-field { margin-bottom: 12px; }
+    .form-field label { display: block; font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+    .form-field input, .form-field select, .form-field textarea {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #d0d7e2; border-radius: 8px;
+      font-size: 14px; background: #fafbfc;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+      outline: none; border-color: var(--blue-mid);
+    }
+
+    /* ── Toast ───────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,.75); color: #fff; padding: 10px 20px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; opacity: 0; transition: opacity .25s, transform .25s;
+      z-index: 9999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Camera / Upload ─────────────────────────────────────────── */
+    .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+    .photo-thumb {
+      aspect-ratio: 1; border-radius: 8px; overflow: hidden; position: relative;
+      background: #eef2fa; cursor: pointer;
+    }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb .del-btn {
+      position: absolute; top: 3px; right: 3px; background: rgba(231,76,60,.85);
+      color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px;
+      font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .photo-add {
+      aspect-ratio: 1; border-radius: 8px; border: 2px dashed #b0bfd8;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; color: #999; font-size: 11px; gap: 3px;
+    }
+    .photo-add span { font-size: 1.6rem; }
+
+    /* ── Nachtrag Badge ──────────────────────────────────────────── */
+    .badge { font-size: 10px; font-weight: 900; padding: 2px 7px; border-radius: 10px; }
+    .badge-pending { background: #fff3cd; color: #856404; }
+    .badge-approved { background: #d4edda; color: #155724; }
+    .badge-rejected { background: #f8d7da; color: #721c24; }
+
+    /* ── Reminder / Fehlend ─────────────────────────────────────── */
+    .fehlend-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f0f2f5; }
+    .fehlend-item:last-child { border-bottom: none; }
+    .fehlend-check { width: 20px; height: 20px; cursor: pointer; }
+
+    /* ── Fortschritt Header ──────────────────────────────────────── */
+    .detail-hero {
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      color: #fff; padding: 16px; margin-bottom: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .detail-hero h2 { font-size: 1rem; font-weight: 800; }
+    .detail-hero .dh-pct { font-size: 1.8rem; font-weight: 900; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEITE: PROJEKTE LISTE
+════════════════════════════════════════════════════════════ -->
+<div class="page active" id="pg-projekte">
+  <div class="topbar">
+    <h1>🏗️ Meine Projekte</h1>
+    <span style="font-size:10px;opacity:.6">GU Sanierungsbetrieb</span>
+  </div>
+  <div style="padding:12px 12px 4px">
+    <input type="text" id="proj-search" placeholder="🔍 Projekt suchen…"
+      style="width:100%;padding:10px 12px;border:1.5px solid #d0d7e2;border-radius:8px;font-size:13px;background:#fff"
+      oninput="renderProjekteListe()">
+  </div>
+  <div id="proj-liste"></div>
+
+  <div style="padding:12px">
+    <div class="card">
+      <div class="card-title">📤 Projektdaten importieren</div>
+      <p style="font-size:12px;color:#666;margin-bottom:10px">Lade eine JSON-Datei, die vom Büro exportiert wurde.</p>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importProjekt(event)">
+      <button class="btn btn-primary btn-block" onclick="document.getElementById('import-file').click()">📥 JSON importieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEITE: PROJEKT DETAIL
+════════════════════════════════════════════════════════════ -->
+<div class="page" id="pg-detail">
+  <div class="topbar">
+    <button class="topbar-back" onclick="showAppPage('pg-projekte')">←</button>
+    <h1 id="detail-title">Projekt</h1>
+    <button onclick="exportFortschritt()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer">📤 Sync</button>
+  </div>
+  <div id="detail-hero"></div>
+  <div id="detail-gewerke" style="padding:12px 12px 0"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEITE: NACHTRÄGE
+════════════════════════════════════════════════════════════ -->
+<div class="page" id="pg-nachtraege">
+  <div class="topbar">
+    <h1>➕ Nachträge melden</h1>
+  </div>
+  <div style="padding:12px">
+    <div class="card">
+      <div class="card-title">Neuen Nachtrag melden</div>
+      <div class="form-field">
+        <label>Projekt</label>
+        <select id="nt-projekt-app">
+          <option value="">– Projekt wählen –</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Bezeichnung</label>
+        <input type="text" id="nt-titel-app" placeholder="z.B. Zusätzliche Dose in Küche">
+      </div>
+      <div class="form-field">
+        <label>Beschreibung / Details</label>
+        <textarea id="nt-beschr-app" rows="3" placeholder="Was wurde gemacht oder wird gebraucht?"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Gewerk</label>
+        <select id="nt-gewerk-app">
+          <option value="elektro">⚡ Elektro</option>
+          <option value="sanitaer">🚿 Sanitär</option>
+          <option value="heizung">🔥 Heizung</option>
+          <option value="trockenbau">🧱 Trockenbau</option>
+          <option value="maler">🎨 Maler</option>
+          <option value="boden">🪵 Boden</option>
+          <option value="fliesen">🔷 Fliesen</option>
+          <option value="tueren">🚪 Türen</option>
+          <option value="fenster">🪟 Fenster</option>
+          <option value="abbruch">⛏️ Abbruch</option>
+          <option value="rohbau">🏗️ Rohbau</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Geschätzter Betrag (netto, €)</label>
+        <input type="number" id="nt-betrag-app" placeholder="0.00" step="0.01">
+      </div>
+      <button class="btn btn-warning btn-block" onclick="meldeNachtrag()">📋 Nachtrag melden (zur Freigabe)</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Gemeldete Nachträge</div>
+      <div id="nt-liste-app"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     SEITE: FEHLEND / MATERIALIEN
+════════════════════════════════════════════════════════════ -->
+<div class="page" id="pg-fehlend">
+  <div class="topbar">
+    <h1>📦 Fehlendes Material</h1>
+  </div>
+  <div style="padding:12px">
+    <div class="card">
+      <div class="card-title">Material hinzufügen</div>
+      <div class="form-field">
+        <label>Projekt</label>
+        <select id="fehlend-projekt">
+          <option value="">– Projekt wählen –</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Bezeichnung</label>
+        <input type="text" id="fehlend-item" placeholder="z.B. Kabelkanal 16x16mm, 5m">
+      </div>
+      <div class="form-field">
+        <label>Menge</label>
+        <input type="text" id="fehlend-qty" placeholder="z.B. 10 Stk">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="fehlendHinzufuegen()">+ Hinzufügen</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Einkaufsliste</div>
+      <div id="fehlend-liste"></div>
+      <button class="btn btn-success btn-block" style="margin-top:10px" onclick="erinnerungKalender()">📅 Kalender-Erinnerung setzen</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📷 Fotos hinzufügen</div>
+      <p style="font-size:12px;color:#666;margin-bottom:8px">Fotos zur Dokumentation aufnehmen.</p>
+      <div class="photo-grid" id="foto-grid">
+        <div class="photo-add" onclick="document.getElementById('cam-input').click()">
+          <span>📷</span>
+          <span>Foto</span>
+        </div>
+      </div>
+      <input type="file" id="cam-input" accept="image/*" capture="environment" style="display:none" onchange="addFoto(event)">
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     BOTTOM NAVIGATION
+════════════════════════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="bn-item active" id="bn-projekte" onclick="showAppPage('pg-projekte'); setBottomNav('bn-projekte')">
+    <span class="bn-icon">📁</span>
+    Projekte
+  </button>
+  <button class="bn-item" id="bn-nachtraege" onclick="showAppPage('pg-nachtraege'); setBottomNav('bn-nachtraege'); loadNtProjekte()">
+    <span class="bn-icon">➕</span>
+    Nachträge
+  </button>
+  <button class="bn-item" id="bn-fehlend" onclick="showAppPage('pg-fehlend'); setBottomNav('bn-fehlend'); loadFehlendProjekte()">
+    <span class="bn-icon">📦</span>
+    Material
+  </button>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SHARED DATA (same localStorage as index.html)
+═══════════════════════════════════════════════════════════════ */
+function getProjekte() { return JSON.parse(localStorage.getItem('app_projekte') || '[]'); }
+function saveProjekte(arr) { localStorage.setItem('app_projekte', JSON.stringify(arr)); }
+function getNachtraege() { return JSON.parse(localStorage.getItem('app_nachtraege') || '[]'); }
+function saveNachtraege(arr) { localStorage.setItem('app_nachtraege', JSON.stringify(arr)); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ─ Toast ─ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ─ Page routing ─ */
+function showAppPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+}
+function setBottomNav(id) {
+  document.querySelectorAll('.bn-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJEKTE LISTE
+═══════════════════════════════════════════════════════════════ */
+function renderProjekteListe() {
+  const container = document.getElementById('proj-liste');
+  let arr = getProjekte();
+  const q = (document.getElementById('proj-search')?.value || '').toLowerCase();
+  if (q) arr = arr.filter(p => (p.name||'').toLowerCase().includes(q) || (p.kunde||'').toLowerCase().includes(q));
+
+  if (!arr.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#aaa"><div style="font-size:3rem">📁</div><p style="margin-top:10px;font-size:13px">Keine Projekte. Bitte importiere eine JSON-Datei vom Büro.</p></div>';
+    return;
+  }
+
+  container.innerHTML = arr.map(p => {
+    const pct = p.gesamtFortschritt || 0;
+    const gewerkeAnzahl = Object.keys(p.gewerke||{}).length;
+    return `<div class="proj-card" onclick="openProjektDetail('${p.id}')">
+      <span class="pc-pct">${pct}%</span>
+      <h3>${esc(p.name)}</h3>
+      <div class="pc-sub">👤 ${esc(p.kunde||'–')} · ${gewerkeAnzahl} Gewerke</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJEKT DETAIL
+═══════════════════════════════════════════════════════════════ */
+let currentProjektId = null;
+
+function openProjektDetail(id) {
+  currentProjektId = id;
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === id);
+  if (!proj) return;
+
+  calcFortschritt(proj);
+  saveProjekte(arr);
+
+  document.getElementById('detail-title').textContent = proj.name;
+  const pct = proj.gesamtFortschritt || 0;
+
+  document.getElementById('detail-hero').innerHTML = `
+    <div class="detail-hero">
+      <div>
+        <h2>${esc(proj.name)}</h2>
+        <div style="font-size:11px;opacity:.75;margin-top:4px">${esc(proj.adresse||'')} · ${esc(proj.kunde||'')}</div>
+        <div class="progress-bar-wrap" style="margin-top:8px;background:rgba(255,255,255,.2);max-width:200px">
+          <div class="progress-bar" style="width:${pct}%;background:#fff"></div>
+        </div>
+      </div>
+      <div class="dh-pct">${pct}%</div>
+    </div>`;
+
+  const gHtml = Object.entries(proj.gewerke || {}).map(([gId, g]) => {
+    const gPct = g.fortschritt || 0;
+    const posHtml = g.positionen.map(pos => {
+      const menge = pos.menge ? `${pos.menge} ${pos.einheit||''}` : '';
+      return `<div class="pos-item ${pos.erledigt?'pos-done':''}" id="app-pos-${id}-${gId}-${pos.id}">
+        <input type="checkbox" class="pos-check"
+          ${pos.erledigt ? 'checked' : ''}
+          onchange="togglePos('${id}','${gId}','${pos.id}',this.checked)">
+        <div class="pos-text">
+          <div class="pos-desc">${esc(pos.pos ? pos.pos+' · ' : '')}${esc(pos.beschreibung||'')}</div>
+          ${menge ? `<div class="pos-qty">Menge: ${menge}</div>` : ''}
+          ${pos.erledigtAm ? `<div class="pos-qty">✅ Erledigt: ${new Date(pos.erledigtAm).toLocaleDateString('de-DE')}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="gewerk-item">
+      <div class="gewerk-header" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span>${esc(g.label)} <span style="font-weight:400;color:#aaa;font-size:11px">(${g.positionen.filter(p=>p.erledigt).length}/${g.positionen.length})</span></span>
+        <span class="gewerk-pct">${gPct}% ▾</span>
+      </div>
+      <div class="gewerk-positions">${posHtml}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-gewerke').innerHTML = gHtml || '<p style="color:#aaa;padding:10px;font-size:12px">Keine Positionen.</p>';
+
+  showAppPage('pg-detail');
+  setBottomNav('bn-projekte');
+}
+
+function togglePos(projektId, gewerkId, posId, erledigt) {
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === projektId);
+  if (!proj) return;
+  const pos = proj.gewerke[gewerkId]?.positionen.find(p => String(p.id) === String(posId));
+  if (!pos) return;
+  pos.erledigt = erledigt;
+  pos.erledigtAm = erledigt ? new Date().toISOString() : null;
+  calcFortschritt(proj);
+  saveProjekte(arr);
+  // Update header
+  const heroEl = document.getElementById('detail-hero');
+  if (heroEl) {
+    const pct = proj.gesamtFortschritt || 0;
+    heroEl.querySelector('.dh-pct').textContent = pct + '%';
+    heroEl.querySelector('.progress-bar').style.width = pct + '%';
+  }
+  showToast(erledigt ? '✅ Position erledigt' : '↩️ Position offen');
+}
+
+function calcFortschritt(proj) {
+  let total = 0, done = 0;
+  Object.values(proj.gewerke || {}).forEach(g => {
+    g.positionen.forEach(p => { total++; if (p.erledigt) done++; });
+  });
+  proj.gesamtFortschritt = total > 0 ? Math.round(done / total * 100) : 0;
+  Object.values(proj.gewerke || {}).forEach(g => {
+    const gt = g.positionen.length;
+    const gd = g.positionen.filter(p => p.erledigt).length;
+    g.fortschritt = gt > 0 ? Math.round(gd / gt * 100) : 0;
+  });
+}
+
+function exportFortschritt() {
+  if (!currentProjektId) return;
+  const arr = getProjekte();
+  const proj = arr.find(p => p.id === currentProjektId);
+  if (!proj) return;
+  const blob = new Blob([JSON.stringify(proj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Fortschritt_${proj.name.replace(/[^\w]/g,'_')}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('📤 Fortschritt exportiert');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMPORT PROJEKT
+═══════════════════════════════════════════════════════════════ */
+function importProjekt(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const proj = JSON.parse(e.target.result);
+      if (!proj.id || !proj.name) throw new Error('Ungültiges Format');
+      const arr = getProjekte();
+      const idx = arr.findIndex(p => p.id === proj.id);
+      if (idx >= 0) arr[idx] = proj;
+      else arr.unshift(proj);
+      saveProjekte(arr);
+      renderProjekteListe();
+      loadNtProjekte();
+      loadFehlendProjekte();
+      showToast(`✅ Projekt "${proj.name}" importiert`);
+    } catch(err) {
+      alert('Fehler: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NACHTRÄGE
+═══════════════════════════════════════════════════════════════ */
+function loadNtProjekte() {
+  const sel = document.getElementById('nt-projekt-app');
+  if (!sel) return;
+  const projekte = getProjekte();
+  sel.innerHTML = '<option value="">– Projekt wählen –</option>' +
+    projekte.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  renderNtListe();
+}
+
+function renderNtListe() {
+  const container = document.getElementById('nt-liste-app');
+  if (!container) return;
+  const arr = getNachtraege().filter(n => n.quelle === 'mitarbeiter');
+  if (!arr.length) {
+    container.innerHTML = '<p style="color:#aaa;font-size:12px">Noch keine Nachträge gemeldet.</p>';
+    return;
+  }
+  container.innerHTML = arr.map(n => `
+    <div style="padding:9px 0;border-bottom:1px solid #f0f2f5">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div>
+          <div style="font-size:13px;font-weight:600">${esc(n.titel)}</div>
+          <div style="font-size:11px;color:#aaa">${esc(n.projektName||'–')} · ${new Date(n.datum).toLocaleDateString('de-DE')}</div>
+        </div>
+        <span class="badge badge-${n.status}">${n.status==='approved'?'✅ Genehmigt':n.status==='rejected'?'❌ Abgel.':'⏳ Offen'}</span>
+      </div>
+    </div>`).join('');
+}
+
+function meldeNachtrag() {
+  const titel = document.getElementById('nt-titel-app').value.trim();
+  if (!titel) { alert('Bitte Bezeichnung eingeben.'); return; }
+  const projektId = document.getElementById('nt-projekt-app').value;
+  const projekte = getProjekte();
+  const proj = projekte.find(p => p.id === projektId);
+  const arr = getNachtraege();
+  arr.unshift({
+    id: genId(), quelle: 'mitarbeiter',
+    titel,
+    beschreibung: document.getElementById('nt-beschr-app').value.trim(),
+    gewerk: document.getElementById('nt-gewerk-app').value,
+    betrag: parseFloat(document.getElementById('nt-betrag-app').value) || 0,
+    projektId, projektName: proj?.name || '',
+    status: 'pending',
+    datum: new Date().toISOString(),
+  });
+  saveNachtraege(arr);
+  document.getElementById('nt-titel-app').value = '';
+  document.getElementById('nt-beschr-app').value = '';
+  document.getElementById('nt-betrag-app').value = '';
+  renderNtListe();
+  showToast('📋 Nachtrag gemeldet – wartet auf Freigabe');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FEHLENDES MATERIAL
+═══════════════════════════════════════════════════════════════ */
+function loadFehlendProjekte() {
+  const sel = document.getElementById('fehlend-projekt');
+  if (!sel) return;
+  const projekte = getProjekte();
+  sel.innerHTML = '<option value="">– Projekt wählen –</option>' +
+    projekte.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  renderFehlendListe();
+}
+
+function getFehlend() { return JSON.parse(localStorage.getItem('app_fehlend') || '[]'); }
+function saveFehlend(arr) { localStorage.setItem('app_fehlend', JSON.stringify(arr)); }
+
+function fehlendHinzufuegen() {
+  const item = document.getElementById('fehlend-item').value.trim();
+  if (!item) { alert('Bitte Bezeichnung eingeben.'); return; }
+  const projektId = document.getElementById('fehlend-projekt').value;
+  const projekte = getProjekte();
+  const proj = projekte.find(p => p.id === projektId);
+  const arr = getFehlend();
+  arr.unshift({
+    id: genId(), item,
+    qty: document.getElementById('fehlend-qty').value.trim(),
+    projektId, projektName: proj?.name || '',
+    erledigt: false,
+    datum: new Date().toISOString(),
+  });
+  saveFehlend(arr);
+  document.getElementById('fehlend-item').value = '';
+  document.getElementById('fehlend-qty').value = '';
+  renderFehlendListe();
+  showToast('📦 Material zur Liste hinzugefügt');
+}
+
+function renderFehlendListe() {
+  const c = document.getElementById('fehlend-liste');
+  if (!c) return;
+  const arr = getFehlend();
+  if (!arr.length) {
+    c.innerHTML = '<p style="color:#aaa;font-size:12px;padding:8px 0">Keine fehlenden Materialien.</p>';
+    return;
+  }
+  c.innerHTML = arr.map((f, idx) => `
+    <div class="fehlend-item">
+      <input type="checkbox" class="fehlend-check" ${f.erledigt?'checked':''} onchange="toggleFehlend(${idx}, this.checked)">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;${f.erledigt?'text-decoration:line-through;color:#bbb':''}">${esc(f.item)}</div>
+        <div style="font-size:11px;color:#aaa">${f.qty||''} · ${esc(f.projektName||'–')}</div>
+      </div>
+      <button onclick="deleteFehlend(${idx})" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:16px;padding:2px 4px">🗑️</button>
+    </div>`).join('');
+}
+
+function toggleFehlend(idx, erledigt) {
+  const arr = getFehlend();
+  if (!arr[idx]) return;
+  arr[idx].erledigt = erledigt;
+  arr[idx].erledigtAm = erledigt ? new Date().toISOString() : null;
+  saveFehlend(arr);
+  renderFehlendListe();
+  if (erledigt) showToast('✅ Erledigt – nicht vergessen zu bestätigen!');
+}
+
+function deleteFehlend(idx) {
+  const arr = getFehlend();
+  arr.splice(idx, 1);
+  saveFehlend(arr);
+  renderFehlendListe();
+}
+
+function erinnerungKalender() {
+  const arr = getFehlend().filter(f => !f.erledigt);
+  if (!arr.length) { showToast('✅ Alles erledigt!'); return; }
+  const list = arr.map(f => `${f.item}${f.qty?' ('+f.qty+')':''}`).join('\n');
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dt = tomorrow.toISOString().replace(/[-:]/g,'').slice(0,15) + 'Z';
+  const dtEnd = new Date(tomorrow.getTime() + 60*60*1000).toISOString().replace(/[-:]/g,'').slice(0,15) + 'Z';
+  const title = encodeURIComponent('Material besorgen – ' + arr.length + ' Artikel');
+  const desc = encodeURIComponent(list);
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${desc}&dates=${dt}/${dtEnd}`;
+  window.open(url, '_blank');
+  showToast('📅 Google Kalender öffnet sich…');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOTOS
+═══════════════════════════════════════════════════════════════ */
+let fotos = [];
+
+function addFoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    fotos.push({ id: genId(), src: e.target.result, datum: new Date().toISOString() });
+    renderFotoGrid();
+    showToast('📷 Foto gespeichert');
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function renderFotoGrid() {
+  const grid = document.getElementById('foto-grid');
+  if (!grid) return;
+  grid.innerHTML = fotos.map((f, i) => `
+    <div class="photo-thumb" onclick="viewFoto('${f.id}')">
+      <img src="${f.src}" alt="Foto ${i+1}">
+      <button class="del-btn" onclick="event.stopPropagation(); deleteFoto('${f.id}')">✕</button>
+    </div>`).join('') + `
+    <div class="photo-add" onclick="document.getElementById('cam-input').click()">
+      <span>📷</span><span>Foto</span>
+    </div>`;
+}
+
+function viewFoto(id) {
+  const f = fotos.find(x => x.id === id);
+  if (!f) return;
+  const m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center';
+  m.innerHTML = `<div style="position:relative;max-width:95vw;max-height:95vh">
+    <img src="${f.src}" style="max-width:95vw;max-height:85vh;border-radius:8px;display:block">
+    <button onclick="this.closest('div').parentElement.remove()"
+      style="position:absolute;top:-12px;right:-12px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:14px;cursor:pointer">✕</button>
+    <a href="${f.src}" download="foto_${f.datum.slice(0,10)}.jpg"
+      style="display:block;text-align:center;margin-top:10px;color:#fff;font-size:12px">⬇️ Herunterladen</a>
+  </div>`;
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+  document.body.appendChild(m);
+}
+
+function deleteFoto(id) {
+  fotos = fotos.filter(f => f.id !== id);
+  renderFotoGrid();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  renderProjekteListe();
+  loadNtProjekte();
+  loadFehlendProjekte();
+});
+</script>
+</body>
+</html>

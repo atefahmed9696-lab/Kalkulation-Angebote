@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grundrissplaner V3.0</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <h1>Grundrissplaner V3.0</h1>
+      <section>
+        <h2>Werkzeuge</h2>
+        <div class="tool-grid">
+          <button class="tool-btn active" data-tool="select">Auswahl</button>
+          <button class="tool-btn" data-tool="wall">Wand</button>
+          <button class="tool-btn" data-tool="door">Tür</button>
+          <button class="tool-btn" data-tool="window">Fenster</button>
+          <button class="tool-btn" data-tool="dimension">Bemaßung</button>
+          <button class="tool-btn" data-tool="electrical">Elektro</button>
+          <button class="tool-btn" data-tool="sanitary">Sanitär</button>
+          <button class="tool-btn" data-tool="heating">Heizung</button>
+          <button class="tool-btn" data-tool="drywall">Trockenbau</button>
+        </div>
+      </section>
+      <section>
+        <h2>Etagen</h2>
+        <div class="floor-controls">
+          <select id="floor-select"></select>
+          <button id="add-floor">+ Etage</button>
+          <button id="rename-floor">Umbenennen</button>
+          <button id="delete-floor" class="danger">Löschen</button>
+        </div>
+      </section>
+      <section>
+        <h2>Layer</h2>
+        <div class="layer-list">
+          <label><input type="checkbox" data-layer="architecture" checked /> Architektur</label>
+          <label><input type="checkbox" data-layer="electrical" checked /> Elektro</label>
+          <label><input type="checkbox" data-layer="sanitary" checked /> Sanitär</label>
+          <label><input type="checkbox" data-layer="heating" checked /> Heizung</label>
+          <label><input type="checkbox" data-layer="drywall" checked /> Trockenbau</label>
+          <label><input type="checkbox" data-layer="dimension" checked /> Bemaßung</label>
+        </div>
+      </section>
+      <section id="catalog-section">
+        <h2>Katalog</h2>
+        <select id="catalog-select"></select>
+      </section>
+      <section>
+        <h2>Einstellungen</h2>
+        <label class="stack">
+          Raster
+          <input type="checkbox" id="snap-toggle" checked />
+        </label>
+        <label class="stack">
+          Rastergröße (m)
+          <input type="number" id="grid-size" min="0.1" max="2" step="0.1" value="0.5" />
+        </label>
+        <label class="stack">
+          Wandstärke (m)
+          <input type="number" id="wall-thickness" min="0.05" max="1" step="0.01" value="0.20" />
+        </label>
+      </section>
+      <section>
+        <h2>Aktionen</h2>
+        <div class="action-grid">
+          <button id="save-json">Speichern</button>
+          <button id="load-json">Laden</button>
+          <button id="backup-state">Backup (lokal)</button>
+          <button id="restore-backup">Backup zurück</button>
+          <button id="export-png">PNG Export</button>
+          <button id="export-pdf">PDF Export</button>
+          <button id="clear-all" class="danger">Alles löschen</button>
+        </div>
+        <input type="file" id="file-input" accept=".json,application/json" hidden />
+      </section>
+      <section>
+        <h2>Grundriss-Vorlage</h2>
+        <div class="action-grid">
+          <button id="upload-plan-image">Bild hochladen</button>
+          <button id="remove-plan-image" class="danger">Bild entfernen</button>
+        </div>
+        <label class="stack">
+          Breite (m)
+          <input type="number" id="plan-width" min="0.1" step="0.1" value="10" />
+        </label>
+        <label class="stack">
+          Position X (m)
+          <input type="number" id="plan-x" step="0.1" value="0" />
+        </label>
+        <label class="stack">
+          Position Y (m)
+          <input type="number" id="plan-y" step="0.1" value="0" />
+        </label>
+        <label class="stack">
+          Transparenz
+          <input type="range" id="plan-opacity" min="0.1" max="1" step="0.05" value="0.35" />
+        </label>
+        <input type="file" id="plan-image-input" accept="image/*" hidden />
+      </section>
+      <section>
+        <h2>Eigenschaften</h2>
+        <div id="properties-panel">
+          <div>Kein Objekt ausgewählt.</div>
+        </div>
+      </section>
+      <section>
+        <h2>Shortcuts</h2>
+        <div class="shortcuts">
+          <div>1 Auswahl</div>
+          <div>2 Wand</div>
+          <div>3 Tür</div>
+          <div>4 Fenster</div>
+          <div>5 Bemaßung</div>
+          <div>Q / E Drehen</div>
+          <div>Strg+Z Undo</div>
+          <div>Strg+Y Redo</div>
+          <div>Strg+D Duplizieren</div>
+          <div>Scroll Zoom</div>
+          <div>Mittel-Maus Pan</div>
+          <div>+ / − Zoom</div>
+          <div>Home Ansicht reset</div>
+          <div>2× Klick Raum benennen</div>
+        </div>
+      </section>
+    </aside>
+    <main id="workspace">
+      <div id="topbar">
+        <div id="status-left">Werkzeug: Auswahl</div>
+        <div id="status-center">Cursor: 0.00 m / 0.00 m</div>
+        <div id="status-right">Fläche: 0.00 m²</div>
+        <!-- V3.0: Zoom controls -->
+        <div id="zoom-controls" style="display:flex;align-items:center;gap:3px;margin-right:6px">
+          <button id="zoom-out" title="Rauszoomen (−)" style="width:26px;height:26px;border-radius:5px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;font-size:14px;line-height:1">−</button>
+          <button id="zoom-reset" title="Ansicht zurücksetzen (Home)" style="min-width:46px;height:26px;border-radius:5px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;font-size:11px" id="zoom-label">100%</button>
+          <button id="zoom-in"  title="Reinzoomen (+)" style="width:26px;height:26px;border-radius:5px;border:1px solid #cbd5e1;background:#f8fafc;cursor:pointer;font-size:14px;line-height:1">+</button>
+        </div>
+        <div id="view-toggle">
+          <button id="btn-2d" class="view-tab active">2D</button>
+          <button id="btn-3d" class="view-tab">3D</button>
+        </div>
+        <button id="export-to-kalk" title="In Kalkulation übernehmen" style="display:none">✔ In Kalkulation</button>
+        <!-- V2.9: Material-Auswahl für den Kalkulations-Export -->
+        <span id="export-options" style="display:none;gap:4px;align-items:center;font-size:11px">
+          <label title="Bodenbelag">🪵
+            <select id="export-flooring" style="font-size:11px;max-width:110px">
+              <option value="fliesen">Fliesen</option>
+              <option value="parkett">Parkett</option>
+              <option value="laminat">Laminat</option>
+              <option value="teppich">Teppich</option>
+              <option value="estrich">Estrich</option>
+              <option value="epoxid">Epoxid</option>
+            </select>
+          </label>
+          <label title="Wandbelag">🖌️
+            <select id="export-walltype" style="font-size:11px;max-width:110px">
+              <option value="maler">Maler</option>
+              <option value="tapete">Tapete</option>
+              <option value="wandfliesen">Wandfliesen</option>
+              <option value="putz">Innenputz</option>
+              <option value="trockenbau_bekleidung">TRB-Bekleidung</option>
+            </select>
+          </label>
+          <label title="Decke">⬜
+            <select id="export-ceiltype" style="font-size:11px;max-width:110px">
+              <option value="maler_decke">Decke streichen</option>
+              <option value="abhaengdecke">Abgehängt</option>
+              <option value="akustik">Akustik</option>
+            </select>
+          </label>
+        </span>
+      </div>
+      <canvas id="canvas"></canvas>
+      <canvas id="canvas3d"></canvas>
+    </main>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
